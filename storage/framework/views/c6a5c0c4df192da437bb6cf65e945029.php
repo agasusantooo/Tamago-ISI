@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAMAGO-ISI</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <?php echo app('Illuminate\Foundation\Vite')('resources/css/app.css'); ?>
 </head>
 <body class="flex flex-col min-h-screen bg-gray-100 text-gray-800">
 
@@ -18,10 +18,10 @@
         <h2 class="text-3xl font-bold mb-1">Sistem Manajemen Tugas Akhir</h2>
         <p class="text-gray-600 mb-8">Kelola proposal, bimbingan, hingga ujian dengan mudah dan seru.</p>
         <div class="space-x-4">
-            <a href="{{ route('login') }}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+            <a href="<?php echo e(route('login')); ?>" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                 Login
             </a>
-            <a href="{{ route('register') }}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+            <a href="<?php echo e(route('register')); ?>" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
                 Register
             </a>
         </div>
@@ -29,8 +29,9 @@
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-4 text-center">
-        <p>&copy; {{ date('Y') }} TAMAGO-ISI. All Rights Reserved.</p>
+        <p>&copy; <?php echo e(date('Y')); ?> TAMAGO-ISI. All Rights Reserved.</p>
     </footer>
 
 </body>
 </html>
+<?php /**PATH C:\laragon\www\Tamago-ISI-main\Tamago-ISI-main\resources\views/welcome.blade.php ENDPATH**/ ?>

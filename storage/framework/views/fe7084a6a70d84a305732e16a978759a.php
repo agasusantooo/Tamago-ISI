@@ -43,7 +43,7 @@
             <nav class="flex-1 overflow-y-auto py-4">
                 <ul class="space-y-1 px-3">
                     <li>
-                        <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4 py-3 text-blue-900 bg-blue-50 rounded-lg font-medium">
+                        <a href="<?php echo e(route('dashboard')); ?>" class="flex items-center space-x-3 px-4 py-3 text-blue-900 bg-blue-50 rounded-lg font-medium">
                             <i class="fas fa-home w-5"></i>
                             <span>Dashboard</span>
                         </a>
@@ -97,15 +97,16 @@
             <div class="p-4 border-t">
                 <div class="flex items-center space-x-3 mb-3">
                     <div class="w-10 h-10 bg-blue-600 text-white flex items-center justify-center rounded-full font-semibold">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        <?php echo e(strtoupper(substr(Auth::user()->name, 0, 1))); ?>
+
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-gray-800 truncate uppercase">{{ Auth::user()->name }}</p>
-                        <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
+                        <p class="text-sm font-semibold text-gray-800 truncate uppercase"><?php echo e(Auth::user()->name); ?></p>
+                        <p class="text-xs text-gray-500 truncate"><?php echo e(Auth::user()->email); ?></p>
                     </div>
                 </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
+                <form method="POST" action="<?php echo e(route('logout')); ?>">
+                    <?php echo csrf_field(); ?>
                     <button type="submit" class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-medium">
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Logout</span>
@@ -127,8 +128,8 @@
                     </div>
                     <div class="flex items-center space-x-4">
                         <div class="text-right hidden md:block">
-                            <p class="text-sm font-semibold text-gray-800 uppercase">{{ Auth::user()->name }}</p>
-                            <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
+                            <p class="text-sm font-semibold text-gray-800 uppercase"><?php echo e(Auth::user()->name); ?></p>
+                            <p class="text-xs text-gray-500"><?php echo e(Auth::user()->email); ?></p>
                         </div>
                         <button class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
                             <i class="fas fa-bell text-xl"></i>
@@ -147,7 +148,7 @@
                             <!-- Welcome Card -->
                             <div class="bg-white rounded-xl shadow-sm p-6">
                                 <h3 class="text-xl font-semibold text-gray-800">
-                                    Selamat datang, <span class="uppercase">{{ Auth::user()->name }}</span> 👋
+                                    Selamat datang, <span class="uppercase"><?php echo e(Auth::user()->name); ?></span> 👋
                                 </h3>
                                 <p class="mt-1 text-sm text-gray-600">
                                     NIM: 2021110001
@@ -345,4 +346,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH D:\C\Tamago-ISI\resources\views/dashboard.blade.php ENDPATH**/ ?>
