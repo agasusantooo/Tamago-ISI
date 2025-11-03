@@ -3,20 +3,17 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Service\ProgressService;  // Ubah ini (Services → Service)
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        $this->app->bind(ProgressService::class, function ($app) {
+            return new ProgressService();
+        });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         //

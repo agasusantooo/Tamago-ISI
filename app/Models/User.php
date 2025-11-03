@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id',
     ];
 
     /**
@@ -44,5 +45,76 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Relasi ke Proposals yang diajukan oleh Mahasiswa
+    public function proposals()
+    {
+        return $this->hasMany(Proposal::class);
+    }
+
+    public function latestProposal()
+    {
+        return $this->hasOne(Proposal::class)->latestOfMany();
+    }
+
+    public function mahasiswaBimbingan()
+    {
+        return $this->hasMany(Proposal::class, 'dosen_id');
+    }
+
+    // Relasi ke Role
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    // Helper methods untuk cek role
+    public function hasRole($roleName)
+    {
+        return $this->role && $this->role->name === $roleName;
+    }
+
+    public function isMahasiswa()
+    {
+        return $this->hasRole('mahasiswa');
+    }
+
+    public function isDospem()
+    {
+        return $this->hasRole('dospem');
+    }
+
+    public function isKaprodi()
+    {
+        return $this->hasRole('kaprodi');
+    }
+
+    public function isKoordinatorTA()
+    {
+        return $this->hasRole('koordinator_ta');
+    }
+
+    public function isAdmin()
+    {
+        return $this->hasRole('admin');
+    }
+
+    public function isDosenPenguji()
+    {
+        return $this->hasRole('dosen_penguji');
+    }
+
+    // Get role name
+    public function getRoleName()
+    {
+        return $this->role ? $this->role->name : 'guest';
+    }
+
+    // Get role display name
+    public function getRoleDisplayName()
+    {
+        return $this->role ? $this->role->display_name : 'Guest';
+
     }
 }

@@ -29,7 +29,17 @@ class LoginController extends Controller
         // Coba login
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $remember)) {
             $request->session()->regenerate();
-            return redirect()->intended('dashboard');
+            $user = Auth::user();
+
+            // Redirect sesuai role
+            switch ($user->role) {
+                case 'admin':
+                    return redirect()->route('dashboard.admin');
+                case 'mahasiswa':
+                    return redirect()->route('dashboard.mahasiswa');
+                default:
+                    return redirect()->route('dashboard.default');
+            }
         }
 
         // Jika gagal

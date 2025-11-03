@@ -43,49 +43,72 @@
             <nav class="flex-1 overflow-y-auto py-4">
                 <ul class="space-y-1 px-3">
                     <li>
-                        <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4 py-3 text-blue-900 bg-blue-50 rounded-lg font-medium">
+                        <a href="{{ route('dashboard') }}"
+                        class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                        {{ request()->routeIs('dashboard') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-home w-5"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
+                    
                     <li>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <a href="{{ route('mahasiswa.proposal') }}"
+                        class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                        {{ request()->routeIs('mahasiswa.proposal') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-file-alt w-5"></i>
                             <span>Pengajuan Proposal</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <a href="{{ route('mahasiswa.bimbingan') }}"
+                        class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                        {{ request()->routeIs('mahasiswa.bimbingan') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-chalkboard-teacher w-5"></i>
                             <span>Bimbingan</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <a href="{{ route('mahasiswa.story-conference') }}"
+                        class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                        {{ request()->routeIs('mahasiswa.story-conference') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-comments w-5"></i>
                             <span>Story Conference</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <a href="{{ route('mahasiswa.produksi') }}"
+                        class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                        {{ request()->routeIs('mahasiswa.produksi') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-film w-5"></i>
                             <span>Produksi</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <a href="{{ route('mahasiswa.ujian-ta') }}"
+                        class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                        {{ request()->routeIs('mahasiswa.ujian-ta') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-graduation-cap w-5"></i>
                             <span>Ujian TA</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <a href="{{ route('mahasiswa.naskah-karya') }}"
+                        class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                        {{ request()->routeIs('mahasiswa.naskah-karya') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-folder-open w-5"></i>
                             <span>Naskah & Karya</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                        <a href="{{ route('profile.edit') }}"
+                        class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                        {{ request()->routeIs('profile.edit') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-user w-5"></i>
                             <span>Akun Saya</span>
                         </a>
@@ -156,40 +179,45 @@
 
                             <!-- Progress & Dosen -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Progress Card -->
-                                <div class="bg-white rounded-xl shadow-sm p-6">
-                                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Progres Tugas Akhir</h3>
-                                    <div class="flex justify-center items-center">
-                                        <div class="relative w-40 h-40">
-                                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                                <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-                                                <circle cx="50" cy="50" r="45" fill="none" stroke="#2563eb" stroke-width="8"
-                                                    stroke-dasharray="282.6" stroke-dashoffset="70.65" stroke-linecap="round"/>
-                                            </svg>
-                                            <div class="absolute inset-0 flex items-center justify-center">
-                                                <span class="text-3xl font-bold text-blue-600">75%</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
-                                        <div class="flex items-center space-x-1">
-                                            <span class="w-2 h-2 bg-blue-600 rounded-full"></span>
-                                            <span class="text-blue-600 font-medium">Proposal</span>
-                                        </div>
-                                        <div class="flex items-center space-x-1">
-                                            <span class="w-2 h-2 bg-blue-600 rounded-full"></span>
-                                            <span class="text-blue-600 font-medium">Bimbingan</span>
-                                        </div>
-                                        <div class="flex items-center space-x-1">
-                                            <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
-                                            <span class="text-gray-500">Produksi</span>
-                                        </div>
-                                        <div class="flex items-center space-x-1">
-                                            <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
-                                            <span class="text-gray-500">Ujian TA</span>
+                            <!-- Progress Card -->
+                            <div class="bg-white rounded-xl shadow-sm p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Progres Tugas Akhir</h3>
+                                    <button onclick="toggleProgressDetail()" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                                        <i class="fas fa-list mr-1"></i>Detail
+                                    </button>
+                                </div>
+                                <div class="flex justify-center items-center">
+                                    <div class="relative w-40 h-40">
+                                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+                                            <circle cx="50" cy="50" r="45" fill="none" stroke="#2563eb" stroke-width="8"
+                                                stroke-dasharray="282.6" stroke-dashoffset="70.65" stroke-linecap="round"/>
+                                        </svg>
+                                        <div class="absolute inset-0 flex items-center justify-center">
+                                            <span class="text-3xl font-bold text-blue-600">75%</span>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                                    <div class="flex items-center space-x-1">
+                                        <span class="w-2 h-2 bg-blue-600 rounded-full"></span>
+                                        <span class="text-blue-600 font-medium">Proposal</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="w-2 h-2 bg-blue-600 rounded-full"></span>
+                                        <span class="text-blue-600 font-medium">Bimbingan</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
+                                        <span class="text-gray-500">Produksi</span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
+                                        <span class="text-gray-500">Ujian TA</span>
+                                    </div>
+                                </div>
+                            </div>
 
                                 <!-- Dosen Pembimbing Card -->
                                 <div class="bg-white rounded-xl shadow-sm p-6">
