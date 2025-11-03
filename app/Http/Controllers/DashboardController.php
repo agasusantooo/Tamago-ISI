@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Service\ProgressService;
+use App\Models\Proposal;
 
 class DashboardController extends Controller
 {
@@ -38,12 +39,19 @@ class DashboardController extends Controller
         }
     }
 
+    /**
+     * DASHBOARD MAHASISWA
+     */
     public function mahasiswaDashboard()
     {
-        $userId = Auth::id();
+        $user = Auth::user();
+        $userId = $user->id;
+
+        // Ambil data progress dari service
         $progressData = $this->progressService->getDashboardData($userId);
 
-        $totalBimbingan = 12; // contoh placeholder
+        // Placeholder contoh data
+        $totalBimbingan = 12;
 
         $data = [
             'progress' => $progressData['percentage'],
@@ -60,9 +68,18 @@ class DashboardController extends Controller
             ]),
         ];
 
-        return view('dashboards.mahasiswa', $data);
+        // Ambil proposal terakhir mahasiswa
+        $latestProposal = Proposal::where('mahasiswa_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        // Gabungkan data untuk dikirim ke view
+        return view('dashboards.mahasiswa', array_merge($data, compact('latestProposal')));
     }
 
+    /**
+     * DASHBOARD DOSEN PEMBIMBING
+     */
     public function dospemDashboard()
     {
         $data = [
@@ -82,6 +99,9 @@ class DashboardController extends Controller
         return view('dashboards.pembimbing', $data);
     }
 
+    /**
+     * DASHBOARD KAPRODI
+     */
     public function kaprodiDashboard()
     {
         $data = [
@@ -93,9 +113,12 @@ class DashboardController extends Controller
             ]),
         ];
 
-        return view('dashboards.dashboard.kaprodi', $data);
+        return view('dashboards.kaprodi', $data);
     }
 
+    /**
+     * DASHBOARD KOORDINATOR TA
+     */
     public function koordinatorTADashboard()
     {
         $data = [
@@ -111,6 +134,9 @@ class DashboardController extends Controller
         return view('dashboards.koordinator_ta', $data);
     }
 
+    /**
+     * DASHBOARD DOSEN PENGUJI
+     */
     public function dosenPengujiDashboard()
     {
         $data = [
@@ -126,6 +152,9 @@ class DashboardController extends Controller
         return view('dashboards.dospenguji', $data);
     }
 
+    /**
+     * DASHBOARD ADMIN
+     */
     public function adminDashboard()
     {
         $data = [

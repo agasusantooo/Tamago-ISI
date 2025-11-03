@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <title>Pengajuan Proposal - Tamago ISI</title>
 
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -13,52 +13,52 @@
 <body class="bg-gray-100">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        @include('mahasiswa.partials.sidebar-mahasiswa')
+        <?php echo $__env->make('mahasiswa.partials.sidebar-mahasiswa', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
 
             <!-- Header -->
-            @include('mahasiswa.partials.header-mahasiswa')
+            <?php echo $__env->make('mahasiswa.partials.header-mahasiswa', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto p-8">
                 <div class="max-w-7xl mx-auto">
 
                     <!-- Alerts -->
-                    @if(session('success'))
+                    <?php if(session('success')): ?>
                         <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-md shadow-sm">
                             <div class="flex items-center">
                                 <i class="fas fa-check-circle text-green-600 mr-3"></i>
-                                <p class="text-green-800">{{ session('success') }}</p>
+                                <p class="text-green-800"><?php echo e(session('success')); ?></p>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    @if(session('error'))
+                    <?php if(session('error')): ?>
                         <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-md shadow-sm">
                             <div class="flex items-center">
                                 <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-                                <p class="text-red-800">{{ session('error') }}</p>
+                                <p class="text-red-800"><?php echo e(session('error')); ?></p>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    @if($errors->any())
+                    <?php if($errors->any()): ?>
                         <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-md shadow-sm">
                             <div class="flex items-start">
                                 <i class="fas fa-exclamation-circle text-red-600 mr-3 mt-1"></i>
                                 <div>
                                     <p class="font-semibold text-red-800">Terdapat kesalahan:</p>
                                     <ul class="list-disc list-inside text-red-700 mt-2">
-                                        @foreach($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
+                                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <li><?php echo e($error); ?></li>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </ul>
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
                     <!-- Grid Layout -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -70,8 +70,8 @@
                                     Lengkapi semua informasi yang diperlukan untuk mengajukan proposal tugas akhir.
                                 </p>
 
-                                <form id="proposalForm" method="POST" action="{{ route('mahasiswa.proposal.submit') }}" enctype="multipart/form-data">
-                                    @csrf
+                                <form id="proposalForm" method="POST" action="<?php echo e(route('mahasiswa.proposal.submit')); ?>" enctype="multipart/form-data">
+                                    <?php echo csrf_field(); ?>
 
                                     <!-- Judul -->
                                     <div class="mb-6">
@@ -79,7 +79,7 @@
                                             Judul Tugas Akhir <span class="text-red-500">*</span>
                                         </label>
                                         <input type="text" id="judul" name="judul" 
-                                            value="{{ old('judul') }}"
+                                            value="<?php echo e(old('judul')); ?>"
                                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-600 focus:border-transparent"
                                             placeholder="Masukkan Judul Tugas Akhir" required>
                                     </div>
@@ -91,7 +91,7 @@
                                         </label>
                                         <textarea id="deskripsi" name="deskripsi" rows="6"
                                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-600 focus:border-transparent"
-                                            placeholder="Tuliskan Deskripsi Singkat atau Abstrak Proposal Anda" required>{{ old('deskripsi') }}</textarea>
+                                            placeholder="Tuliskan Deskripsi Singkat atau Abstrak Proposal Anda" required><?php echo e(old('deskripsi')); ?></textarea>
                                         <p class="text-xs text-gray-500 mt-1">Minimum 100 karakter</p>
                                     </div>
 
@@ -103,11 +103,12 @@
                                         <select id="dosen" name="dosen_id"
                                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-600 focus:border-transparent">
                                             <option value="">-- Pilih Dosen Pembimbing --</option>
-                                            @foreach($dosens as $dosen)
-                                                <option value="{{ $dosen->id }}" {{ old('dosen_id') == $dosen->id ? 'selected' : '' }}>
-                                                    {{ $dosen->nama }} - {{ $dosen->gelar }}
+                                            <?php $__currentLoopData = $dosens; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dosen): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($dosen->id); ?>" <?php echo e(old('dosen_id') == $dosen->id ? 'selected' : ''); ?>>
+                                                    <?php echo e($dosen->nama); ?> - <?php echo e($dosen->gelar); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
 
@@ -159,14 +160,15 @@
                         <div class="lg:col-span-1">
                             <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
                                 <h3 class="font-bold text-gray-800 mb-4">Status Pengajuan</h3>
-                                @if($latestProposal)
-                                    @php $badge = $latestProposal->statusBadge; @endphp
-                                    <span class="px-3 py-1 bg-{{ $badge['color'] }}-100 text-{{ $badge['color'] }}-800 text-sm font-semibold rounded-full">
-                                        {{ $badge['text'] }}
+                                <?php if($latestProposal): ?>
+                                    <?php $badge = $latestProposal->statusBadge; ?>
+                                    <span class="px-3 py-1 bg-<?php echo e($badge['color']); ?>-100 text-<?php echo e($badge['color']); ?>-800 text-sm font-semibold rounded-full">
+                                        <?php echo e($badge['text']); ?>
+
                                     </span>
-                                @else
+                                <?php else: ?>
                                     <p class="text-sm text-gray-600">Belum ada pengajuan proposal.</p>
-                                @endif
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -180,7 +182,7 @@
             const form = document.getElementById('proposalForm');
             const formData = new FormData(form);
 
-            fetch("{{ route('mahasiswa.proposal.draft') }}", {
+            fetch("<?php echo e(route('mahasiswa.proposal.draft')); ?>", {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -194,3 +196,4 @@
     </script>
 </body>
 </html>
+<?php /**PATH D:\Tamago-ISI\resources\views/mahasiswa/proposal.blade.php ENDPATH**/ ?>

@@ -26,13 +26,13 @@
 
     <div class="flex h-screen overflow-hidden">
         <!-- ✅ Sidebar Partial -->
-        @include('mahasiswa.partials.sidebar-mahasiswa')
+        <?php echo $__env->make('mahasiswa.partials.sidebar-mahasiswa', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <!-- ✅ Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
 
             <!-- ✅ Header Partial -->
-            @include('mahasiswa.partials.header-mahasiswa')
+            <?php echo $__env->make('mahasiswa.partials.header-mahasiswa', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
             <!-- ✅ Main Dashboard Content -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
@@ -42,7 +42,7 @@
                         <div class="lg:col-span-2 space-y-6">
                             <div class="bg-white rounded-xl shadow-sm p-6">
                                 <h3 class="text-xl font-semibold text-gray-800">
-                                    Selamat datang, <span class="uppercase">{{ Auth::user()->name }}</span> 👋
+                                    Selamat datang, <span class="uppercase"><?php echo e(Auth::user()->name); ?></span> 👋
                                 </h3>
                                 <p class="mt-1 text-sm text-gray-600">NIM: 2021110001</p>
                             </div>
@@ -218,3 +218,4 @@
     </script>
 </body>
 </html>
+<?php /**PATH D:\Tamago-ISI\resources\views/dashboards/mahasiswa.blade.php ENDPATH**/ ?>
