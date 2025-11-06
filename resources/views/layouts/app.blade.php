@@ -24,6 +24,7 @@
             </h1>
             <div class="space-x-4">
                 <a href="{{ route('dashboard') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-500">Dashboard</a>
+                <a href="{{ route('mahasiswa.bimbingan') }}" class="text-gray-600 dark:text-gray-300 hover:text-blue-500">Bimbingan</a>
                 <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
                     <button type="submit" class="text-gray-600 dark:text-gray-300 hover:text-red-500">Logout</button>

@@ -10,65 +10,15 @@ class Dosen extends Model
     use HasFactory;
 
     protected $table = 'dosen';
+    protected $primaryKey = 'nidn';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
-        'nip',
+        'nidn',
         'nama',
-        'gelar',
-        'email',
-        'no_telp',
-        'bidang_keahlian',
+        'jabatan',
+        'rumpun_ilmu',
         'status',
-        'foto',
     ];
-
-    /**
-     * Get the proposals for the dosen
-     */
-    public function proposals()
-    {
-        return $this->hasMany(Proposal::class);
-    }
-
-    /**
-     * Get active proposals
-     */
-    public function activeProposals()
-    {
-        return $this->hasMany(Proposal::class)
-            ->whereIn('status', ['diajukan', 'review', 'revisi']);
-    }
-
-    /**
-     * Get approved proposals
-     */
-    public function approvedProposals()
-    {
-        return $this->hasMany(Proposal::class)
-            ->where('status', 'disetujui');
-    }
-
-    /**
-     * Get full name with gelar
-     */
-    public function getFullNameAttribute()
-    {
-        return $this->nama . ($this->gelar ? ', ' . $this->gelar : '');
-    }
-
-    /**
-     * Scope untuk filter dosen aktif
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('status', 'aktif');
-    }
-
-    /**
-     * Scope untuk filter berdasarkan bidang keahlian
-     */
-    public function scopeByBidang($query, $bidang)
-    {
-        return $query->where('bidang_keahlian', 'like', '%' . $bidang . '%');
-    }
 }

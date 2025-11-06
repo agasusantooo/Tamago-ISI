@@ -117,4 +117,9 @@ class User extends Authenticatable
         return $this->role ? $this->role->display_name : 'Guest';
 
     }
+
+    public function mahasiswa()
+    {
+        return $this->hasOne(Mahasiswa::class, 'email', 'email');
+    }
 }
