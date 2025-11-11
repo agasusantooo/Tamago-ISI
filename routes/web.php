@@ -1,18 +1,32 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Mahasiswa\ProposalController;
+use App\Http\Controllers\Mahasiswa\BimbinganController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminLogController;
+use App\Http\Controllers\Admin\AdminSettingController;
+use App\Http\Controllers\Mahasiswa\StoryConferenceController;
+use App\Http\Controllers\Mahasiswa\ProduksiController;
 
-// Redirect ke login
-
+/*
+|--------------------------------------------------------------------------
+| Default Redirect
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
     return redirect('/login');
 });
 
-// Routes untuk guest (belum login)
+/*
+|--------------------------------------------------------------------------
+| Guest Routes (Belum Login)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('guest')->group(function () {
     // Login
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -23,7 +37,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 });
 
-// Routes untuk user yang sudah login
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes (Sudah Login)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     // Logout
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
@@ -32,67 +50,133 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
-// ROLE: MAHASISWA
-Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+/*
+|--------------------------------------------------------------------------
+| ROLE: MAHASISWA
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:mahasiswa'])
+    ->prefix('mahasiswa')
+    ->name('mahasiswa.')
+    ->group(function () {
+
+        // Dashboard Mahasiswa
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // ------------------------
+        // PROPOSAL ROUTES
+        // ------------------------
+        Route::get('/proposal', [ProposalController::class, 'index'])->name('proposal');
+        Route::post('/proposal/submit', [ProposalController::class, 'submit'])->name('proposal.submit');
+        Route::post('/proposal/draft', [ProposalController::class, 'saveDraft'])->name('proposal.draft');
+        Route::get('/proposal/{id}', [ProposalController::class, 'show'])->name('proposal.show');
+        Route::get('/proposal/{id}/download', [ProposalController::class, 'download'])->name('proposal.download');
+
+        // ------------------------
+        // BIMBINGAN ROUTES
+        // ------------------------
+        Route::controller(BimbinganController::class)
+            ->prefix('bimbingan')
+            ->name('bimbingan.')
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/store', 'store')->name('store');
+                Route::get('/{id}', 'show')->name('show');
+                Route::get('/{id}/download', 'download')->name('download');
+            });
+
+        // ------------------------
+        // STORY CONFERENCE ROUTES
+        // ------------------------
+        Route::controller(StoryConferenceController::class)
+            ->prefix('story-conference')
+            ->name('story-conference.')
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/store', 'store')->name('store');
+                Route::get('/{id}/download', 'download')->name('download');
+                Route::delete('/{id}/cancel', 'cancel')->name('cancel');
+            });
+
+        // ------------------------
+        // PRODUKSI ROUTES
+        // ------------------------
+        Route::controller(ProduksiController::class)
+            ->prefix('produksi')
+            ->name('produksi.')
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/store-pra', 'storePraProduksi')->name('store.pra');
+                Route::post('/store-akhir', 'storeProduksiAkhir')->name('store.akhir');
+            });
+
+        // ------------------------
+        // MENU TAMBAHAN
+        // ------------------------
+        Route::view('/ujian-ta', 'mahasiswa.ujian-ta')->name('ujian-ta');
+        Route::view('/naskah-karya', 'mahasiswa.naskah-karya')->name('naskah-karya');
+        Route::view('/akun', 'mahasiswa.akun')->name('akun');
+
+    });
 
 
-    // Menu Proposal
-    Route::get('/proposal', [ProposalController::class, 'index'])->name('proposal');
-    Route::post('/proposal/submit', [ProposalController::class, 'submit'])->name('proposal.submit');
-    Route::post('/proposal/draft', [ProposalController::class, 'saveDraft'])->name('proposal.draft');
-    Route::get('/proposal/{id}', [ProposalController::class, 'show'])->name('proposal.show');
-    Route::get('/proposal/{id}/download', [ProposalController::class, 'download'])->name('proposal.download');
+/*
+|--------------------------------------------------------------------------
+| ROLE: DOSEN PEMBIMBING
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:dospem'])
+    ->prefix('dospem')
+    ->name('dospem.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'dospemDashboard'])->name('dashboard');
 
-    // Menu tambahan
-    Route::view('/bimbingan', 'mahasiswa.bimbingan')->name('bimbingan');
-    Route::view('/story-conference', 'mahasiswa.story-conference')->name('story-conference');
-    Route::view('/produksi', 'mahasiswa.produksi')->name('produksi');
-    Route::view('/ujian-ta', 'mahasiswa.ujian-ta')->name('ujian-ta');
-    Route::view('/naskah-karya', 'mahasiswa.naskah-karya')->name('naskah-karya');
-    Route::view('/akun', 'mahasiswa.akun')->name('akun');
-});
+        Route::view('/mahasiswa-bimbingan', 'dospem.mahasiswa-bimbingan')->name('mahasiswa-bimbingan');
+        Route::view('/review-tugas', 'dospem.review-tugas')->name('review-tugas');
+        Route::view('/jadwal-bimbingan', 'dospem.jadwal-bimbingan')->name('jadwal-bimbingan');
+        Route::view('/riwayat-bimbingan', 'dospem.riwayat-bimbingan')->name('riwayat-bimbingan');
+    });
 
-// ROLE: DOSEN PEMBIMBING
-Route::middleware(['auth', 'role:dospem'])->prefix('dospem')->name('dospem.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'dospemDashboard'])->name('dashboard');
+/*
+|--------------------------------------------------------------------------
+| ROLE: KAPRODI
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:kaprodi'])
+    ->prefix('kaprodi')
+    ->name('kaprodi.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'kaprodi'])->name('dashboard');
+        Route::view('/verifikasi', 'kaprodi.verifikasi')->name('verifikasi');
+        Route::view('/laporan', 'kaprodi.laporan')->name('laporan');
+    });
 
+/*
+|--------------------------------------------------------------------------
+| ROLE: KOORDINATOR TA
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:koordinator_ta'])
+    ->prefix('koordinator-ta')
+    ->name('koordinator_ta.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'koordinatorTa'])->name('dashboard');
+        Route::view('/monitoring', 'koordinator_ta.monitoring')->name('monitoring');
+        Route::view('/dospem', 'koordinator_ta.dospem')->name('dospem');
+    });
 
-    // Daftar mahasiswa bimbingan
-    Route::view('/mahasiswa-bimbingan', 'dospem.mahasiswa-bimbingan')->name('mahasiswa-bimbingan');
-
-    // Review tugas mahasiswa
-    Route::view('/review-tugas', 'dospem.review-tugas')->name('review-tugas');
-
-    // Jadwal bimbingan
-    Route::view('/jadwal-bimbingan', 'dospem.jadwal-bimbingan')->name('jadwal-bimbingan');
-
-    // Riwayat bimbingan
-    Route::view('/riwayat-bimbingan', 'dospem.riwayat-bimbingan')->name('riwayat-bimbingan');
-});
-
-// ROLE: KAPRODI
-Route::middleware(['auth', 'role:kaprodi'])->prefix('kaprodi')->name('kaprodi.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'kaprodi'])->name('dashboard');
-    Route::view('/verifikasi', 'kaprodi.verifikasi')->name('verifikasi');
-    Route::view('/laporan', 'kaprodi.laporan')->name('laporan');
-});
-
-// ROLE: KOORDINATOR TA
-Route::middleware(['auth', 'role:koordinator_ta'])->prefix('koordinator-ta')->name('koordinator_ta.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'koordinatorTa'])->name('dashboard');
-    Route::view('/monitoring', 'koordinator_ta.monitoring')->name('monitoring');
-    Route::view('/dospem', 'koordinator_ta.dospem')->name('dospem');
-});
-
+/*
+|--------------------------------------------------------------------------
+| ROLE: ADMIN
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        // Dashboard Admin
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-        // Halaman manajemen user dan role (opsional)
+        // Optional management pages
         Route::view('/users', 'admin.users')->name('users');
         Route::view('/roles', 'admin.roles')->name('roles');
 
@@ -101,16 +185,25 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings');
     });
 
+/*
+|--------------------------------------------------------------------------
+| ROLE: DOSEN PENGUJI
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:dosen_penguji'])
+    ->prefix('dosen-penguji')
+    ->name('dosen_penguji.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'dosenPenguji'])->name('dashboard');
+        Route::view('/jadwal', 'dosen_penguji.jadwal')->name('jadwal');
+        Route::view('/penilaian', 'dosen_penguji.penilaian')->name('penilaian');
+    });
 
-
-// ROLE: DOSEN PENGUJI
-Route::middleware(['auth', 'role:dosen_penguji'])->prefix('dosen-penguji')->name('dosen_penguji.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'dosenPenguji'])->name('dashboard');
-    Route::view('/jadwal', 'dosen_penguji.jadwal')->name('jadwal');
-    Route::view('/penilaian', 'dosen_penguji.penilaian')->name('penilaian');
-});
-
-// DASHBOARD DEFAULT (Redirect per Role)
+/*
+|--------------------------------------------------------------------------
+| DASHBOARD DEFAULT (Redirect per Role)
+|--------------------------------------------------------------------------
+*/
 Route::get('/dashboard/default', function () {
     $user = Auth::user();
 
@@ -133,20 +226,11 @@ Route::get('/dashboard/default', function () {
     }
 })->middleware('auth')->name('dashboard.default');
 
-// PROFILE USER (SEMUA ROLE)
+/*
+|--------------------------------------------------------------------------
+| PROFILE ROUTE (Untuk Semua Role)
+|--------------------------------------------------------------------------
+*/
 Route::get('/profile', function () {
     return view('profile.edit');
 })->middleware('auth')->name('profile.edit');
-
-
-
-// Mahasiswa Routes - Protected by auth middleware
-Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
-    
-    // Proposal Routes
-    Route::get('/proposal', [ProposalController::class, 'index'])->name('proposal');
-    Route::post('/proposal/submit', [ProposalController::class, 'submit'])->name('proposal.submit');
-    Route::post('/proposal/draft', [ProposalController::class, 'saveDraft'])->name('proposal.draft');
-    Route::get('/proposal/download/{id}', [ProposalController::class, 'download'])->name('proposal.download');
-    
-});

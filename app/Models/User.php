@@ -117,4 +117,12 @@ class User extends Authenticatable
         return $this->role ? $this->role->display_name : 'Guest';
 
     }
+
+    // Relasi ke Mahasiswa
+    public function mahasiswa()
+    {
+    // user_id = kolom di tabel mahasiswa yang mengacu ke users.id
+        return $this->hasOne(Mahasiswa::class, 'user_id', 'id');
+    }
+
 }

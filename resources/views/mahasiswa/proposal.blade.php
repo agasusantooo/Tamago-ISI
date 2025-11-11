@@ -5,70 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Pengajuan Proposal - Tamago ISI</title>
+
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-gray-100">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        @include('partials.sidebar-mahasiswa')
+        @include('mahasiswa.partials.sidebar-mahasiswa')
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Header Putih dengan Progress -->
-            <div class="bg-white shadow p-5 border-b">
-                <div class="flex items-center space-x-5">
-                    <!-- Logo -->
-                    <img src="/images/logo-isi.png" alt="Logo ISI" class="w-14 h-14" onerror="this.style.display='none'">
 
-                    <!-- Info Tamago -->
-                    <div class="flex-1">
-                        <div class="flex justify-between items-center mb-1">
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-900">Tamago ISI</h2>
-                                <p class="text-sm text-gray-600">Sistem TA</p>
-                            </div>
-                            <p class="text-xs text-gray-700 font-semibold">
-                                {{ $latestProposal && $latestProposal->status == 'disetujui' ? '100' : '65' }}%
-                            </p>
-                        </div>
-
-                        <p class="text-xs text-gray-500 mb-1">Progress Tugas Akhir</p>
-                        <div class="w-full bg-gray-100 h-3 rounded-full">
-                            <div class="bg-yellow-700 h-3 rounded-full transition-all duration-500"
-                                style="width: {{ $latestProposal && $latestProposal->status == 'disetujui' ? '100' : '65' }}%;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Header -->
+            @include('mahasiswa.partials.header-mahasiswa')
 
             <!-- Main Content -->
-            <main class="flex-1 overflow-y-auto p-6">
+            <main class="flex-1 overflow-y-auto p-8">
                 <div class="max-w-7xl mx-auto">
 
-                    <!-- Alert Messages -->
+                    <!-- Alerts -->
                     @if(session('success'))
-                        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-md shadow-sm">
                             <div class="flex items-center">
                                 <i class="fas fa-check-circle text-green-600 mr-3"></i>
-                                <p class="text-green-700">{{ session('success') }}</p>
+                                <p class="text-green-800">{{ session('success') }}</p>
                             </div>
                         </div>
                     @endif
 
                     @if(session('error'))
-                        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-md shadow-sm">
                             <div class="flex items-center">
                                 <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-                                <p class="text-red-700">{{ session('error') }}</p>
+                                <p class="text-red-800">{{ session('error') }}</p>
                             </div>
                         </div>
                     @endif
 
                     @if($errors->any())
-                        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-md shadow-sm">
                             <div class="flex items-start">
                                 <i class="fas fa-exclamation-circle text-red-600 mr-3 mt-1"></i>
                                 <div>
@@ -83,12 +60,12 @@
                         </div>
                     @endif
 
-                    <!-- Form dan Sidebar Status -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Form (kiri) -->
+                    <!-- Grid Layout -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Form -->
                         <div class="lg:col-span-2">
-                            <div class="bg-white rounded-lg shadow-sm p-6">
-                                <h3 class="text-xl font-bold text-gray-800 mb-2">Form Pengajuan Proposal</h3>
+                            <div class="bg-white rounded-xl shadow-md p-8 border border-gray-100">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-2">Form Pengajuan Proposal</h3>
                                 <p class="text-sm text-gray-600 mb-6">
                                     Lengkapi semua informasi yang diperlukan untuk mengajukan proposal tugas akhir.
                                 </p>
@@ -103,7 +80,7 @@
                                         </label>
                                         <input type="text" id="judul" name="judul" 
                                             value="{{ old('judul') }}"
-                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-600 focus:border-transparent"
                                             placeholder="Masukkan Judul Tugas Akhir" required>
                                     </div>
 
@@ -113,7 +90,7 @@
                                             Deskripsi Singkat/Abstrak <span class="text-red-500">*</span>
                                         </label>
                                         <textarea id="deskripsi" name="deskripsi" rows="6"
-                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-600 focus:border-transparent"
                                             placeholder="Tuliskan Deskripsi Singkat atau Abstrak Proposal Anda" required>{{ old('deskripsi') }}</textarea>
                                         <p class="text-xs text-gray-500 mt-1">Minimum 100 karakter</p>
                                     </div>
@@ -124,7 +101,7 @@
                                             Pilih Dosen Pembimbing
                                         </label>
                                         <select id="dosen" name="dosen_id"
-                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-600 focus:border-transparent">
                                             <option value="">-- Pilih Dosen Pembimbing --</option>
                                             @foreach($dosens as $dosen)
                                                 <option value="{{ $dosen->id }}" {{ old('dosen_id') == $dosen->id ? 'selected' : '' }}>
@@ -139,13 +116,13 @@
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                                             File Proposal (PDF) <span class="text-red-500">*</span>
                                         </label>
-                                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition cursor-pointer"
+                                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-500 transition cursor-pointer"
                                             onclick="document.getElementById('fileProposal').click()">
-                                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                                            <i class="fas fa-cloud-upload-alt text-4xl text-yellow-600 mb-3"></i>
                                             <p class="text-sm text-gray-600 mb-1">Drag & drop file atau klik untuk browse</p>
                                             <p class="text-xs text-gray-500">PDF, maksimal 10 MB</p>
                                             <input type="file" id="fileProposal" name="file_proposal" accept=".pdf" class="hidden">
-                                            <p id="proposalFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
+                                            <p id="proposalFileName" class="text-sm text-yellow-700 font-medium mt-2"></p>
                                         </div>
                                     </div>
 
@@ -154,23 +131,23 @@
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                                             File Pitch Deck (PDF/PPT)
                                         </label>
-                                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition cursor-pointer"
+                                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-500 transition cursor-pointer"
                                             onclick="document.getElementById('filePitchDeck').click()">
-                                            <i class="fas fa-file-powerpoint text-4xl text-gray-400 mb-3"></i>
+                                            <i class="fas fa-file-powerpoint text-4xl text-yellow-600 mb-3"></i>
                                             <p class="text-sm text-gray-600 mb-1">Drag & drop file atau klik untuk browse</p>
                                             <p class="text-xs text-gray-500">PDF/PPT, maksimal 15 MB</p>
                                             <input type="file" id="filePitchDeck" name="file_pitch_deck" accept=".pdf,.ppt,.pptx" class="hidden">
-                                            <p id="pitchDeckFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
+                                            <p id="pitchDeckFileName" class="text-sm text-yellow-700 font-medium mt-2"></p>
                                         </div>
                                     </div>
 
                                     <!-- Tombol -->
                                     <div class="flex space-x-4">
-                                        <button type="submit" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                                        <button type="submit" class="flex-1 bg-yellow-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-800 transition">
                                             <i class="fas fa-paper-plane mr-2"></i>Ajukan Proposal
                                         </button>
                                         <button type="button" onclick="saveDraft()"
-                                            class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition">
+                                            class="px-6 py-3 border-2 border-yellow-700 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-50 transition">
                                             <i class="fas fa-save mr-2"></i>Simpan Draft
                                         </button>
                                     </div>
@@ -179,23 +156,44 @@
                         </div>
 
                         <!-- Status Pengajuan -->
-                        <div class="lg:col-span-1">
-                            <div class="bg-white rounded-lg shadow-sm p-6">
-                                <h3 class="font-bold text-gray-800 mb-4">Status Pengajuan</h3>
-                                @if($latestProposal)
-                                    @php $badge = $latestProposal->statusBadge; @endphp
-                                    <span class="px-3 py-1 bg-{{ $badge['color'] }}-100 text-{{ $badge['color'] }}-800 text-sm font-semibold rounded-full">
-                                        {{ $badge['text'] }}
-                                    </span>
-                                @else
-                                    <p class="text-sm text-gray-600">Belum ada pengajuan proposal.</p>
+                        <div>
+                            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">Status Pengajuan Proposal</h3>
+                                @isset($proposal)
+                                    <div class="space-y-4">
+                                        <div>
+                                            <p class="text-sm text-gray-600">Status:</p>
+                                            @if($proposal->status == 'draft')
+                                                <span class="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">Draft</span>
+                                            @elseif($proposal->status == 'diajukan')
+                                                <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">Diajukan</span>
+                                            @elseif($proposal->status == 'review')
+                                                <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">Dalam Review</span>
+                                            @elseif($proposal->status == 'revisi')
+                                                <span class="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">Perlu Revisi</span>
+                                            @elseif($proposal->status == 'disetujui')
+                                                <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">Disetujui</span>
+                                            @elseif($proposal->status == 'ditolak')
+                                                <span class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">Ditolak</span>
+                                            @else
+                                                <span class="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">{{ ucfirst($proposal->status) }}</span>
+                                            @endif
+                                            @if($proposal->feedback)
+                                                <div class="mt-4">
+                                                    <p class="text-sm text-gray-600">Feedback Reviewer:</p>
+                                                    <div class="bg-gray-50 rounded-lg p-3 mt-2 border-l-4 border-blue-500">
+                                                        <p class="text-gray-800 text-sm">{{ $proposal->feedback }}</p>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
                                 @endif
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
-        </div>
+                </main>
+            </div>
     </div>
 
     <script>
@@ -207,7 +205,7 @@
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').content
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 }
             })
             .then(res => res.json())
