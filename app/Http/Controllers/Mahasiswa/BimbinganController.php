@@ -63,7 +63,7 @@ class BimbinganController extends Controller
         // Validasi input
         $request->validate([
             'topik' => 'required|string|max:255',
-            'catatan_mahasiswa' => 'required|string|min:20',
+            'catatan_mahasiswa' => 'required|string|min:5',
             'file_pendukung' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
@@ -75,11 +75,8 @@ class BimbinganController extends Controller
         return redirect()->back()->with('error', 'Data mahasiswa tidak ditemukan.');
     }
 
-    // Cek relasi proyek akhir
+    // Proyek akhir opsional - bimbingan bisa dilakukan kapan saja
     $projekAkhir = $mahasiswa->projek_akhir ?? null;
-    if (!$projekAkhir) {
-        return redirect()->back()->with('error', 'Proyek akhir belum tersedia.');
-    }
 
     // Handle file pendukung
     $filePath = null;
@@ -89,7 +86,7 @@ class BimbinganController extends Controller
 
         // Insert data bimbingan
         Bimbingan::create([
-            'id_proyek_akhir' => $projekAkhir->id_proyek_akhir,
+            'id_proyek_akhir' => $projekAkhir?->id_proyek_akhir,
             'nim' => $mahasiswa->nim,
             'topik' => $request->topik,
             'catatan_mahasiswa' => $request->catatan_mahasiswa,

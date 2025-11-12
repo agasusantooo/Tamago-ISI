@@ -114,6 +114,8 @@ Route::middleware(['auth', 'role:mahasiswa'])
         // MENU TAMBAHAN
         // ------------------------
         Route::view('/ujian-ta', 'mahasiswa.ujian-ta')->name('ujian-ta');
+    // Hasil ujian (halaman hasil/revisi)
+    Route::view('/ujian-result', 'mahasiswa.ujian-result')->name('ujian-result');
         Route::view('/naskah-karya', 'mahasiswa.naskah-karya')->name('naskah-karya');
         Route::view('/akun', 'mahasiswa.akun')->name('akun');
 

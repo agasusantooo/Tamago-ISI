@@ -9,7 +9,7 @@ class Produksi extends Model
 {
     use HasFactory;
 
-    protected $table = 'produksis';
+    protected $table = 'tim_produksi';
 
     protected $fillable = [
         'mahasiswa_id',

@@ -3,60 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <title>Produksi - Tamago ISI</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50">
-    @section('page-title', 'Produksi')
+    <?php $__env->startSection('page-title', 'Produksi'); ?>
     
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        @include('mahasiswa.partials.sidebar-mahasiswa')
+        <?php echo $__env->make('mahasiswa.partials.sidebar-mahasiswa', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Header -->
-            @include('mahasiswa.partials.header-mahasiswa')
+            <?php echo $__env->make('mahasiswa.partials.header-mahasiswa', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto p-6">
                 <div class="max-w-7xl mx-auto">
                     <!-- Alert Messages -->
-                    @if(session('success'))
+                    <?php if(session('success')): ?>
                         <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
                             <div class="flex items-center">
                                 <i class="fas fa-check-circle text-green-600 mr-3"></i>
-                                <p class="text-green-700">{{ session('success') }}</p>
+                                <p class="text-green-700"><?php echo e(session('success')); ?></p>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    @if(session('error'))
+                    <?php if(session('error')): ?>
                         <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
                             <div class="flex items-center">
                                 <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-                                <p class="text-red-700">{{ session('error') }}</p>
+                                <p class="text-red-700"><?php echo e(session('error')); ?></p>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    @if($errors->any())
+                    <?php if($errors->any()): ?>
                         <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
                             <div class="flex items-start">
                                 <i class="fas fa-exclamation-circle text-red-600 mr-3 mt-1"></i>
                                 <div>
                                     <p class="font-semibold text-red-800">Terdapat kesalahan:</p>
                                     <ul class="list-disc list-inside text-red-700 mt-2">
-                                        @foreach($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
+                                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <li><?php echo e($error); ?></li>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </ul>
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
                     <!-- Title -->
                     <div class="mb-6">
@@ -86,8 +86,8 @@
                     <div id="content-pra-produksi" class="tab-content">
                         <!-- Upload Areas -->
                         <div class="space-y-6 mb-6">
-                            <form method="POST" action="{{ route('mahasiswa.produksi.store.pra') }}" enctype="multipart/form-data">
-                                @csrf
+                            <form method="POST" action="<?php echo e(route('mahasiswa.produksi.store.pra')); ?>" enctype="multipart/form-data">
+                                <?php echo csrf_field(); ?>
 
                                 <!-- File Skenario -->
                                 <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -107,14 +107,14 @@
                                             onchange="updateFileName(this, 'skenarioFileName')">
                                         <p id="skenarioFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
                                     </div>
-                                    @if($produksi?->file_skenario)
+                                    <?php if($produksi?->file_skenario): ?>
                                         <div class="mt-3 text-center">
-                                            <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'skenario']) }}" 
+                                            <a href="<?php echo e(route('mahasiswa.produksi.download', [$produksi->id, 'skenario'])); ?>" 
                                                class="text-sm text-blue-600 hover:underline">
                                                 <i class="fas fa-download mr-1"></i> Download File Skenario
                                             </a>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
 
                                 <!-- File Story Board -->
@@ -135,14 +135,14 @@
                                             onchange="updateFileName(this, 'storyboardFileName')">
                                         <p id="storyboardFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
                                     </div>
-                                    @if($produksi?->file_storyboard)
+                                    <?php if($produksi?->file_storyboard): ?>
                                         <div class="mt-3 text-center">
-                                            <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'storyboard']) }}" 
+                                            <a href="<?php echo e(route('mahasiswa.produksi.download', [$produksi->id, 'storyboard'])); ?>" 
                                                class="text-sm text-blue-600 hover:underline">
                                                 <i class="fas fa-download mr-1"></i> Download File Storyboard
                                             </a>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
 
                                 <!-- Dokumen Pendukung Lain -->
@@ -163,14 +163,14 @@
                                             onchange="updateFileName(this, 'dokumenFileName')">
                                         <p id="dokumenFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
                                     </div>
-                                    @if($produksi?->file_dokumen_pendukung)
+                                    <?php if($produksi?->file_dokumen_pendukung): ?>
                                         <div class="mt-3 text-center">
-                                            <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'dokumen']) }}" 
+                                            <a href="<?php echo e(route('mahasiswa.produksi.download', [$produksi->id, 'dokumen'])); ?>" 
                                                class="text-sm text-blue-600 hover:underline">
                                                 <i class="fas fa-download mr-1"></i> Download Dokumen Pendukung
                                             </a>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
 
                                 <!-- Submit Button -->
@@ -178,7 +178,7 @@
                                     <button type="submit" 
                                         class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
                                         <i class="fas fa-upload mr-2"></i>
-                                        {{ $produksi && $produksi->file_skenario ? 'Update' : 'Upload' }} File Pra Produksi
+                                        <?php echo e($produksi && $produksi->file_skenario ? 'Update' : 'Upload'); ?> File Pra Produksi
                                     </button>
                                 </div>
                             </form>
@@ -188,10 +188,10 @@
                         <div class="bg-white rounded-lg shadow-sm p-6">
                             <h3 class="font-bold text-gray-800 mb-4">Status Persetujuan</h3>
                             
-                            @if($produksi)
+                            <?php if($produksi): ?>
                                 <div class="mb-4">
                                     <div class="flex items-center space-x-2 mb-2">
-                                        @php
+                                        <?php
                                             $statusIcon = optional($produksi->statusPraProduksiBadge)['icon'] ?? 'clock';
                                             $statusColor = 'text-yellow-600';
                                             if($produksi->status_pra_produksi === 'disetujui') {
@@ -199,10 +199,11 @@
                                             } elseif($produksi->status_pra_produksi === 'ditolak') {
                                                 $statusColor = 'text-red-600';
                                             }
-                                        @endphp
-                                        <i class="fas fa-{{ $statusIcon }} {{ $statusColor }}"></i>
+                                        ?>
+                                        <i class="fas fa-<?php echo e($statusIcon); ?> <?php echo e($statusColor); ?>"></i>
                                         <span class="font-semibold text-gray-800">
-                                            {{ optional($produksi->statusPraProduksiBadge)['text'] }}
+                                            <?php echo e(optional($produksi->statusPraProduksiBadge)['text']); ?>
+
                                         </span>
                                     </div>
                                 </div>
@@ -210,25 +211,26 @@
                                 <div class="border-t pt-4">
                                     <h4 class="font-semibold text-gray-800 mb-3">Catatan/Feedback Dosen Pembimbing</h4>
                                     
-                                    @if($produksi->feedback_pra_produksi)
+                                    <?php if($produksi->feedback_pra_produksi): ?>
                                         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                                             <p class="text-sm text-gray-700 leading-relaxed">
-                                                {{ $produksi->feedback_pra_produksi }}
+                                                <?php echo e($produksi->feedback_pra_produksi); ?>
+
                                             </p>
                                         </div>
-                                    @else
+                                    <?php else: ?>
                                         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                                             <p class="text-sm text-gray-700">Belum ada Feedback</p>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
-                            @else
+                            <?php else: ?>
                                 <div class="text-center py-8">
                                     <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
                                     <p class="text-sm text-gray-500">Belum ada data pra produksi</p>
                                     <p class="text-xs text-gray-400 mt-1">Upload file di atas untuk memulai</p>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -247,9 +249,9 @@
                                     </div>
                                 </div>
 
-                                @if($produksi && $produksi->status_pra_produksi === 'disetujui')
-                                    <form method="POST" action="{{ route('mahasiswa.produksi.produksi-akhir') }}" enctype="multipart/form-data">
-                                        @csrf
+                                <?php if($produksi && $produksi->status_pra_produksi === 'disetujui'): ?>
+                                    <form method="POST" action="<?php echo e(route('mahasiswa.produksi.produksi-akhir')); ?>" enctype="multipart/form-data">
+                                        <?php echo csrf_field(); ?>
                                         
                                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition cursor-pointer mb-4" 
                                             onclick="document.getElementById('fileKaryaFinal').click()">
@@ -267,30 +269,30 @@
                                             <p id="karyaFinalFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
                                         </div>
                                         
-                                        @if($produksi?->file_produksi_akhir)
+                                        <?php if($produksi?->file_produksi_akhir): ?>
                                             <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                                                 <p class="text-xs text-green-800 mb-1">
                                                     <i class="fas fa-check-circle mr-1"></i> File sudah diunggah
                                                 </p>
-                                                <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'akhir']) }}" 
+                                                <a href="<?php echo e(route('mahasiswa.produksi.download', [$produksi->id, 'akhir'])); ?>" 
                                                    class="text-sm text-blue-600 hover:underline">
                                                     <i class="fas fa-download mr-1"></i> Download File
                                                 </a>
                                             </div>
-                                        @endif
+                                        <?php endif; ?>
 
                                         <button type="submit" 
                                             class="w-full bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition text-sm">
                                             <i class="fas fa-upload mr-2"></i>Upload File
                                         </button>
                                     </form>
-                                @else
+                                <?php else: ?>
                                     <div class="text-center py-12">
                                         <i class="fas fa-lock text-5xl text-gray-300 mb-4"></i>
                                         <p class="text-gray-600 font-medium mb-2">Pra Produksi harus disetujui terlebih dahulu</p>
                                         <p class="text-sm text-gray-500">Mohon lengkapi dan tunggu persetujuan pra produksi</p>
                                     </div>
-                                @endif
+                                <?php endif; ?>
                             </div>
 
                             <!-- File Luaran Tambahan -->
@@ -305,9 +307,9 @@
                                     </div>
                                 </div>
 
-                                @if($produksi && $produksi->status_pra_produksi === 'disetujui')
-                                    <form method="POST" action="{{ route('mahasiswa.produksi.luaran-tambahan') }}" enctype="multipart/form-data">
-                                        @csrf
+                                <?php if($produksi && $produksi->status_pra_produksi === 'disetujui'): ?>
+                                    <form method="POST" action="<?php echo e(route('mahasiswa.produksi.luaran-tambahan')); ?>" enctype="multipart/form-data">
+                                        <?php echo csrf_field(); ?>
                                         
                                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-400 transition cursor-pointer mb-4" 
                                             onclick="document.getElementById('fileLuaranTambahan').click()">
@@ -325,29 +327,29 @@
                                             <p id="luaranTambahanFileName" class="text-sm text-purple-600 font-medium mt-2"></p>
                                         </div>
 
-                                        @if($produksi?->file_luaran_tambahan)
+                                        <?php if($produksi?->file_luaran_tambahan): ?>
                                             <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                                                 <p class="text-xs text-green-800 mb-1">
                                                     <i class="fas fa-check-circle mr-1"></i> File sudah diunggah
                                                 </p>
-                                                <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'luaran']) }}" 
+                                                <a href="<?php echo e(route('mahasiswa.produksi.download', [$produksi->id, 'luaran'])); ?>" 
                                                    class="text-sm text-blue-600 hover:underline">
                                                     <i class="fas fa-download mr-1"></i> Download File
                                                 </a>
                                             </div>
-                                        @endif
+                                        <?php endif; ?>
 
                                         <button type="submit" 
                                             class="w-full bg-purple-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-purple-700 transition text-sm">
                                             <i class="fas fa-upload mr-2"></i>Upload File
                                         </button>
                                     </form>
-                                @else
+                                <?php else: ?>
                                     <div class="text-center py-12">
                                         <i class="fas fa-lock text-4xl text-gray-300 mb-3"></i>
                                         <p class="text-sm text-gray-500">Tersedia setelah pra produksi disetujui</p>
                                     </div>
-                                @endif
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -357,44 +359,47 @@
                             <div class="bg-white rounded-lg shadow-sm p-6">
                                 <h3 class="font-bold text-gray-800 mb-4">Status Persetujuan</h3>
                                 
-                                @if($produksi && $produksi->dosen)
+                                <?php if($produksi && $produksi->dosen): ?>
                                     <div class="mb-4">
                                         <p class="text-sm font-semibold text-gray-700 mb-1">
-                                            {{ $produksi->dosen->nama }}{{ $produksi->dosen->gelar ? ', ' . $produksi->dosen->gelar : '' }}
+                                            <?php echo e($produksi->dosen->nama); ?><?php echo e($produksi->dosen->gelar ? ', ' . $produksi->dosen->gelar : ''); ?>
+
                                         </p>
                                         <p class="text-xs text-gray-500">Dosen Pembimbing</p>
                                     </div>
 
                                     <div class="mb-4">
-                                        <span class="px-3 py-1 {{ $produksi->statusProduksiAkhirColor }} text-sm font-semibold rounded-full">
-                                            {{ optional($produksi->statusProduksiAkhirBadge)['text'] }}
+                                        <span class="px-3 py-1 <?php echo e($produksi->statusProduksiAkhirColor); ?> text-sm font-semibold rounded-full">
+                                            <?php echo e(optional($produksi->statusProduksiAkhirBadge)['text']); ?>
+
                                         </span>
                                     </div>
 
-                                    @if($produksi->tanggal_upload_akhir)
+                                    <?php if($produksi->tanggal_upload_akhir): ?>
                                         <p class="text-xs text-gray-600">
-                                            Disubmit: {{ $produksi->tanggal_upload_akhir->format('d F Y, H:i') }}
+                                            Disubmit: <?php echo e($produksi->tanggal_upload_akhir->format('d F Y, H:i')); ?>
+
                                         </p>
-                                    @endif
+                                    <?php endif; ?>
 
                                     <div class="mt-4 pt-4 border-t">
                                         <p class="text-sm text-gray-600">
                                             File sedang dalam proses review oleh dosen pembimbing
                                         </p>
                                     </div>
-                                @else
+                                <?php else: ?>
                                     <div class="text-center py-8">
                                         <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
                                         <p class="text-sm text-gray-500">Belum ada data produksi akhir</p>
                                     </div>
-                                @endif
+                                <?php endif; ?>
                             </div>
 
                             <!-- Catatan/Feedback -->
                             <div class="bg-white rounded-lg shadow-sm p-6">
                                 <h3 class="font-bold text-gray-800 mb-4">Catatan/Feedback</h3>
                                 
-                                @if($produksi && $produksi->feedback_produksi_akhir)
+                                <?php if($produksi && $produksi->feedback_produksi_akhir): ?>
                                     <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
                                         <div class="flex items-start space-x-3">
                                             <div class="flex-shrink-0">
@@ -402,20 +407,22 @@
                                             </div>
                                             <div class="flex-1">
                                                 <p class="font-semibold text-blue-900 text-sm mb-2">
-                                                    {{ $produksi->dosen ? $produksi->dosen->nama : 'Dr. Sarah Wijaya' }}
+                                                    <?php echo e($produksi->dosen ? $produksi->dosen->nama : 'Dr. Sarah Wijaya'); ?>
+
                                                 </p>
                                                 <p class="text-sm text-gray-700 leading-relaxed">
-                                                    {{ $produksi->feedback_produksi_akhir }}
+                                                    <?php echo e($produksi->feedback_produksi_akhir); ?>
+
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
-                                @else
+                                <?php else: ?>
                                     <div class="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
                                         <i class="fas fa-comment-slash text-3xl text-gray-300 mb-3"></i>
                                         <p class="text-sm text-gray-500">Belum ada feedback</p>
                                     </div>
-                                @endif
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -491,4 +498,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH C:\laragon\www\tam\backk\resources\views/mahasiswa/produksi.blade.php ENDPATH**/ ?>

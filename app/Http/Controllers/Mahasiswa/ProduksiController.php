@@ -35,11 +35,11 @@ class ProduksiController extends Controller
         }
         
         // Get produksi data (pra produksi dan produksi akhir)
-        $produksi = Produksi::where('mahasiswa_nim', $mahasiswa->nim)
+        $produksi = Produksi::where('mahasiswa_id', $mahasiswa->id)
             ->where('proposal_id', $proposal->id)
             ->first();
         
-        return view('mahasiswa.produksi.index', compact('proposal', 'produksi'));
+        return view('mahasiswa.produksi', compact('proposal', 'produksi'));
     }
 
     /**
@@ -47,6 +47,14 @@ class ProduksiController extends Controller
      */
     public function storePraProduksi(Request $request)
     {
+        // Debug logging to inspect incoming files when upload fails
+        \Illuminate\Support\Facades\Log::info('storePraProduksi called', [
+            'has_file_skenario' => $request->hasFile('file_skenario'),
+            'has_file_storyboard' => $request->hasFile('file_storyboard'),
+            'has_file_dokumen' => $request->hasFile('file_dokumen_pendukung'),
+            'files' => array_keys($request->files->all()),
+        ]);
+
         $validator = Validator::make($request->all(), [
             'file_skenario' => 'required|file|mimes:pdf,doc,docx|max:10240', // 10MB
             'file_storyboard' => 'required|file|mimes:pdf,jpg,jpeg,png|max:20480', // 20MB
@@ -83,7 +91,7 @@ class ProduksiController extends Controller
             }
 
             // Check if produksi exists
-            $produksi = Produksi::where('mahasiswa_nim', $mahasiswa->nim)
+            $produksi = Produksi::where('mahasiswa_id', $mahasiswa->id)
                 ->where('proposal_id', $proposal->id)
                 ->first();
 
@@ -92,22 +100,26 @@ class ProduksiController extends Controller
             $fileStoryboard = null;
             $fileDokumenPendukung = null;
 
+            // if browser didn't send files for some reason, return clear error
+            if (! $request->hasFile('file_skenario') && ! $request->hasFile('file_storyboard') && ! $request->hasFile('file_dokumen_pendukung')) {
+                return back()->with('error', 'Tidak ada file yang terdeteksi. Pastikan Anda memilih file sebelum submit.')->withInput();
+            }
             if ($request->hasFile('file_skenario')) {
                 $file = $request->file('file_skenario');
                 $fileName = 'skenario_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileSkenario = $file->storeAs('produksi/' . $mahasiswa->nim, $fileName, 'public');
+                $fileSkenario = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
             }
 
             if ($request->hasFile('file_storyboard')) {
                 $file = $request->file('file_storyboard');
                 $fileName = 'storyboard_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileStoryboard = $file->storeAs('produksi/' . $mahasiswa->nim, $fileName, 'public');
+                $fileStoryboard = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
             }
 
             if ($request->hasFile('file_dokumen_pendukung')) {
                 $file = $request->file('file_dokumen_pendukung');
                 $fileName = 'dokumen_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileDokumenPendukung = $file->storeAs('produksi/' . $mahasiswa->nim, $fileName, 'public');
+                $fileDokumenPendukung = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
             }
 
             if ($produksi) {
@@ -122,7 +134,7 @@ class ProduksiController extends Controller
             } else {
                 // Create new
                 $produksi = Produksi::create([
-                    'mahasiswa_nim' => $mahasiswa->nim,
+                    'mahasiswa_id' => $mahasiswa->id,
                     'proposal_id' => $proposal->id,
                     'dosen_id' => $proposal->dosen_id,
                     'file_skenario' => $fileSkenario,
@@ -170,7 +182,7 @@ class ProduksiController extends Controller
             }
             
             // Get produksi
-            $produksi = Produksi::where('mahasiswa_nim', $mahasiswa->nim)->first();
+            $produksi = Produksi::where('mahasiswa_id', $mahasiswa->id)->first();
             
             if (!$produksi) {
                 return back()->with('error', 'Mohon upload pra produksi terlebih dahulu');
@@ -186,7 +198,7 @@ class ProduksiController extends Controller
             if ($request->hasFile('file_produksi_akhir')) {
                 $file = $request->file('file_produksi_akhir');
                 $fileName = 'produksi_akhir_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileProduksiAkhir = $file->storeAs('produksi/' . $mahasiswa->nim, $fileName, 'public');
+                $fileProduksiAkhir = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
             }
 
             $produksi->update([
@@ -231,7 +243,7 @@ class ProduksiController extends Controller
             }
             
             // Get produksi
-            $produksi = Produksi::where('mahasiswa_nim', $mahasiswa->nim)->first();
+            $produksi = Produksi::where('mahasiswa_id', $mahasiswa->id)->first();
             
             if (!$produksi) {
                 return back()->with('error', 'Mohon upload pra produksi terlebih dahulu');
@@ -247,7 +259,7 @@ class ProduksiController extends Controller
             if ($request->hasFile('file_luaran_tambahan')) {
                 $file = $request->file('file_luaran_tambahan');
                 $fileName = 'luaran_tambahan_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileLuaranTambahan = $file->storeAs('produksi/' . $mahasiswa->nim, $fileName, 'public');
+                $fileLuaranTambahan = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
             }
 
             $produksi->update([
@@ -255,7 +267,7 @@ class ProduksiController extends Controller
             ]);
 
             return redirect()
-                ->route('mahasiswa.produksi')
+                ->route('mahasiswa.produksi.index')
                 ->with('success', 'File luaran tambahan berhasil diunggah!');
 
         } catch (\Exception $e) {
@@ -273,7 +285,7 @@ class ProduksiController extends Controller
         $produksi = Produksi::findOrFail($id);
         
         // Check authorization
-        if ($produksi->mahasiswa_nim !== Auth::user()->nim) {
+        if ($produksi->mahasiswa_id !== Auth::user()->id) {
             abort(403, 'Unauthorized action.');
         }
 
