@@ -26,9 +26,13 @@ class AppServiceProvider extends ServiceProvider
             $latestProposal = null;
 
             if ($user) {
-                $latestProposal = Proposal::where('mahasiswa_nim', $user->nim ?? $user->id)
-                    ->latest()
-                    ->first();
+                $mahasiswa = $user->mahasiswa;
+                $nim = $mahasiswa?->nim ?? null;
+                if ($nim) {
+                    $latestProposal = Proposal::where('mahasiswa_nim', $nim)
+                        ->latest()
+                        ->first();
+                }
             }
 
             $view->with('latestProposal', $latestProposal);

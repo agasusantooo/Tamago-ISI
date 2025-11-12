@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\AdminLogController;
 use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\Mahasiswa\StoryConferenceController;
 use App\Http\Controllers\Mahasiswa\ProduksiController;
+use App\Http\Controllers\Mahasiswa\NaskahKaryaController;
+use App\Http\Controllers\Mahasiswa\UjianTAController;
 
 /*
 |--------------------------------------------------------------------------
@@ -107,16 +109,32 @@ Route::middleware(['auth', 'role:mahasiswa'])
             ->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::post('/store-pra', 'storePraProduksi')->name('store.pra');
-                Route::post('/store-akhir', 'storeProduksiAkhir')->name('store.akhir');
+                Route::post('/produksi-akhir', 'storeProduksiAkhir')->name('produksi-akhir');
+                Route::post('/luaran-tambahan', 'storeLuaranTambahan')->name('luaran-tambahan');
+                Route::get('/{id}/{type}', 'download')->name('download');
             });
 
         // ------------------------
-        // MENU TAMBAHAN
+        // UJIAN TA ROUTES
         // ------------------------
-        Route::view('/ujian-ta', 'mahasiswa.ujian-ta')->name('ujian-ta');
-    // Hasil ujian (halaman hasil/revisi)
-    Route::view('/ujian-result', 'mahasiswa.ujian-result')->name('ujian-result');
-        Route::view('/naskah-karya', 'mahasiswa.naskah-karya')->name('naskah-karya');
+        Route::controller(UjianTAController::class)
+            ->prefix('ujian-ta')
+            ->name('ujian-ta.')
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+                Route::get('/hasil', 'hasil')->name('hasil');
+                Route::post('/submit-revisi', 'submitRevisi')->name('submit-revisi');
+                Route::get('/{id}/{type}', 'download')->name('download');
+            });
+
+
+    // ------------------------
+    // NASKAH & KARYA
+    // ------------------------
+    Route::get('/naskah-karya', [NaskahKaryaController::class, 'index'])->name('naskah-karya');
+    Route::post('/naskah-karya/upload-naskah', [NaskahKaryaController::class, 'uploadNaskah'])->name('naskah-karya.upload');
+    Route::get('/naskah-karya/{id}/{type}', [NaskahKaryaController::class, 'download'])->name('naskah-karya.download');
         Route::view('/akun', 'mahasiswa.akun')->name('akun');
 
     });
@@ -234,5 +252,10 @@ Route::get('/dashboard/default', function () {
 |--------------------------------------------------------------------------
 */
 Route::get('/profile', function () {
-    return view('profile.edit');
+    return view('mahasiswa.akun');
 })->middleware('auth')->name('profile.edit');
+
+// Handle profile update (name, email, nim, optional password)
+Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'update'])
+    ->middleware('auth')
+    ->name('profile.update');

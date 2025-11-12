@@ -70,9 +70,14 @@ class DashboardController extends Controller
         ];
 
         // Ambil proposal terakhir mahasiswa
-        $latestProposal = Proposal::where('mahasiswa_nim', Auth::user()->nim)
-            ->orderBy('created_at', 'desc')
-            ->first();
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        $latestProposal = null;
+        if ($mahasiswa && $mahasiswa->nim) {
+            $latestProposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
+                ->orderBy('created_at', 'desc')
+                ->first();
+        }
 
         // Gabungkan data untuk dikirim ke view
         return view('dashboards.mahasiswa', array_merge($data, compact('latestProposal')));

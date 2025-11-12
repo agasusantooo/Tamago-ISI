@@ -12,6 +12,27 @@
                 <h2 class="text-lg font-semibold mb-4">Informasi Ujian</h2>
                 <p class="text-sm text-gray-600 mb-4">Kelola dan upload file produksi tugas akhir Anda</p>
 
+                {{-- Guidance alerts when requirements are not met --}}
+                @if(!empty($missingProposal))
+                    <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-400 rounded">
+                        <div class="font-semibold text-red-700">Proposal belum disetujui</div>
+                        <div class="text-sm text-gray-700 mt-1">Anda perlu mempunyai proposal yang disetujui terlebih dahulu sebelum dapat mendaftar ujian TA.</div>
+                        <div class="mt-3">
+                            <a href="{{ route('mahasiswa.proposal') }}" class="inline-block px-4 py-2 bg-red-600 text-white rounded">Lihat Proposal</a>
+                        </div>
+                    </div>
+                @endif
+
+                @if(!empty($produksiNotApproved))
+                    <div class="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                        <div class="font-semibold text-yellow-800">Produksi akhir belum disetujui</div>
+                        <div class="text-sm text-gray-700 mt-1">Produksi akhir Anda harus disetujui oleh dosen sebelum dapat mendaftar ujian.</div>
+                        <div class="mt-3">
+                            <a href="{{ route('mahasiswa.produksi.index') }}" class="inline-block px-4 py-2 bg-yellow-600 text-white rounded">Periksa Produksi</a>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="grid grid-cols-3 gap-4 mb-4">
                     <div class="bg-blue-100 rounded-lg p-4">
                         <div class="text-xs text-gray-600">Tanggal Ujian</div>
@@ -57,7 +78,7 @@
                     </ul>
                 </div>
 
-                <form action="#" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('mahasiswa.ujian-ta.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -72,7 +93,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Upload Transkrip Nilai</label>
                             <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                                 <p class="text-sm text-gray-500 mb-2">PDF (Max 5MB)</p>
-                                <input type="file" name="file_transkrip" class="mx-auto" />
+                                <input type="file" name="file_transkrip_nilai" class="mx-auto" />
                             </div>
                         </div>
                     </div>
@@ -87,49 +108,10 @@
     <!-- Right column -->
     <div class="lg:col-span-4">
             <div class="bg-white rounded-lg shadow p-4 mb-6">
-                <h4 class="font-semibold mb-3">Timeline Ujian</h4>
-                <ul class="space-y-3 text-sm text-gray-700">
-                    <li class="flex items-start">
-                        <span class="w-3 h-3 bg-green-500 rounded-full mr-3 mt-1"></span>
-                        <div>
-                            <div class="font-semibold">Pengajuan Ujian</div>
-                            <div class="text-xs text-gray-500">10 Jan 2024</div>
-                        </div>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="w-3 h-3 bg-green-500 rounded-full mr-3 mt-1"></span>
-                        <div>
-                            <div class="font-semibold">Jadwal Ditetapkan</div>
-                            <div class="text-xs text-gray-500">12 Jan 2024</div>
-                        </div>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="w-3 h-3 bg-blue-500 rounded-full mr-3 mt-1"></span>
-                        <div>
-                            <div class="font-semibold">Ujian Berlangsung</div>
-                            <div class="text-xs text-gray-500">15 Jan 2024</div>
-                        </div>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="w-3 h-3 bg-gray-300 rounded-full mr-3 mt-1"></span>
-                        <div>
-                            <div class="font-semibold">Revisi Selesai</div>
-                            <div class="text-xs text-gray-500">Pending</div>
-                        </div>
-                    </li>
-                </ul>
+                @livewire('mahasiswa.ujian-timeline')
             </div>
 
-            <div class="bg-white rounded-lg shadow p-4">
-                <h4 class="font-semibold mb-3">Status Pengajuan</h4>
-                <div class="px-3 py-4 bg-yellow-50 rounded">
-                    <div class="font-semibold text-yellow-800">Status: Menunggu Persetujuan</div>
-                    <div class="text-sm text-gray-600 mt-2">Setelah mengajukan, pengajuan Anda akan diverifikasi oleh admin dalam 1-3 hari kerja.</div>
-                </div>
-                <div class="mt-4 text-center">
-                    <a href="{{ route('mahasiswa.ujian-result') }}" class="inline-block px-4 py-2 bg-indigo-600 text-white rounded shadow text-sm hover:bg-indigo-700">Lihat Hasil Ujian</a>
-                </div>
-            </div>
+            {{-- status and action moved into livewire component for realtime updates --}}
         </div>
     </div>
     </div>

@@ -59,9 +59,9 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('mahasiswa.ujian-ta') }}"
+                        <a href="{{ route('mahasiswa.ujian-ta.index') }}"
                         class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                        {{ request()->routeIs('mahasiswa.ujian-ta') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
+                        {{ request()->routeIs('mahasiswa.ujian-ta.*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-graduation-cap w-5"></i>
                             <span>Ujian TA</span>
                         </a>

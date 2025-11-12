@@ -17,7 +17,8 @@ class ProduksiController extends Controller
      */
     public function index()
     {
-        $mahasiswa = Auth::user()->mahasiswa;
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
         if (!$mahasiswa) {
             return redirect()->route('mahasiswa.proposal')
                 ->with('error', 'Profil mahasiswa tidak ditemukan.');
@@ -35,7 +36,8 @@ class ProduksiController extends Controller
         }
         
         // Get produksi data (pra produksi dan produksi akhir)
-        $produksi = Produksi::where('mahasiswa_id', $mahasiswa->id)
+        // tim_produksi.mahasiswa_id references users.id, so use the authenticated user's id
+        $produksi = Produksi::where('mahasiswa_id', $user->id)
             ->where('proposal_id', $proposal->id)
             ->first();
         
@@ -75,8 +77,11 @@ class ProduksiController extends Controller
         }
 
         try {
-            $mahasiswa = Auth::user()->mahasiswa;
+            $user = Auth::user();
+            $mahasiswa = $user->mahasiswa;
             if (!$mahasiswa) {
+                // explicit log to help debugging when a user doesn't have a mahasiswa row
+                \Illuminate\Support\Facades\Log::warning('storePraProduksi: authenticated user has no mahasiswa relation', ['user_id' => $user->id]);
                 return back()->with('error', 'Profil mahasiswa tidak ditemukan.')->withInput();
             }
             
@@ -91,7 +96,8 @@ class ProduksiController extends Controller
             }
 
             // Check if produksi exists
-            $produksi = Produksi::where('mahasiswa_id', $mahasiswa->id)
+            // produksi.mahasiswa_id stores users.id (not mahasiswa.id), use $user->id
+            $produksi = Produksi::where('mahasiswa_id', $user->id)
                 ->where('proposal_id', $proposal->id)
                 ->first();
 
@@ -107,19 +113,20 @@ class ProduksiController extends Controller
             if ($request->hasFile('file_skenario')) {
                 $file = $request->file('file_skenario');
                 $fileName = 'skenario_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileSkenario = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
+                // store files under the authenticated user's id (consistent with DB relation)
+                $fileSkenario = $file->storeAs('produksi/' . $user->id, $fileName, 'public');
             }
 
             if ($request->hasFile('file_storyboard')) {
                 $file = $request->file('file_storyboard');
                 $fileName = 'storyboard_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileStoryboard = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
+                $fileStoryboard = $file->storeAs('produksi/' . $user->id, $fileName, 'public');
             }
 
             if ($request->hasFile('file_dokumen_pendukung')) {
                 $file = $request->file('file_dokumen_pendukung');
                 $fileName = 'dokumen_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileDokumenPendukung = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
+                $fileDokumenPendukung = $file->storeAs('produksi/' . $user->id, $fileName, 'public');
             }
 
             if ($produksi) {
@@ -132,9 +139,10 @@ class ProduksiController extends Controller
                     'tanggal_upload_pra' => now(),
                 ]);
             } else {
-                // Create new
+            // Create new
                 $produksi = Produksi::create([
-                    'mahasiswa_id' => $mahasiswa->id,
+                    // mahasiswa_id references users.id in the migration
+                    'mahasiswa_id' => $user->id,
                     'proposal_id' => $proposal->id,
                     'dosen_id' => $proposal->dosen_id,
                     'file_skenario' => $fileSkenario,
@@ -176,13 +184,26 @@ class ProduksiController extends Controller
         }
 
         try {
-            $mahasiswa = Auth::user()->mahasiswa;
+            $user = Auth::user();
+            $mahasiswa = $user->mahasiswa;
             if (!$mahasiswa) {
+                \Illuminate\Support\Facades\Log::warning('storeProduksiAkhir: authenticated user has no mahasiswa relation', ['user_id' => $user->id]);
                 return back()->with('error', 'Profil mahasiswa tidak ditemukan.')->withInput();
             }
-            
-            // Get produksi
-            $produksi = Produksi::where('mahasiswa_id', $mahasiswa->id)->first();
+            // Get approved proposal for this mahasiswa
+            $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
+                ->where('status', 'disetujui')
+                ->latest()
+                ->first();
+
+            if (!$proposal) {
+                return back()->with('error', 'Proposal belum disetujui')->withInput();
+            }
+
+            // Get produksi scoped to this proposal and mahasiswa (users.id)
+            $produksi = Produksi::where('mahasiswa_id', $user->id)
+                ->where('proposal_id', $proposal->id)
+                ->first();
             
             if (!$produksi) {
                 return back()->with('error', 'Mohon upload pra produksi terlebih dahulu');
@@ -198,7 +219,7 @@ class ProduksiController extends Controller
             if ($request->hasFile('file_produksi_akhir')) {
                 $file = $request->file('file_produksi_akhir');
                 $fileName = 'produksi_akhir_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileProduksiAkhir = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
+                $fileProduksiAkhir = $file->storeAs('produksi/' . $user->id, $fileName, 'public');
             }
 
             $produksi->update([
@@ -206,6 +227,13 @@ class ProduksiController extends Controller
                 'catatan_produksi' => $request->catatan_produksi,
                 'status_produksi_akhir' => 'menunggu_review',
                 'tanggal_upload_akhir' => now(),
+            ]);
+
+            // Log stored path for debugging
+            \Illuminate\Support\Facades\Log::info('storeProduksiAkhir: produksi updated', [
+                'produksi_id' => $produksi->id,
+                'file_produksi_akhir' => $produksi->file_produksi_akhir,
+                'status_produksi_akhir' => $produksi->status_produksi_akhir,
             ]);
 
             return redirect()
@@ -237,13 +265,27 @@ class ProduksiController extends Controller
         }
 
         try {
-            $mahasiswa = Auth::user()->mahasiswa;
+            $user = Auth::user();
+            $mahasiswa = $user->mahasiswa;
             if (!$mahasiswa) {
+                \Illuminate\Support\Facades\Log::warning('storeLuaranTambahan: authenticated user has no mahasiswa relation', ['user_id' => $user->id]);
                 return back()->with('error', 'Profil mahasiswa tidak ditemukan.')->withInput();
             }
-            
-            // Get produksi
-            $produksi = Produksi::where('mahasiswa_id', $mahasiswa->id)->first();
+
+            // Get approved proposal for this mahasiswa
+            $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
+                ->where('status', 'disetujui')
+                ->latest()
+                ->first();
+
+            if (!$proposal) {
+                return back()->with('error', 'Proposal belum disetujui')->withInput();
+            }
+
+            // Get produksi scoped to this proposal and mahasiswa (users.id)
+            $produksi = Produksi::where('mahasiswa_id', $user->id)
+                ->where('proposal_id', $proposal->id)
+                ->first();
             
             if (!$produksi) {
                 return back()->with('error', 'Mohon upload pra produksi terlebih dahulu');
@@ -259,7 +301,7 @@ class ProduksiController extends Controller
             if ($request->hasFile('file_luaran_tambahan')) {
                 $file = $request->file('file_luaran_tambahan');
                 $fileName = 'luaran_tambahan_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileLuaranTambahan = $file->storeAs('produksi/' . $mahasiswa->id, $fileName, 'public');
+                $fileLuaranTambahan = $file->storeAs('produksi/' . $user->id, $fileName, 'public');
             }
 
             $produksi->update([
@@ -285,7 +327,10 @@ class ProduksiController extends Controller
         $produksi = Produksi::findOrFail($id);
         
         // Check authorization
-        if ($produksi->mahasiswa_id !== Auth::user()->id) {
+        $user = Auth::user();
+        // Ensure mahasiswa relation exists for better error message
+        $mahasiswa = $user->mahasiswa;
+        if ($produksi->mahasiswa_id !== $user->id) {
             abort(403, 'Unauthorized action.');
         }
 

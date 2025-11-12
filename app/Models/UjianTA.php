@@ -9,9 +9,11 @@ class UjianTA extends Model
 {
     use HasFactory;
 
-    protected $table = 'ujian_tas';
+    // migration creates table 'ujian_tugas_akhir'
+    protected $table = 'ujian_tugas_akhir';
 
     protected $fillable = [
+        'id_proyek_akhir',
         'mahasiswa_id',
         'proposal_id',
         'dosen_pembimbing_id',

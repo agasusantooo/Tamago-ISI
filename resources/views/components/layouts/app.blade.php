@@ -11,6 +11,35 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        <!-- Theme init: apply saved theme (runs before CSS to avoid flash) -->
+        <script>
+            (function () {
+                try {
+                    var theme = null;
+                    try { theme = localStorage.getItem('theme'); } catch(e) { theme = null; }
+                    if (theme === 'dark' || (theme === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+
+                    // Expose toggleTheme to global scope
+                    window.toggleTheme = function () {
+                        var html = document.documentElement;
+                        if (html.classList.contains('dark')) {
+                            html.classList.remove('dark');
+                            try { localStorage.setItem('theme', 'light'); } catch (e) {}
+                        } else {
+                            html.classList.add('dark');
+                            try { localStorage.setItem('theme', 'dark'); } catch (e) {}
+                        }
+                    };
+                } catch (e) {
+                    // ignore
+                }
+            })();
+        </script>
+
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>

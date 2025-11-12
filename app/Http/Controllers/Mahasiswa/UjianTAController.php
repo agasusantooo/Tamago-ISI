@@ -7,9 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use App\Models\UjianTA;
 use App\Models\Produksi;
 use App\Models\Proposal;
+use App\Models\ProjekAkhir;
+use Illuminate\Support\Facades\Schema;
 
 class UjianTAController extends Controller
 {
@@ -18,35 +21,39 @@ class UjianTAController extends Controller
      */
     public function index()
     {
-        $mahasiswa = Auth::user();
-        
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+
         // Get approved proposal
-        $proposal = Proposal::where('mahasiswa_id', $mahasiswa->id)
+        $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
             ->where('status', 'disetujui')
             ->latest()
             ->first();
         
+        $missingProposal = false;
         if (!$proposal) {
-            return redirect()->route('mahasiswa.proposal.index')
-                ->with('error', 'Anda belum memiliki proposal yang disetujui.');
+            // Instead of redirecting, show the page with a clear message and CTA
+            $missingProposal = true;
         }
 
         // Check if produksi akhir approved
-        $produksi = Produksi::where('mahasiswa_id', $mahasiswa->id)
+        // produksi.mahasiswa_id references users.id
+        $produksi = Produksi::where('mahasiswa_id', $user->id)
             ->where('proposal_id', $proposal->id)
             ->first();
 
+        $produksiNotApproved = false;
         if (!$produksi || $produksi->status_produksi_akhir !== 'disetujui') {
-            return redirect()->route('mahasiswa.produksi')
-                ->with('error', 'Produksi akhir harus disetujui terlebih dahulu sebelum daftar ujian.');
+            // show page with message instead of redirect so mahasiswa tahu langkah selanjutnya
+            $produksiNotApproved = true;
         }
         
-        // Get ujian TA data
-        $ujianTA = UjianTA::where('mahasiswa_id', $mahasiswa->id)
-            ->where('proposal_id', $proposal->id)
-            ->first();
-        
-        return view('mahasiswa.ujian-ta', compact('proposal', 'produksi', 'ujianTA'));
+        // Find projek_akhir for this mahasiswa and use it to get ujian TA
+        $projek = ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first();
+        $ujianTA = $projek ? UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->first() : null;
+
+        // Pass flags to the view for UX guidance
+        return view('mahasiswa.ujian-ta', compact('proposal', 'produksi', 'ujianTA', 'missingProposal', 'produksiNotApproved', 'projek'));
     }
 
     /**
@@ -67,28 +74,46 @@ class UjianTAController extends Controller
         ]);
 
         if ($validator->fails()) {
+            Log::info('UjianTA store validation failed', ['user_id' => optional(Auth::user())->id, 'errors' => $validator->errors()->all()]);
             return back()->withErrors($validator)->withInput();
         }
 
         try {
-            $mahasiswa = Auth::user();
-            
+            Log::info('UjianTA store called', ['user_id' => optional(Auth::user())->id]);
+            $user = Auth::user();
+            $mahasiswa = $user->mahasiswa;
+
             // Get proposal
-            $proposal = Proposal::where('mahasiswa_id', $mahasiswa->id)
+            $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
                 ->where('status', 'disetujui')
                 ->latest()
                 ->first();
-            
+
             if (!$proposal) {
                 return back()->with('error', 'Proposal belum disetujui');
             }
 
-            // Check if already registered
-            $existing = UjianTA::where('mahasiswa_id', $mahasiswa->id)
-                ->where('proposal_id', $proposal->id)
-                ->first();
+            // Find projek_akhir for this mahasiswa. If missing, try to create one from the approved proposal.
+            $projek = ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first();
+            if (!$projek) {
+                // create projek_akhir based on proposal to streamline registration
+                $judul = $proposal->judul ?? ('Projek Akhir ' . $mahasiswa->nim);
+                $projekData = [
+                    'nim' => $mahasiswa->nim,
+                    'judul' => $judul,
+                    'file_proposal' => $proposal->file_proposal ?? null,
+                    'status' => 'aktif',
+                ];
+
+                $projek = ProjekAkhir::create($projekData);
+                Log::info('ProjekAkhir auto-created for ujian registration', ['user_id' => $user->id, 'projek_id' => $projek->id_proyek_akhir]);
+            }
+
+            // Check if already registered by projek
+            $existing = UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->first();
 
             if ($existing) {
+                Log::info('UjianTA already exists for projek', ['user_id' => $user->id, 'projek_id' => $projek->id_proyek_akhir]);
                 return back()->with('error', 'Anda sudah terdaftar ujian TA');
             }
 
@@ -99,32 +124,43 @@ class UjianTAController extends Controller
             if ($request->hasFile('file_surat_pengantar')) {
                 $file = $request->file('file_surat_pengantar');
                 $fileName = 'surat_pengantar_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileSuratPengantar = $file->storeAs('ujian-ta/' . $mahasiswa->id, $fileName, 'public');
+                $fileSuratPengantar = $file->storeAs('ujian-ta/' . $user->id, $fileName, 'public');
             }
 
             if ($request->hasFile('file_transkrip_nilai')) {
                 $file = $request->file('file_transkrip_nilai');
                 $fileName = 'transkrip_' . time() . '.pdf';
-                $fileTranskrip = $file->storeAs('ujian-ta/' . $mahasiswa->id, $fileName, 'public');
+                $fileTranskrip = $file->storeAs('ujian-ta/' . $user->id, $fileName, 'public');
             }
 
-            // Create ujian TA
-            $ujianTA = UjianTA::create([
-                'mahasiswa_id' => $mahasiswa->id,
-                'proposal_id' => $proposal->id,
-                'dosen_pembimbing_id' => $proposal->dosen_id,
-                'file_surat_pengantar' => $fileSuratPengantar,
-                'file_transkrip_nilai' => $fileTranskrip,
-                'status_pendaftaran' => 'pengajuan_ujian',
-                'status_ujian' => 'belum_ujian',
-                'tanggal_daftar' => now(),
-            ]);
+            Log::info('UjianTA files stored', ['user_id' => $user->id, 'surat' => $fileSuratPengantar, 'transkrip' => $fileTranskrip]);
+
+            // Create ujian TA using only columns that exist in the DB to avoid migration mismatch errors
+            $cols = Schema::getColumnListing('ujian_tugas_akhir');
+            $data = [];
+            if (in_array('id_proyek_akhir', $cols)) $data['id_proyek_akhir'] = $projek->id_proyek_akhir;
+            if (in_array('dosen_pembimbing_id', $cols)) $data['dosen_pembimbing_id'] = $proposal->dosen_id ?? null;
+            if (in_array('file_surat_pengantar', $cols)) $data['file_surat_pengantar'] = $fileSuratPengantar;
+            if (in_array('file_transkrip_nilai', $cols)) $data['file_transkrip_nilai'] = $fileTranskrip;
+            if (in_array('status_pendaftaran', $cols)) $data['status_pendaftaran'] = 'pengajuan_ujian';
+            if (in_array('status_ujian', $cols)) $data['status_ujian'] = 'belum_ujian';
+            if (in_array('tanggal_daftar', $cols)) $data['tanggal_daftar'] = now();
+
+            $ujianTA = UjianTA::create($data);
+
+            Log::info('UjianTA created', ['user_id' => $user->id, 'ujian_id' => $ujianTA->id_ujian ?? null]);
 
             return redirect()
-                ->route('mahasiswa.ujian-ta')
+                ->route('mahasiswa.ujian-ta.index')
                 ->with('success', 'Pendaftaran ujian TA berhasil! Menunggu jadwal dari koordinator.');
 
         } catch (\Exception $e) {
+            // Log the exception so we can inspect DB / query errors that prevented creation
+            Log::error('UjianTA store exception: ' . $e->getMessage(), [
+                'user_id' => optional(Auth::user())->id,
+                'exception' => $e,
+            ]);
+
             return back()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
                 ->withInput();
@@ -136,25 +172,27 @@ class UjianTAController extends Controller
      */
     public function hasil()
     {
-        $mahasiswa = Auth::user();
-        
-        // Get ujian TA data
-        $ujianTA = UjianTA::where('mahasiswa_id', $mahasiswa->id)
-            ->latest()
-            ->first();
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+
+        // Get ujian TA data by projek_akhir
+        $projek = ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first();
+        $ujianTA = $projek ? UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first() : null;
 
         if (!$ujianTA) {
-            return redirect()->route('mahasiswa.ujian-ta')
+            return redirect()->route('mahasiswa.ujian-ta.index')
                 ->with('error', 'Anda belum terdaftar ujian TA');
         }
 
         // Check if ujian already done
         if ($ujianTA->status_ujian !== 'selesai_ujian') {
-            return redirect()->route('mahasiswa.ujian-ta')
+            return redirect()->route('mahasiswa.ujian-ta.index')
                 ->with('error', 'Ujian belum dilaksanakan');
         }
         
-        return view('mahasiswa.ujian-ta-hasil', compact('ujianTA'));
+        // The application uses `resources/views/mahasiswa/ujian-result.blade.php` for the hasil view.
+        // Render that existing view to avoid missing view errors.
+        return view('mahasiswa.ujian-result', compact('ujianTA'));
     }
 
     /**
@@ -176,10 +214,12 @@ class UjianTAController extends Controller
         }
 
         try {
-            $mahasiswa = Auth::user();
-            
-            // Get ujian TA
-            $ujianTA = UjianTA::where('mahasiswa_id', $mahasiswa->id)->latest()->first();
+            $user = Auth::user();
+            $mahasiswa = $user->mahasiswa;
+
+            // Get ujian TA by projek_akhir
+            $projek = ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first();
+            $ujianTA = $projek ? UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first() : null;
             
             if (!$ujianTA) {
                 return back()->with('error', 'Data ujian tidak ditemukan');
@@ -190,7 +230,7 @@ class UjianTAController extends Controller
             if ($request->hasFile('file_revisi')) {
                 $file = $request->file('file_revisi');
                 $fileName = 'revisi_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileRevisi = $file->storeAs('ujian-ta/' . $mahasiswa->id, $fileName, 'public');
+                $fileRevisi = $file->storeAs('ujian-ta/' . $user->id, $fileName, 'public');
             }
 
             $ujianTA->update([
@@ -219,7 +259,12 @@ class UjianTAController extends Controller
         $ujianTA = UjianTA::findOrFail($id);
         
         // Check authorization
-        if ($ujianTA->mahasiswa_id !== Auth::id()) {
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+
+        // Authorize by checking the projek_akhir owner (projek stores nim)
+        $projek = ProjekAkhir::where('id_proyek_akhir', $ujianTA->id_proyek_akhir)->first();
+        if (!$projek || $projek->nim !== $mahasiswa->nim) {
             abort(403, 'Unauthorized action.');
         }
 

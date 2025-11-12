@@ -38,6 +38,17 @@ new class extends Component
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                {{-- Theme toggle button (desktop) --}}
+                <button id="theme-toggle" type="button" onclick="toggleTheme()" class="me-3 inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm leading-4 font-medium text-gray-500 dark:text-gray-300 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                    {{-- Sun (light) shown when not dark --}}
+                    <svg class="h-5 w-5 block dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M7.05 6.636L5.636 5.222M18.364 5.636l-1.414 1.414M7.05 17.364l-1.414 1.414M12 7a5 5 0 100 10 5 5 0 000-10z" />
+                    </svg>
+                    {{-- Moon (dark) shown when dark --}}
+                    <svg class="h-5 w-5 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                    </svg>
+                </button>
                 @auth
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -100,6 +111,19 @@ new class extends Component
                 <x-responsive-nav-link :href="route('profile')" wire:navigate>
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+
+                {{-- Theme toggle (mobile) --}}
+                <button type="button" onclick="toggleTheme()" class="w-full text-start px-4 py-2 text-sm leading-5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none">
+                    <div class="flex items-center space-x-2">
+                        <svg class="h-5 w-5 block dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M7.05 6.636L5.636 5.222M18.364 5.636l-1.414 1.414M7.05 17.364l-1.414 1.414M12 7a5 5 0 100 10 5 5 0 000-10z" />
+                        </svg>
+                        <svg class="h-5 w-5 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                        </svg>
+                        <span>{{ __('Toggle Theme') }}</span>
+                    </div>
+                </button>
 
                 <!-- Authentication -->
                 <button wire:click="logout" class="w-full text-start">

@@ -356,18 +356,18 @@
                             <!-- Status Persetujuan -->
                             <div class="bg-white rounded-lg shadow-sm p-6">
                                 <h3 class="font-bold text-gray-800 mb-4">Status Persetujuan</h3>
-                                
-                                @if($produksi && $produksi->dosen)
+                                @if($produksi)
                                     <div class="mb-4">
                                         <p class="text-sm font-semibold text-gray-700 mb-1">
-                                            {{ $produksi->dosen->nama }}{{ $produksi->dosen->gelar ? ', ' . $produksi->dosen->gelar : '' }}
+                                            {{-- Tampilkan nama dosen jika tersedia, kalau tidak beri label sementara --}}
+                                            {{ $produksi->dosen ? ($produksi->dosen->nama . ($produksi->dosen->gelar ? ', ' . $produksi->dosen->gelar : '')) : 'Dosen pembimbing belum ditetapkan' }}
                                         </p>
                                         <p class="text-xs text-gray-500">Dosen Pembimbing</p>
                                     </div>
 
                                     <div class="mb-4">
                                         <span class="px-3 py-1 {{ $produksi->statusProduksiAkhirColor }} text-sm font-semibold rounded-full">
-                                            {{ optional($produksi->statusProduksiAkhirBadge)['text'] }}
+                                            {{ optional($produksi->statusProduksiAkhirBadge)['text'] ?? 'Belum ada status' }}
                                         </span>
                                     </div>
 
@@ -483,8 +483,11 @@
             });
 
             dropZone.addEventListener('drop', (e) => {
-                const files = e.dataTransfer.files;
-                element.files = files;
+                const dt = new DataTransfer();
+                Array.from(e.dataTransfer.files).forEach(file => {
+                    dt.items.add(file);
+                });
+                element.files = dt.files;
                 const displayId = id + 'FileName';
                 updateFileName(element, displayId);
             }, false);
