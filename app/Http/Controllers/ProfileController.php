@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -20,6 +21,9 @@ class ProfileController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'nim' => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'birthdate' => ['nullable', 'date'],
+            'address' => ['nullable', 'string', 'max:1000'],
             'current_password' => ['nullable', 'string'],
             'new_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
@@ -44,6 +48,17 @@ class ProfileController extends Controller
             }
         }
 
+        // Update additional profile fields
+        if (array_key_exists('phone', $data)) {
+            $user->phone = $data['phone'];
+        }
+        if (array_key_exists('birthdate', $data)) {
+            $user->birthdate = $data['birthdate'];
+        }
+        if (array_key_exists('address', $data)) {
+            $user->address = $data['address'];
+        }
+
         // Update password if provided: require current password to match
         if (!empty($data['new_password'])) {
             if (empty($data['current_password']) || !Hash::check($data['current_password'], $user->password)) {
@@ -58,5 +73,49 @@ class ProfileController extends Controller
         $user->save();
 
         return Redirect::back()->with('status', 'Profil berhasil diperbarui.');
+    }
+
+    /**
+     * Upload and save profile photo for authenticated user.
+     */
+    public function uploadPhoto(Request $request)
+    {
+        $request->validate([
+            'avatar' => ['required', 'image', 'max:2048'],
+        ]);
+
+        $user = Auth::user();
+
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        // delete previous avatar if exists
+        try {
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+
+        $user->avatar = $path;
+        $user->save();
+
+        return Redirect::back()->with('status', 'Foto profil berhasil diunggah.');
+    }
+
+    /**
+     * Save theme preference to user profile (server-side) if user authenticated.
+     */
+    public function saveTheme(Request $request)
+    {
+        $request->validate(['theme' => ['required', 'in:light,dark']]);
+
+        $user = Auth::user();
+        if ($user) {
+            $user->theme = $request->input('theme');
+            $user->save();
+        }
+
+        return response()->json(['status' => 'ok']);
     }
 }

@@ -15,7 +15,9 @@ return new class extends Migration
     {
         Schema::table('ujian_tugas_akhir', function (Blueprint $table) {
             if (!Schema::hasColumn('ujian_tugas_akhir', 'dosen_pembimbing_id')) {
-                $table->unsignedBigInteger('dosen_pembimbing_id')->nullable()->after('proposal_id')->index();
+                // Add column without positional "after" to avoid errors when proposal_id
+                // or other intermediate columns are not present in all environments.
+                $table->unsignedBigInteger('dosen_pembimbing_id')->nullable()->index();
             }
         });
     }

@@ -259,3 +259,13 @@ Route::get('/profile', function () {
 Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'update'])
     ->middleware('auth')
     ->name('profile.update');
+
+// Upload avatar
+Route::post('/profile/photo', [App\Http\Controllers\ProfileController::class, 'uploadPhoto'])
+    ->middleware('auth')
+    ->name('profile.photo');
+
+// Save theme preference server-side
+Route::post('/profile/theme', [App\Http\Controllers\ProfileController::class, 'saveTheme'])
+    ->middleware('auth')
+    ->name('profile.theme');

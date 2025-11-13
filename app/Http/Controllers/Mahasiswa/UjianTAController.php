@@ -109,11 +109,15 @@ class UjianTAController extends Controller
                 Log::info('ProjekAkhir auto-created for ujian registration', ['user_id' => $user->id, 'projek_id' => $projek->id_proyek_akhir]);
             }
 
-            // Check if already registered by projek
-            $existing = UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->first();
+            // Check if already registered by projek. Only block new registration when
+            // an active/ongoing registration already exists (avoid duplicate active rows).
+            $existing = UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first();
 
-            if ($existing) {
-                Log::info('UjianTA already exists for projek', ['user_id' => $user->id, 'projek_id' => $projek->id_proyek_akhir]);
+            // These pendaftaran statuses indicate an active or non-final registration
+            $blockedStatuses = ['pengajuan_ujian', 'jadwal_ditetapkan', 'ujian_berlangsung'];
+
+            if ($existing && in_array($existing->status_pendaftaran, $blockedStatuses)) {
+                Log::info('UjianTA already exists for projek', ['user_id' => $user->id, 'projek_id' => $projek->id_proyek_akhir, 'status' => $existing->status_pendaftaran]);
                 return back()->with('error', 'Anda sudah terdaftar ujian TA');
             }
 

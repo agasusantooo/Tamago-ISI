@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Mahasiswa;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\ProjekAkhir;
 use App\Models\UjianTA;
 use App\Models\Produksi;
@@ -15,6 +16,19 @@ class UjianTimeline extends Component
     public $dates = [];
     public $hasUjian = false;
     public $ujianStatus = null;
+    public $selectedStatus = null;
+    // statuses that can be set by authorised users
+    public $allowedStatuses = [
+        'belum_upload', 'menunggu_review', 'disetujui', 'revisi', 'ditolak',
+        // existing workflow statuses
+        'pengajuan_ujian', 'jadwal_ditetapkan', 'ujian_berlangsung', 'selesai_ujian'
+    ];
+    // optionally accept projek and ujian passed from parent view for initial sync
+    public $projek = null;
+    public $ujianTA = null;
+    // accept ids from parent to avoid model serialization issues
+    public $projekId = null;
+    public $ujianId = null;
 
     public function mount()
     {
@@ -28,10 +42,22 @@ class UjianTimeline extends Component
 
         // Default empty timeline
         $timeline = [];
+        // Prefer ids passed from parent view (avoids Livewire model serialization/timing issues).
+        if ($this->projekId) {
+            $projek = ProjekAkhir::where('id_proyek_akhir', $this->projekId)->first();
+        } else {
+            $projek = $this->projek ?? ($mahasiswa ? ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first() : null);
+        }
 
-        // Find projek and ujian
-        $projek = $mahasiswa ? ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first() : null;
-        $ujian = $projek ? UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first() : null;
+        if ($this->ujianId) {
+            $ujian = UjianTA::where('id_ujian', $this->ujianId)->first();
+        } else {
+            $ujian = $this->ujianTA ?? ($projek ? UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first() : null);
+        }
+
+        // expose the ujian model to the blade view
+        $this->ujianTA = $ujian;
+        $this->selectedStatus = $ujian->status_pendaftaran ?? null;
 
     $this->hasUjian = (bool)$ujian;
     $this->ujianStatus = $ujian->status_ujian ?? null;
@@ -86,6 +112,43 @@ class UjianTimeline extends Component
         }
 
         $this->timeline = $timeline;
+    }
+
+    /**
+     * Update status_pendaftaran for the current ujianTA.
+     * Only authorised users (admin, dosen roles) may perform this.
+     */
+    public function updateStatus()
+    {
+        try {
+            $user = Auth::user();
+            // basic role checks - allow admins and any teaching staff roles
+            $allowed = $user && (
+                $user->isAdmin() || $user->isDospem() || $user->isDosenPenguji() || $user->isKaprodi() || $user->isKoordinatorTA()
+            );
+
+            if (! $allowed) {
+                $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Anda tidak memiliki izin untuk mengubah status.']);
+                return;
+            }
+
+            if (! $this->ujianTA) {
+                $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Tidak ada pendaftaran ujian yang dipilih.']);
+                return;
+            }
+
+            if (! in_array($this->selectedStatus, $this->allowedStatuses)) {
+                $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Status yang dipilih tidak valid.']);
+                return;
+            }
+
+            $this->ujianTA->update(['status_pendaftaran' => $this->selectedStatus]);
+            $this->refreshData();
+            $this->dispatchBrowserEvent('notify', ['type' => 'success', 'message' => 'Status pendaftaran berhasil diubah.']);
+        } catch (\Exception $e) {
+            Log::error('Failed to update ujian status', ['error' => $e->getMessage(), 'user_id' => optional(Auth::user())->id]);
+            $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Terjadi kesalahan saat menyimpan status.']);
+        }
     }
 
     public function render()
