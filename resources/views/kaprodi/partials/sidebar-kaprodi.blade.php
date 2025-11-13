@@ -8,7 +8,7 @@
                  class="w-12 h-12 object-contain rounded-lg">
             <div>
                 <h1 class="font-bold text-lg text-gray-800">Tamago ISI</h1>
-                <p class="text-xs text-gray-500">Sistem TA</p>
+                <p class="text-xs text-gray-500">Kaprodi</p>
             </div>
         </div>
     </div>
@@ -17,38 +17,31 @@
     <nav class="flex-1 overflow-y-auto py-4">
         <ul class="space-y-1 px-3">
             <li>
-                <a href="{{ route('dashboard') }}"
+                <a href="{{ route('kaprodi.dashboard') }}"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition 
-                   {{ request()->routeIs('dashboard') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50' }}">
+                   {{ request()->routeIs('kaprodi.dashboard') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
                     <i class="fas fa-home w-5"></i><span>Dashboard</span>
                 </a>
             </li>
             <li>
-                <a href="{{ route('dospem.mahasiswa-bimbingan') }}"
+                <a href="{{ route('kaprodi.setup') }}"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                   {{ request()->routeIs('dospem.mahasiswa-bimbingan') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50' }}">
-                    <i class="fas fa-users w-5"></i><span>Mahasiswa Bimbingan</span>
+                   {{ request()->routeIs('kaprodi.setup') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
+                    <i class="fas fa-cogs w-5"></i><span>Setup & Timeline</span>
                 </a>
             </li>
             <li>
-                <a href="{{ route('dospem.jadwal-bimbingan') }}"
+                <a href="{{ route('kaprodi.pengelolaan') }}"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                   {{ request()->routeIs('dospem.jadwal-bimbingan') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50' }}">
-                    <i class="fas fa-calendar-alt w-5"></i><span>Jadwal Bimbingan</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('dospem.review-tugas') }}"
-                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                   {{ request()->routeIs('dospem.review-tugas') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50' }}">
-                    <i class="fas fa-tasks w-5"></i><span>Review Tugas</span>
+                   {{ request()->routeIs('kaprodi.pengelolaan') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
+                    <i class="fas fa-sitemap w-5"></i><span>Pengelolaan</span>
                 </a>
             </li>
 
             <li>
-                <a href="{{ route('dospem.profile') }}"
+                <a href="#"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                   {{ request()->routeIs('dospem.profile') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50' }}">
+                   {{ request()->routeIs('kaprodi.profile') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
                     <i class="fas fa-user w-5"></i><span>Akun Saya</span>
                 </a>
             </li>
