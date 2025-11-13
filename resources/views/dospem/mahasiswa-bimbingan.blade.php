@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mahasiswa Bimbingan - Tamago ISI</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-blue-50 text-gray-800">
     @php
@@ -45,13 +44,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-blue-50">
-                                    @php
-                                    $mahasiswaBimbingan = [
-                                        (object)['name' => 'Budi Santoso', 'email' => 'budi@example.com', 'judul_ta' => 'Sistem Rekomendasi Film', 'progress' => 75, 'bimbingan_terakhir' => '2025-11-01'],
-                                        (object)['name' => 'Siti Lestari', 'email' => 'siti@example.com', 'judul_ta' => 'Analisis Sentimen Media Sosial', 'progress' => 60, 'bimbingan_terakhir' => '2025-10-28'],
-                                        (object)['name' => 'Ahmad Fauzi', 'email' => 'ahmad@example.com', 'judul_ta' => 'Aplikasi Mobile untuk Petani', 'progress' => 90, 'bimbingan_terakhir' => '2025-11-05'],
-                                    ];
-                                    @endphp
+
                                     @forelse($mahasiswaBimbingan as $mhs)
                                     <tr class="hover:bg-blue-50 transition">
                                         <td class="px-4 py-3">
@@ -78,9 +71,9 @@
                                         </td>
                                         <td class="px-4 py-3 text-center text-sm text-gray-600">{{ $mhs->bimbingan_terakhir }}</td>
                                         <td class="px-4 py-3 text-center">
-                                            <button class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                                            <a href="{{ route('dospem.mahasiswa-bimbingan.detail', ['id' => $mhs->id]) }}" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
                                                 <i class="fas fa-eye mr-1"></i>Detail
-                                            </button>
+                                            </a>
                                         </td>
                                     </tr>
                                     @empty

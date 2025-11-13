@@ -18,6 +18,8 @@ class DemoUserSeeder extends Seeder
         $roleMahasiswa = Role::where('name', 'mahasiswa')->first();
         $roleDospem = Role::where('name', 'dospem')->first();
         $roleKaprodi = Role::where('name', 'kaprodi')->first();
+        $roleKoordinatorTA = Role::where('name', 'koordinator_ta')->first();
+        $roleDosenPenguji = Role::where('name', 'dosen_penguji')->first();
         $roleAdmin = Role::where('name', 'admin')->first();
 
         // Buat user demo untuk setiap role
@@ -41,6 +43,18 @@ class DemoUserSeeder extends Seeder
                 'role_id' => $roleKaprodi->id,
             ],
             [
+                'name' => 'Dr. Siti Aminah',
+                'email' => 'koordinator_ta@test.com',
+                'password' => Hash::make('password'),
+                'role_id' => $roleKoordinatorTA->id,
+            ],
+            [
+                'name' => 'Dr. Indah Permata',
+                'email' => 'dosen_penguji@test.com',
+                'password' => Hash::make('password'),
+                'role_id' => $roleDosenPenguji->id,
+            ],
+            [
                 'name' => 'Admin System',
                 'email' => 'admin@test.com',
                 'password' => Hash::make('password'),
@@ -49,7 +63,7 @@ class DemoUserSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
-            User::create($userData);
+            User::firstOrCreate(['email' => $userData['email']], $userData);
         }
 
         $this->command->info('✓ Demo users berhasil dibuat!');
@@ -58,6 +72,8 @@ class DemoUserSeeder extends Seeder
         $this->command->info('Mahasiswa   : mahasiswa@test.com / password');
         $this->command->info('Dosen       : dospem@test.com / password');
         $this->command->info('Kaprodi     : kaprodi@test.com / password');
+        $this->command->info('Koordinator : koordinator_ta@test.com / password');
+        $this->command->info('Penguji     : dosen_penguji@test.com / password');
         $this->command->info('Admin       : admin@test.com / password');
     }
 }

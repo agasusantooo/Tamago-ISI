@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -59,7 +60,8 @@ Route::middleware(['auth', 'role:dospem'])->prefix('dospem')->name('dospem.')->g
 
 
     // Daftar mahasiswa bimbingan
-    Route::view('/mahasiswa-bimbingan', 'dospem.mahasiswa-bimbingan')->name('mahasiswa-bimbingan');
+    Route::get('/mahasiswa-bimbingan', [App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'index'])->name('mahasiswa-bimbingan');
+    Route::get('/mahasiswa-bimbingan/{id}', [App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'show'])->name('mahasiswa-bimbingan.detail');
 
     // Review tugas mahasiswa
     Route::view('/review-tugas', 'dospem.review-tugas')->name('review-tugas');
@@ -67,22 +69,45 @@ Route::middleware(['auth', 'role:dospem'])->prefix('dospem')->name('dospem.')->g
     // Jadwal bimbingan
     Route::view('/jadwal-bimbingan', 'dospem.jadwal-bimbingan')->name('jadwal-bimbingan');
 
+    // API for Jadwal Bimbingan
+    Route::controller(App\Http\Controllers\Dospem\JadwalBimbinganController::class)->prefix('jadwal-bimbingan')->name('jadwal-bimbingan.')->group(function() {
+        Route::get('/events', 'index')->name('events');
+        Route::post('/events', 'store')->name('store');
+        Route::put('/events/{id}', 'update')->name('update');
+        Route::delete('/events/{id}', 'destroy')->name('destroy');
+    });
+
     // Riwayat bimbingan
     Route::view('/riwayat-bimbingan', 'dospem.riwayat-bimbingan')->name('riwayat-bimbingan');
+
+    // Profile Dospem
+    Route::view('/profile', 'dospem.profile')->name('profile');
 });
 
 // ROLE: KAPRODI
 Route::middleware(['auth', 'role:kaprodi'])->prefix('kaprodi')->name('kaprodi.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'kaprodi'])->name('dashboard');
-    Route::view('/verifikasi', 'kaprodi.verifikasi')->name('verifikasi');
-    Route::view('/laporan', 'kaprodi.laporan')->name('laporan');
+    Route::view('/dashboard', 'kaprodi.dashboard')->name('dashboard');
+    Route::view('/setup', 'kaprodi.setup')->name('setup');
+    Route::view('/pengelolaan', 'kaprodi.pengelolaan')->name('pengelolaan');
+    Route::view('/profile', 'kaprodi.profile')->name('profile');
 });
 
 // ROLE: KOORDINATOR TA
 Route::middleware(['auth', 'role:koordinator_ta'])->prefix('koordinator-ta')->name('koordinator_ta.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'koordinatorTa'])->name('dashboard');
+    Route::view('/dashboard', 'koordinator_ta.dashboard')->name('dashboard');
+    
+    // Jadwal Acara Routes
+    Route::get('/jadwal', function () { return view('koordinator_ta.jadwal'); })->name('jadwal');
+    Route::controller(App\Http\Controllers\Koordinator\JadwalAcaraController::class)->prefix('jadwal')->name('jadwal.')->group(function() {
+        Route::get('/events', 'index')->name('events');
+        Route::post('/events', 'store')->name('store');
+        Route::put('/events/{id}', 'update')->name('update');
+        Route::delete('/events/{id}', 'destroy')->name('destroy');
+    });
+
     Route::view('/monitoring', 'koordinator_ta.monitoring')->name('monitoring');
-    Route::view('/dospem', 'koordinator_ta.dospem')->name('dospem');
+    Route::view('/matakuliah', 'koordinator_ta.matakuliah')->name('matakuliah');
+    Route::view('/profile', 'koordinator_ta.profile')->name('profile');
 });
 
 Route::middleware(['auth', 'role:admin'])
@@ -105,9 +130,9 @@ Route::middleware(['auth', 'role:admin'])
 
 // ROLE: DOSEN PENGUJI
 Route::middleware(['auth', 'role:dosen_penguji'])->prefix('dosen-penguji')->name('dosen_penguji.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'dosenPenguji'])->name('dashboard');
-    Route::view('/jadwal', 'dosen_penguji.jadwal')->name('jadwal');
+    Route::view('/dashboard', 'dosen_penguji.dashboard')->name('dashboard');
     Route::view('/penilaian', 'dosen_penguji.penilaian')->name('penilaian');
+    Route::view('/profile', 'dosen_penguji.profile')->name('profile');
 });
 
 // DASHBOARD DEFAULT (Redirect per Role)
@@ -135,7 +160,10 @@ Route::get('/dashboard/default', function () {
 
 // PROFILE USER (SEMUA ROLE)
 Route::get('/profile', function () {
-    return view('profile.edit');
+    if (Auth::user()->hasRole('dospem')) {
+        return redirect()->route('dospem.profile');
+    }
+    return view('profile');
 })->middleware('auth')->name('profile.edit');
 
 
