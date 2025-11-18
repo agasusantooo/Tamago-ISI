@@ -156,6 +156,7 @@
                         </div>
 
                         <!-- Status Pengajuan -->
+
                         <div>
                             <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
                                 <h3 class="text-xl font-bold text-gray-800 mb-4">Status Pengajuan Proposal</h3>
@@ -188,6 +189,17 @@
                                             @endif
                                         </div>
                                     </div>
+                                @else
+                                    <p class="text-sm text-gray-600">Belum ada pengajuan proposal.</p>
+                                @endif
+                            </div>
+                        </div>
+                                    @php $badge = $latestProposal->statusBadge; @endphp
+                                    <span class="px-3 py-1 bg-{{ $badge['color'] }}-100 text-{{ $badge['color'] }}-800 text-sm font-semibold rounded-full">
+                                        {{ $badge['text'] }}
+                                    </span>
+                                @else
+                                    <p class="text-sm text-gray-600">Belum ada pengajuan proposal.</p>
                                 @endif
                             </div>
                         </div>
