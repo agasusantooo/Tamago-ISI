@@ -66,9 +66,18 @@ class DashboardController extends Controller
                 (object)['description' => 'Mengunggah proposal tugas akhir', 'created_at' => now()->subDays(1)],
                 (object)['description' => 'Mendapat revisi dari dosen pembimbing', 'created_at' => now()->subDays(2)],
             ]),
+            'hideProgressBar' => true, // 👈 Tambahkan ini
         ];
 
         // Ambil proposal terakhir mahasiswa
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        $latestProposal = null;
+        if ($mahasiswa && $mahasiswa->nim) {
+            $latestProposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
+                ->orderBy('created_at', 'desc')
+                ->first();
+        }
         $latestProposal = Proposal::where('mahasiswa_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->first();

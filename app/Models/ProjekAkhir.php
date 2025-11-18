@@ -10,7 +10,11 @@ class ProjekAkhir extends Model
     use HasFactory;
 
     protected $table = 'projek_akhir';
+
+    // migration uses id_proyek_akhir as primary key
     protected $primaryKey = 'id_proyek_akhir';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'nim',
@@ -18,56 +22,23 @@ class ProjekAkhir extends Model
         'nidn2',
         'judul',
         'file_proposal',
+        'file_naskah_publikasi',
+        'link_jurnal',
         'file_pitch_deck',
         'file_story_bible',
         'status',
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    /**
+     * Relation to mahasiswa by nim
+     */
     public function mahasiswa()
     {
         return $this->belongsTo(Mahasiswa::class, 'nim', 'nim');
-    }
-
-    public function pembimbing1()
-    {
-        return $this->belongsTo(Dosen::class, 'nidn1', 'nidn');
-    }
-
-    public function pembimbing2()
-    {
-        return $this->belongsTo(Dosen::class, 'nidn2', 'nidn');
-    }
-
-    public function bimbingan()
-    {
-        return $this->hasMany(Bimbingan::class, 'id_proyek_akhir', 'id_proyek_akhir');
-    }
-
-    public function storyConference()
-    {
-        return $this->hasOne(StoryConference::class, 'id_proyek_akhir', 'id_proyek_akhir');
-    }
-
-    public function tefaFair()
-    {
-        return $this->hasOne(TefaFair::class, 'id_proyek_akhir', 'id_proyek_akhir');
-    }
-
-    public function pembimbing()
-    {
-        $pembimbing1 = $this->pembimbing1;
-        $pembimbing2 = $this->pembimbing2;
-
-        $pembimbings = collect();
-
-        if ($pembimbing1) {
-            $pembimbings->push($pembimbing1);
-        }
-
-        if ($pembimbing2) {
-            $pembimbings->push($pembimbing2);
-        }
-
-        return $pembimbings;
     }
 }

@@ -11,11 +11,94 @@
 <body class="bg-blue-50 text-gray-800">
     <div class="flex h-screen overflow-hidden">
 
-        @include('dospem.partials.sidebar-dospem')
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-lg flex flex-col border-r border-blue-100" id="sidebar">
+            <!-- Logo -->
+            <div class="p-6 border-b border-blue-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-blue-700 text-white flex items-center justify-center rounded-lg font-bold text-xs">
+                        ISI<br>YK
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg text-blue-800">Tamago ISI</h1>
+                        <p class="text-xs text-blue-500">Dosen Pembimbing</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigasi -->
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-1 px-3">
+                    <li>
+                        <a href="{{ route('dashboard') }}"
+                           class="flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition 
+                           {{ request()->routeIs('dashboard') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50' }}">
+                            <i class="fas fa-home w-5"></i><span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('dospem.mahasiswa-bimbingan') }}"
+                           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                           {{ request()->routeIs('dospem.mahasiswa-bimbingan') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50' }}">
+                            <i class="fas fa-users w-5"></i><span>Mahasiswa Bimbingan</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('dospem.jadwal-bimbingan') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+                            <i class="fas fa-calendar-alt w-5"></i><span>Jadwal Bimbingan</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('dospem.review-tugas') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+                            <i class="fas fa-tasks w-5"></i><span>Review Tugas</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+                            <i class="fas fa-file-alt w-5"></i><span>Laporan</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-lg transition">
+                            <i class="fas fa-user w-5"></i><span>Profil Saya</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- User Info -->
+            <div class="p-4 border-t border-blue-100">
+                <div class="flex items-center space-x-3 mb-3">
+                    <div class="w-10 h-10 bg-blue-600 text-white flex items-center justify-center rounded-full font-semibold">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-blue-800 truncate uppercase">{{ Auth::user()->name }}</p>
+                        <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+                        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
 
         <!-- Konten Utama -->
         <div class="flex-1 flex flex-col overflow-hidden">
-            @include('dospem.partials.header-dospem')
+            <header class="bg-white shadow-sm border-b border-blue-100">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <h2 class="text-2xl font-bold text-blue-800">Dashboard Dosen Pembimbing</h2>
+                    <div class="flex items-center space-x-4">
+                        <p class="text-sm font-semibold uppercase text-blue-700">{{ Auth::user()->name }}</p>
+                        <button class="relative p-2 text-blue-700 hover:bg-blue-100 rounded-lg">
+                            <i class="fas fa-bell text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
 
             <main class="flex-1 overflow-y-auto p-6">
                 <div class="max-w-7xl mx-auto">

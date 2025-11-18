@@ -156,10 +156,44 @@
                         </div>
 
                         <!-- Status Pengajuan -->
-                        <div class="lg:col-span-1">
+
+                        <div>
                             <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-                                <h3 class="font-bold text-gray-800 mb-4">Status Pengajuan</h3>
-                                @if($latestProposal)
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">Status Pengajuan Proposal</h3>
+                                @isset($proposal)
+                                    <div class="space-y-4">
+                                        <div>
+                                            <p class="text-sm text-gray-600">Status:</p>
+                                            @if($proposal->status == 'draft')
+                                                <span class="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">Draft</span>
+                                            @elseif($proposal->status == 'diajukan')
+                                                <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">Diajukan</span>
+                                            @elseif($proposal->status == 'review')
+                                                <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">Dalam Review</span>
+                                            @elseif($proposal->status == 'revisi')
+                                                <span class="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">Perlu Revisi</span>
+                                            @elseif($proposal->status == 'disetujui')
+                                                <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">Disetujui</span>
+                                            @elseif($proposal->status == 'ditolak')
+                                                <span class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">Ditolak</span>
+                                            @else
+                                                <span class="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">{{ ucfirst($proposal->status) }}</span>
+                                            @endif
+                                            @if($proposal->feedback)
+                                                <div class="mt-4">
+                                                    <p class="text-sm text-gray-600">Feedback Reviewer:</p>
+                                                    <div class="bg-gray-50 rounded-lg p-3 mt-2 border-l-4 border-blue-500">
+                                                        <p class="text-gray-800 text-sm">{{ $proposal->feedback }}</p>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @else
+                                    <p class="text-sm text-gray-600">Belum ada pengajuan proposal.</p>
+                                @endif
+                            </div>
+                        </div>
                                     @php $badge = $latestProposal->statusBadge; @endphp
                                     <span class="px-3 py-1 bg-{{ $badge['color'] }}-100 text-{{ $badge['color'] }}-800 text-sm font-semibold rounded-full">
                                         {{ $badge['text'] }}
@@ -170,9 +204,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
-        </div>
+                </main>
+            </div>
     </div>
 
     <script>

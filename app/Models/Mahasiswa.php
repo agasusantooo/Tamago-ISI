@@ -9,25 +9,18 @@ class Mahasiswa extends Model
 {
     use HasFactory;
 
-    protected $table = 'mahasiswa';
-    protected $primaryKey = 'nim';
-    public $incrementing = false;
-    protected $keyType = 'string';
+    protected $table = 'mahasiswa'; // 👈 penting: biar gak dicari 'mahasiswas'
 
     protected $fillable = [
+        'user_id',
         'nim',
         'nama',
-        'email',
-        'status',
+        'prodi',
+        'angkatan',
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'email', 'email');
-    }
-
-    public function projekAkhir()
-    {
-        return $this->hasMany(ProjekAkhir::class, 'nim', 'nim');
+        return $this->belongsTo(User::class);
     }
 }

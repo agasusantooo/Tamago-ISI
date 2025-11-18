@@ -17,24 +17,33 @@ class ProposalController extends Controller
      */
     public function index()
     {
-        $mahasiswa = Auth::user();
-        
-        // Get latest proposal for this student
-        $latestProposal = Proposal::where('mahasiswa_id', $mahasiswa->id)
+        $mahasiswa = Auth::user()->mahasiswa;
+
+        // If mahasiswa relation not found, ensure we don't cause fatal errors
+        $mahasiswaNim = $mahasiswa ? $mahasiswa->nim : null;
+
+        // Get latest proposal for this student (use nim as stored in proposals.mahasiswa_nim)
+        $latestProposal = $mahasiswaNim ? Proposal::where('mahasiswa_nim', $mahasiswaNim)
             ->latest()
-            ->first();
-        
+            ->first() : null;
+
         // Get history of proposals
-        $proposalHistory = Proposal::where('mahasiswa_id', $mahasiswa->id)
+        $proposalHistory = $mahasiswaNim ? Proposal::where('mahasiswa_nim', $mahasiswaNim)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get() : collect();
         
         // Get available dosens
         $dosens = Dosen::where('status', 'aktif')
             ->orderBy('nama')
             ->get();
         
-        return view('mahasiswa.proposal', compact('latestProposal', 'proposalHistory', 'dosens'));
+        // The Blade view expects a variable named $proposal for the current/latest proposal.
+        // Provide it (and keep proposalHistory & dosens) so the status block renders correctly.
+        return view('mahasiswa.proposal', [
+            'proposal' => $latestProposal,
+            'proposalHistory' => $proposalHistory,
+            'dosens' => $dosens,
+        ]);
     }
 
     /**
@@ -66,10 +75,13 @@ class ProposalController extends Controller
         }
 
         try {
-            $mahasiswa = Auth::user();
+            $mahasiswa = Auth::user()->mahasiswa;
+            if (!$mahasiswa) {
+                return back()->with('error', 'Profil mahasiswa tidak ditemukan. Silakan lengkapi profil mahasiswa Anda.')->withInput();
+            }
             
             // Calculate version number
-            $lastProposal = Proposal::where('mahasiswa_id', $mahasiswa->id)
+            $lastProposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
                 ->latest('versi')
                 ->first();
             $versi = $lastProposal ? $lastProposal->versi + 1 : 1;
@@ -80,7 +92,7 @@ class ProposalController extends Controller
                 $fileProposal = $request->file('file_proposal');
                 $fileName = 'proposal_v' . $versi . '_' . time() . '.pdf';
                 $fileProposalPath = $fileProposal->storeAs(
-                    'proposals/' . $mahasiswa->id,
+                    'proposals/' . $mahasiswa->nim,
                     $fileName,
                     'public'
                 );
@@ -93,7 +105,7 @@ class ProposalController extends Controller
                 $extension = $filePitchDeck->getClientOriginalExtension();
                 $fileName = 'pitchdeck_v' . $versi . '_' . time() . '.' . $extension;
                 $filePitchDeckPath = $filePitchDeck->storeAs(
-                    'pitch-decks/' . $mahasiswa->id,
+                    'pitch-decks/' . $mahasiswa->nim,
                     $fileName,
                     'public'
                 );
@@ -101,7 +113,7 @@ class ProposalController extends Controller
 
             // Create proposal record
             $proposal = Proposal::create([
-                'mahasiswa_id' => $mahasiswa->id,
+                'mahasiswa_nim' => $mahasiswa->nim,
                 'dosen_id' => $request->dosen_id,
                 'judul' => $request->judul,
                 'deskripsi' => $request->deskripsi,
@@ -129,10 +141,16 @@ class ProposalController extends Controller
     public function saveDraft(Request $request)
     {
         try {
-            $mahasiswa = Auth::user();
-            
+            $mahasiswa = Auth::user()->mahasiswa;
+            if (!$mahasiswa) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Profil mahasiswa tidak ditemukan. Silakan lengkapi profil mahasiswa Anda.'
+                ], 400);
+            }
+
             // Check if there's existing draft
-            $draft = Proposal::where('mahasiswa_id', $mahasiswa->id)
+            $draft = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
                 ->where('status', 'draft')
                 ->first();
 
@@ -146,7 +164,7 @@ class ProposalController extends Controller
             } else {
                 // Create new draft
                 $draft = Proposal::create([
-                    'mahasiswa_id' => $mahasiswa->id,
+                    'mahasiswa_nim' => $mahasiswa->nim,
                     'dosen_id' => $request->dosen_id,
                     'judul' => $request->judul,
                     'deskripsi' => $request->deskripsi,
@@ -176,7 +194,8 @@ class ProposalController extends Controller
         $proposal = Proposal::findOrFail($id);
         
         // Check if user owns this proposal
-        if ($proposal->mahasiswa_id !== Auth::id()) {
+        $mahasiswa = Auth::user()->mahasiswa;
+        if (!$mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
             abort(403, 'Unauthorized action.');
         }
 

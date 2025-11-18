@@ -10,7 +10,7 @@ class Proposal extends Model
     use HasFactory;
 
     protected $fillable = [
-        'mahasiswa_id',
+        'mahasiswa_nim',
         'dosen_id',
         'judul',
         'deskripsi',
@@ -33,7 +33,7 @@ class Proposal extends Model
      */
     public function mahasiswa()
     {
-        return $this->belongsTo(User::class, 'mahasiswa_id');
+        return $this->belongsTo(User::class, 'mahasiswa_nim');
     }
 
     /**
@@ -50,12 +50,30 @@ class Proposal extends Model
     public function getStatusBadgeAttribute()
     {
         $badges = [
-            'draft' => ['color' => 'gray', 'text' => 'Draft'],
-            'diajukan' => ['color' => 'blue', 'text' => 'Diajukan'],
-            'review' => ['color' => 'yellow', 'text' => 'Dalam Review'],
-            'revisi' => ['color' => 'orange', 'text' => 'Perlu Revisi'],
-            'disetujui' => ['color' => 'green', 'text' => 'Disetujui'],
-            'ditolak' => ['color' => 'red', 'text' => 'Ditolak'],
+            'draft' => [
+                'class' => 'bg-gray-100 text-gray-800', 
+                'text' => 'Draft'
+            ],
+            'diajukan' => [
+                'class' => 'bg-blue-100 text-blue-800', 
+                'text' => 'Diajukan'
+        ],
+        'review' => [
+            'class' => 'bg-yellow-100 text-yellow-800', 
+            'text' => 'Dalam Review'
+        ],
+        'revisi' => [
+            'class' => 'bg-orange-100 text-orange-800', 
+            'text' => 'Perlu Revisi'
+        ],
+        'disetujui' => [
+            'class' => 'bg-green-100 text-green-800', 
+            'text' => 'Disetujui'
+        ],
+        'ditolak' => [
+            'class' => 'bg-red-100 text-red-800', 
+            'text' => 'Ditolak'
+        ],
         ];
 
         return $badges[$this->status] ?? ['color' => 'gray', 'text' => 'Unknown'];
@@ -100,8 +118,8 @@ class Proposal extends Model
     /**
      * Scope untuk filter berdasarkan mahasiswa
      */
-    public function scopeByMahasiswa($query, $mahasiswaId)
+    public function scopeByMahasiswa($query, $mahasiswaNim)
     {
-        return $query->where('mahasiswa_id', $mahasiswaId);
+        return $query->where('mahasiswa_nim', $mahasiswaNim);
     }
 }

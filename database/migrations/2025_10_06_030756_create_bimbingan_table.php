@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bimbingan', function (Blueprint $table) {
+        Schema::create('bimbingans', function (Blueprint $table) {
             $table->id('id_bimbingan');
             $table->unsignedBigInteger('id_proyek_akhir');
             $table->string('nidn');
@@ -26,11 +26,19 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
-    {
-        Schema::dropIfExists('bimbingan');
-    }
+{
+    Schema::disableForeignKeyConstraints();
+
+    Schema::table('bimbingans', function (Blueprint $table) {
+        $table->dropForeign(['id_proyek_akhir']);
+        $table->dropForeign(['nidn']);
+    });
+
+    Schema::dropIfExists('bimbingans');
+
+    Schema::enableForeignKeyConstraints();
+}
+
+
 };

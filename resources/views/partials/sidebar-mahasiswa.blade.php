@@ -32,7 +32,7 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('mahasiswa.bimbingan') }}"
+                        <a href="{{ route('mahasiswa.bimbingan.index') }}"
                         class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                         {{ request()->routeIs('mahasiswa.bimbingan') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-chalkboard-teacher w-5"></i>
@@ -41,27 +41,27 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('mahasiswa.story-conference') }}"
+                        <a href="{{ route('mahasiswa.story-conference.index') }}"
                         class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                        {{ request()->routeIs('mahasiswa.story-conference') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
+                        {{ request()->routeIs('mahasiswa.story-conference.index*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-comments w-5"></i>
                             <span>Story Conference</span>
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('mahasiswa.produksi') }}"
+                        <a href="{{ route('mahasiswa.produksi.index') }}"
                         class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                        {{ request()->routeIs('mahasiswa.produksi') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
+                        {{ request()->routeIs('mahasiswa.produksi.index') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-film w-5"></i>
                             <span>Produksi</span>
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('mahasiswa.ujian-ta') }}"
+                        <a href="{{ route('mahasiswa.ujian-ta.index') }}"
                         class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                        {{ request()->routeIs('mahasiswa.ujian-ta') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
+                        {{ request()->routeIs('mahasiswa.ujian-ta.*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-graduation-cap w-5"></i>
                             <span>Ujian TA</span>
                         </a>

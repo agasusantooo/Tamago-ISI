@@ -1,4 +1,5 @@
 <aside class="w-64 bg-white shadow-md flex flex-col hidden-mobile h-screen" id="sidebar">
+    <div class="p-6 border-b flex items-center space-x-3">
     <div class="p-6 flex items-center space-x-3">
         <!-- Ganti logo kotak biru dengan logo gambar -->
         <div class="flex items-center justify-center">
@@ -22,8 +23,7 @@
                     <i class="fas fa-home w-5"></i>
                     <span>Dashboard</span>
                 </a>
-            </li>
-
+            </li}
             <li>
                 <a href="{{ route('mahasiswa.proposal') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
@@ -31,9 +31,11 @@
                     <i class="fas fa-file-alt w-5"></i>
                     <span>Pengajuan Proposal</span>
                 </a>
-            </li>
-
+            </li}
             <li>
+                <a href="{{ route('mahasiswa.bimbingan.index') }}"
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                {{ request()->routeIs('mahasiswa.bimbingan.index') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                 <a href="{{ route('mahasiswa.bimbingan') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                 {{ request()->routeIs('mahasiswa.bimbingan') ? 'bg-yellow-100 text-yellow-700 font-semibold' : 'text-gray-700 hover:bg-yellow-50' }}">
@@ -43,6 +45,9 @@
             </li>
 
             <li>
+                <a href="{{ route('mahasiswa.story-conference.index') }}"
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                {{ request()->routeIs('mahasiswa.story-conference.*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                 <a href="{{ route('mahasiswa.story-conference') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                 {{ request()->routeIs('mahasiswa.story-conference') ? 'bg-yellow-100 text-yellow-700 font-semibold' : 'text-gray-700 hover:bg-yellow-50' }}">
@@ -55,12 +60,17 @@
                 <a href="{{ route('mahasiswa.produksi') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                 {{ request()->routeIs('mahasiswa.produksi') ? 'bg-yellow-100 text-yellow-700 font-semibold' : 'text-gray-700 hover:bg-yellow-50' }}">
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                {{ request()->routeIs('mahasiswa.produksi') ? 'bg-yellow-100 text-yellow-700 font-semibold' : 'text-gray-700 hover:bg-yellow-50' }}">
                     <i class="fas fa-film w-5"></i>
                     <span>Produksi</span>
                 </a>
             </li>
 
             <li>
+                <a href="{{ route('mahasiswa.ujian-ta.index') }}"
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                {{ request()->routeIs('mahasiswa.ujian-ta.*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                 <a href="{{ route('mahasiswa.ujian-ta') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                 {{ request()->routeIs('mahasiswa.ujian-ta') ? 'bg-yellow-100 text-yellow-700 font-semibold' : 'text-gray-700 hover:bg-yellow-50' }}">
@@ -79,6 +89,10 @@
             </li>
 
             <li>
+                <a href="{{ route('mahasiswa.akun') }}"
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                {{ request()->routeIs('mahasiswa.akun') ? 'bg-yellow-100 text-yellow-700 font-semibold' : 'text-gray-700 hover:bg-yellow-50' }}">
+
                 <a href="{{ route('mahasiswa.akun') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                 {{ request()->routeIs('mahasiswa.akun') ? 'bg-yellow-100 text-yellow-700 font-semibold' : 'text-gray-700 hover:bg-yellow-50' }}">

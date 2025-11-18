@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Tamago ISI</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @media (max-width: 1023px) {
             #sidebar {
@@ -21,7 +22,7 @@
         }
     </style>
 </head>
-<body class="bg-yellow-50">
+<body class="bg-gray-100">
 
     <div class="flex h-screen overflow-hidden">
         <!-- ✅ Sidebar Partial -->
