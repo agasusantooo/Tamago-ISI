@@ -24,9 +24,10 @@ class ViewServiceProvider extends ServiceProvider
     {
         View::composer('mahasiswa.partials.header-mahasiswa', function ($view) {
             if (Auth::check() && Auth::user()->isMahasiswa()) {
-                $latestProposal = Proposal::where('mahasiswa_id', Auth::id())
+                $mahasiswa = Auth::user()->mahasiswa;
+                $latestProposal = $mahasiswa ? Proposal::where('mahasiswa_nim', $mahasiswa->nim)
                     ->orderBy('created_at', 'desc')
-                    ->first();
+                    ->first() : null;
                 $view->with('latestProposal', $latestProposal);
             }
         });

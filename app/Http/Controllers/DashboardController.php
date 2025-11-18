@@ -78,14 +78,9 @@ class DashboardController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->first();
         }
-        $latestProposal = Proposal::where('mahasiswa_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->first();
-
         // Gabungkan data untuk dikirim ke view
         return view('dashboards.mahasiswa', array_merge($data, compact('latestProposal')));
     }
-
     /**
      * DASHBOARD DOSEN PEMBIMBING
      */

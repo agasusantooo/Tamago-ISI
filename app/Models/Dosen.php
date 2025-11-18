@@ -21,4 +21,10 @@ class Dosen extends Model
         'rumpun_ilmu',
         'status',
     ];
+
+        // Relasi ke mahasiswa yang dibimbing
+        public function mahasiswaBimbingan()
+        {
+            return $this->hasMany(Mahasiswa::class, 'dosen_pembimbing_id', 'nidn');
+        }
 }

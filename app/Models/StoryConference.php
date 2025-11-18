@@ -61,6 +61,14 @@ class StoryConference extends Model
     }
 
     /**
+     * Get the related ProjekAkhir
+     */
+    public function projekAkhir()
+    {
+        return $this->belongsTo(ProjekAkhir::class, 'proposal_id', 'proposal_id');
+    }
+
+    /**
      * Get status badge
      */
     public function getStatusBadgeAttribute()

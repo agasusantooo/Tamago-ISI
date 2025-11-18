@@ -15,6 +15,8 @@ use App\Http\Controllers\Mahasiswa\ProduksiController;
 use App\Http\Controllers\Mahasiswa\NaskahKaryaController;
 use App\Http\Controllers\Mahasiswa\UjianTAController;
 
+use App\Http\Controllers\DosenPembimbingController;
+
 /*
 |--------------------------------------------------------------------------
 | Default Redirect
@@ -39,6 +41,16 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 });
 
+
+// API Dosen Pembimbing
+Route::prefix('dosen-pembimbing')->group(function () {
+    Route::get('/', [DosenPembimbingController::class, 'index']); // List all
+    Route::get('/{nidn}', [DosenPembimbingController::class, 'show']); // Show single
+    Route::post('/', [DosenPembimbingController::class, 'store']); // Create
+    Route::put('/{nidn}', [DosenPembimbingController::class, 'update']); // Update
+    Route::delete('/{nidn}', [DosenPembimbingController::class, 'destroy']); // Delete
+});
+
 /*
 |--------------------------------------------------------------------------
 | Authenticated Routes (Sudah Login)
@@ -61,6 +73,8 @@ Route::middleware(['auth', 'role:mahasiswa'])
     ->prefix('mahasiswa')
     ->name('mahasiswa.')
     ->group(function () {
+        // Alias route mahasiswa.bimbingan ke mahasiswa.bimbingan.index
+        Route::get('/bimbingan', [\App\Http\Controllers\Mahasiswa\BimbinganController::class, 'index'])->name('bimbingan');
 
         // Dashboard Mahasiswa
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -73,6 +87,11 @@ Route::middleware(['auth', 'role:mahasiswa'])
         Route::post('/proposal/draft', [ProposalController::class, 'saveDraft'])->name('proposal.draft');
         Route::get('/proposal/{id}', [ProposalController::class, 'show'])->name('proposal.show');
         Route::get('/proposal/{id}/download', [ProposalController::class, 'download'])->name('proposal.download');
+
+        // ------------------------
+        // BIMBINGAN ROUTE (shortcut)
+        // ------------------------
+        Route::get('/bimbingan', [\App\Http\Controllers\Mahasiswa\BimbinganController::class, 'index'])->name('bimbingan');
 
         // ------------------------
         // BIMBINGAN ROUTES
@@ -151,10 +170,28 @@ Route::middleware(['auth', 'role:dospem'])
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'dospemDashboard'])->name('dashboard');
 
-        Route::view('/mahasiswa-bimbingan', 'dospem.mahasiswa-bimbingan')->name('mahasiswa-bimbingan');
-        Route::view('/review-tugas', 'dospem.review-tugas')->name('review-tugas');
-        Route::view('/jadwal-bimbingan', 'dospem.jadwal-bimbingan')->name('jadwal-bimbingan');
-        Route::view('/riwayat-bimbingan', 'dospem.riwayat-bimbingan')->name('riwayat-bimbingan');
+        Route::controller(\App\Http\Controllers\Dospem\DospemController::class)
+            ->group(function () {
+                Route::get('/mahasiswa-bimbingan', 'mahasiswaBimbingan')->name('mahasiswa-bimbingan');
+                Route::get('/review-tugas', 'reviewTugas')->name('review-tugas');
+                Route::get('/jadwal-bimbingan', 'jadwalBimbingan')->name('jadwal-bimbingan');
+                Route::get('/riwayat-bimbingan', 'riwayatBimbingan')->name('riwayat-bimbingan');
+            });
+
+        // Jadwal Bimbingan API Routes
+        Route::controller(\App\Http\Controllers\Dospem\JadwalBimbinganController::class)
+            ->prefix('jadwal-bimbingan')
+            ->name('jadwal-bimbingan.')
+            ->group(function () {
+                Route::get('/events', 'index')->name('events');
+                Route::post('/store', 'store')->name('store');
+                Route::put('/events/{id}', 'update')->name('update');
+                Route::delete('/events/{id}', 'destroy')->name('destroy');
+            });
+
+        Route::get('/profile', function () {
+            return view('mahasiswa.akun');
+        })->name('profile');
     });
 
 /*

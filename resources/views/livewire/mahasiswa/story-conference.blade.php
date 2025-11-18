@@ -28,10 +28,10 @@
             @foreach ($storyConferences as $sc)
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        {{ $sc->projekAkhir->judul }}
+                        {{ $sc->projekAkhir ? $sc->projekAkhir->judul : '-' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        {{ $sc->projekAkhir->mahasiswa->nama }}
+                        {{ $sc->projekAkhir && $sc->projekAkhir->mahasiswa ? $sc->projekAkhir->mahasiswa->nama : '-' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         {{ $sc->tanggal }}

@@ -48,7 +48,6 @@
                 // === TAHAP 2: INTERACTIVITY ===
                 
                 // 1. Mengambil data dari backend
-                events: '{{ route("dospem.jadwal-bimbingan.events") }}',
 
                 // 2. Mengaktifkan interaksi
                 selectable: true,
@@ -83,7 +82,7 @@
                 // 4. Handler untuk update jadwal (drag & drop)
                 eventDrop: function(info) {
                     const event = info.event;
-                    fetch(`/dospem/jadwal-bimbingan/events/${event.id}`, {
+                    fetch('{{ route("dospem.jadwal-bimbingan.update", ":id") }}'.replace(':id', event.id), {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -100,7 +99,7 @@
                 // 5. Handler untuk menghapus jadwal (klik)
                 eventClick: function(info) {
                     if (confirm("Apakah Anda yakin ingin menghapus jadwal '" + info.event.title + "'?")) {
-                        fetch(`/dospem/jadwal-bimbingan/events/${info.event.id}`, {
+                        fetch('{{ route("dospem.jadwal-bimbingan.destroy", ":id") }}'.replace(':id', info.event.id), {
                             method: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
