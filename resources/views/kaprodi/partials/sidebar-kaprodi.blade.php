@@ -1,5 +1,5 @@
 <!-- Sidebar -->
-<aside class="w-64 bg-white shadow-md flex flex-col" id="sidebar">
+<aside class="w-64 bg-white flex flex-col" id="sidebar">
     <!-- Logo -->
     <div class="p-6">
         <div class="flex items-center space-x-3">
@@ -49,7 +49,7 @@
     </nav>
 
     <!-- Logout -->
-    <div class="p-4 border-t">
+    <div class="p-4">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">

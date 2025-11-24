@@ -79,7 +79,7 @@ class DashboardController extends Controller
                 ->first();
         }
         // Gabungkan data untuk dikirim ke view
-        return view('dashboards.mahasiswa', array_merge($data, compact('latestProposal')));
+        return view('mahasiswa.dashboard', array_merge($data, compact('latestProposal')));
     }
     /**
      * DASHBOARD DOSEN PEMBIMBING
@@ -100,7 +100,7 @@ class DashboardController extends Controller
             ]),
         ];
 
-        return view('dashboards.pembimbing', $data);
+        return view('dospem.dashboard', $data);
     }
 
     /**
@@ -115,9 +115,20 @@ class DashboardController extends Controller
             'aktivitasTerakhir' => collect([
                 (object)['description' => 'Menyetujui proposal mahasiswa angkatan 2022', 'created_at' => now()->subDays(1)],
             ]),
+            'rataDurasiTA' => [
+                ['semester' => '2023/2024 Genap', 'durasi' => 8.5],
+                ['semester' => '2023/2024 Ganjil', 'durasi' => 9.1],
+                ['semester' => '2022/2023 Genap', 'durasi' => 7.8],
+            ],
+            'pengumumanPenting' => collect([]),
+            'chartData' => [
+                'labels' => ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6'],
+                'lulus' => [10, 12, 5, 8, 15, 20],
+                'belum_lulus' => [2, 3, 1, 4, 2, 5],
+            ],
         ];
 
-        return view('dashboards.kaprodi', $data);
+        return view('kaprodi.dashboard', $data);
     }
 
     /**
@@ -135,7 +146,7 @@ class DashboardController extends Controller
             ]),
         ];
 
-        return view('dashboards.koordinator_ta', $data);
+        return view('koordinator_ta.dashboard', $data);
     }
 
     /**
@@ -153,7 +164,7 @@ class DashboardController extends Controller
             ]),
         ];
 
-        return view('dashboards.dospenguji', $data);
+        return view('dosen_penguji.dashboard', $data);
     }
 
     /**
@@ -172,6 +183,6 @@ class DashboardController extends Controller
             ]),
         ];
 
-        return view('dashboards.admin', $data);
+        return view('admin.dashboard', $data);
     }
 }

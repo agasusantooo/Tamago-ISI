@@ -1,9 +1,9 @@
 <header class="bg-white border-b shadow-md">
     <div class="flex items-center px-6 py-4">
         <div class="flex-1 mr-8">
-            <h1 class="text-lg font-semibold text-gray-700">Dosen Pembimbing</h1>
+            <h1 class="text-lg font-semibold text-gray-700">Dosen Penguji</h1>
             <div class="mt-2 mb-1">
-                <p class="text-xs text-gray-500">Mahasiswa Aktif: <span class="font-semibold text-purple-600">{{ $mahasiswaAktifCount }}</span> | Tugas Review: <span class="font-semibold text-indigo-600">{{ $tugasReview }}</span></p>
+                <p class="text-xs text-gray-500">Mahasiswa Aktif: <span class="font-semibold text-purple-600">{{ $mahasiswaAktifCount ?? 0 }}</span> | Tugas Review: <span class="font-semibold text-indigo-600">{{ $tugasReview ?? 0 }}</span></p>
             </div>
             <div class="h-3"></div>
         </div>

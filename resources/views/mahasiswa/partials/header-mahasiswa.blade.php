@@ -1,4 +1,4 @@
-<div class="bg-white border-b border-yellow-100 shadow-md flex items-center px-6 py-4">
+<header class="bg-white border-b shadow-md flex items-center px-6 py-4">
     <div class="flex-1 mr-8">
         <h1 class="text-lg font-semibold text-gray-700">@yield('page-title', 'Mahasiswa')</h1>
         <div class="flex items-center mt-2 mb-1">
@@ -17,5 +17,4 @@
     <div class="flex flex-col items-center">
         <img src="{{ asset('images/user.png') }}" alt="User Icon" class="w-9 h-9 rounded-full">
         <span class="text-gray-600 text-xs mt-1">{{ Auth::user()->name }}</span>
-    </div>
-</div>
+    </header>
