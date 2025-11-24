@@ -73,9 +73,6 @@ Route::middleware(['auth', 'role:mahasiswa'])
     ->prefix('mahasiswa')
     ->name('mahasiswa.')
     ->group(function () {
-        // Alias route mahasiswa.bimbingan ke mahasiswa.bimbingan.index
-        Route::get('/bimbingan', [\App\Http\Controllers\Mahasiswa\BimbinganController::class, 'index'])->name('bimbingan');
-
         // Dashboard Mahasiswa
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -87,11 +84,6 @@ Route::middleware(['auth', 'role:mahasiswa'])
         Route::post('/proposal/draft', [ProposalController::class, 'saveDraft'])->name('proposal.draft');
         Route::get('/proposal/{id}', [ProposalController::class, 'show'])->name('proposal.show');
         Route::get('/proposal/{id}/download', [ProposalController::class, 'download'])->name('proposal.download');
-
-        // ------------------------
-        // BIMBINGAN ROUTE (shortcut)
-        // ------------------------
-        Route::get('/bimbingan', [\App\Http\Controllers\Mahasiswa\BimbinganController::class, 'index'])->name('bimbingan');
 
         // ------------------------
         // BIMBINGAN ROUTES
@@ -203,9 +195,14 @@ Route::middleware(['auth', 'role:kaprodi'])
     ->prefix('kaprodi')
     ->name('kaprodi.')
     ->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'kaprodi'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'kaprodiDashboard'])->name('dashboard');
         Route::view('/verifikasi', 'kaprodi.verifikasi')->name('verifikasi');
         Route::view('/laporan', 'kaprodi.laporan')->name('laporan');
+        Route::view('/statistik', 'kaprodi.statistik')->name('statistik');
+        Route::view('/manajemen-data', 'kaprodi.manajemen_data')->name('manajemen-data');
+        Route::view('/monitoring', 'koordinator_ta.monitoring')->name('monitoring'); // Assuming this points to koordinator_ta.monitoring as it was a duplicate name
+        Route::view('/setup', 'kaprodi.setup')->name('setup');
+        Route::view('/pengelolaan', 'kaprodi.pengelolaan')->name('pengelolaan');
     });
 
 /*
@@ -217,9 +214,22 @@ Route::middleware(['auth', 'role:koordinator_ta'])
     ->prefix('koordinator-ta')
     ->name('koordinator_ta.')
     ->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'koordinatorTa'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'koordinatorTADashboard'])->name('dashboard');
+        Route::view('/jadwal', 'koordinator_ta.jadwal')->name('jadwal');
         Route::view('/monitoring', 'koordinator_ta.monitoring')->name('monitoring');
-        Route::view('/dospem', 'koordinator_ta.dospem')->name('dospem');
+        Route::view('/matakuliah', 'koordinator_ta.matakuliah')->name('matakuliah');
+        Route::view('/profile', 'koordinator_ta.profile')->name('profile');
+
+        // Jadwal Acara API Routes
+        Route::controller(\App\Http\Controllers\KoordinatorTA\JadwalController::class)
+            ->prefix('jadwal')
+            ->name('jadwal.')
+            ->group(function () {
+                Route::get('/events', 'index')->name('events');
+                Route::post('/store', 'store')->name('store');
+                Route::put('/events/{id}', 'update')->name('update');
+                Route::delete('/events/{id}', 'destroy')->name('destroy');
+            });
     });
 
 /*
@@ -251,9 +261,9 @@ Route::middleware(['auth', 'role:dosen_penguji'])
     ->prefix('dosen-penguji')
     ->name('dosen_penguji.')
     ->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'dosenPenguji'])->name('dashboard');
-        Route::view('/jadwal', 'dosen_penguji.jadwal')->name('jadwal');
+        Route::get('/dashboard', [DashboardController::class, 'dosenPengujiDashboard'])->name('dashboard');
         Route::view('/penilaian', 'dosen_penguji.penilaian')->name('penilaian');
+        Route::view('/profile', 'dosen_penguji.profile')->name('profile');
     });
 
 /*
