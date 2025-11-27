@@ -16,12 +16,14 @@ class AddMahasiswaIdToProjekAkhirTable extends Migration
         Schema::table('projek_akhir', function (Blueprint $table) {
             if (!Schema::hasColumn('projek_akhir', 'mahasiswa_id')) {
                 $table->unsignedBigInteger('mahasiswa_id')->nullable();
-                $table->foreign('mahasiswa_id')->references('id')->on('mahasiswa')->onDelete('cascade');
+                // The `mahasiswa` table uses `user_id` to link to users; reference that column instead
+                $table->foreign('mahasiswa_id')->references('user_id')->on('mahasiswa')->onDelete('cascade');
             }
 
             if (!Schema::hasColumn('projek_akhir', 'proposal_id')) {
                 $table->unsignedBigInteger('proposal_id')->nullable();
-                $table->foreign('proposal_id')->references('id')->on('proposal')->onDelete('cascade');
+                // Refer to the `proposals` table (plural)
+                $table->foreign('proposal_id')->references('id')->on('proposals')->onDelete('cascade');
             }
         });
     }

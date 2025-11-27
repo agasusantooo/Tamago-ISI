@@ -11,13 +11,19 @@ class Mahasiswa extends Model
 
     protected $table = 'mahasiswa'; // 👈 penting: biar gak dicari 'mahasiswas'
 
+    // The `mahasiswa` table uses `nim` as the primary key (string), not an auto-incrementing `id`.
+    protected $primaryKey = 'nim';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'user_id',
         'nim',
         'nama',
-        'prodi',
-        'angkatan',
+        // 'prodi' and 'angkatan' removed per request
             'dosen_pembimbing_id',
+        'email',
+        'status',
     ];
 
     public function user()

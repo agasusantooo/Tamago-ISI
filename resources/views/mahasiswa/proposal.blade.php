@@ -128,7 +128,7 @@
         <div>
             <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Status Pengajuan Proposal</h3>
-                @if($proposal)
+                @if(isset($proposal) && $proposal)
                     <div class="space-y-4">
                         <div>
                             <p class="text-sm text-gray-600">Status:</p>

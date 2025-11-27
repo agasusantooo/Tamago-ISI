@@ -24,8 +24,6 @@ class NaskahKaryaUploadTest extends TestCase
             'user_id' => $user->id,
             'nim' => 'TEST123',
             'nama' => 'Test Mahasiswa',
-            'prodi' => 'Seni',
-            'angkatan' => '2025',
         ]);
 
         $this->actingAs($user);

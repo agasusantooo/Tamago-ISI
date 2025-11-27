@@ -48,6 +48,15 @@
                     placeholder="nama@email.com" required>
             </div>
 
+            <!-- NIM (untuk Mahasiswa) -->
+            <div class="mb-4">
+                <label for="nim" class="block font-medium mb-1">NIM <span class="text-gray-500 text-sm">(jika mahasiswa)</span></label>
+                <input type="text" name="nim" id="nim" value="{{ old('nim') }}"
+                    class="w-full p-3 border rounded-lg bg-gray-100 focus:bg-white focus:ring-2 focus:ring-blue-500" 
+                    placeholder="Masukkan NIM Anda (opsional)">
+                <p class="text-xs text-gray-500 mt-1">Wajib diisi jika email Anda domain @student.isi.ac.id</p>
+            </div>
+
             <!-- Password -->
             <div class="mb-4">
                 <label for="password" class="block font-medium mb-1">Password</label>

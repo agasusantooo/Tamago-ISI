@@ -148,9 +148,16 @@
                                             <p class="font-semibold text-gray-700">Slot Waktu:</p>
                                             <p class="text-gray-600">{{ $storyConference->slot_waktu }}</p>
                                         </div>
-                                        @if($storyConference->file_presentasi)
+                                        @php
+                                            // Only build the download URL when we have a valid storyConference with an id
+                                            $downloadUrl = null;
+                                            if (!empty($storyConference) && !empty($storyConference->id) && !empty($storyConference->file_presentasi)) {
+                                                $downloadUrl = route('mahasiswa.story-conference.download', $storyConference->id);
+                                            }
+                                        @endphp
+                                        @if($downloadUrl)
                                             <div>
-                                                <a href="{{ route('mahasiswa.story-conference.download', $storyConference->id) }}" 
+                                                <a href="{{ $downloadUrl }}" 
                                                    class="inline-flex items-center text-blue-600 hover:text-blue-800">
                                                     <i class="fas fa-download mr-2"></i>
                                                     Download File Presentasi
@@ -209,9 +216,16 @@
                                         </div>
                                     </div>
 
-                                    @if($storyConference->status == 'menunggu_persetujuan')
+                                    @php
+                                        // Only build cancel URL when we have a valid storyConference with id and correct status
+                                        $cancelUrl = null;
+                                        if (!empty($storyConference) && !empty($storyConference->id) && $storyConference->status == 'menunggu_persetujuan') {
+                                            $cancelUrl = route('mahasiswa.story-conference.cancel', $storyConference->id);
+                                        }
+                                    @endphp
+                                    @if($cancelUrl)
                                         <div class="mt-6">
-                                            <form method="POST" action="{{ route('mahasiswa.story-conference.cancel', $storyConference->id) }}" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pendaftaran?')">
+                                            <form method="POST" action="{{ $cancelUrl }}" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pendaftaran?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="w-full px-4 py-2 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition text-sm font-medium">
@@ -335,10 +349,10 @@
     </script>
 </body>
 </html>
-@extends('mahasiswa.layouts.app')
+{{-- @extends('mahasiswa.layouts.app')
 
 @section('title', 'Story Conference')
 
 @section('content')
     @livewire('mahasiswa.story-conference')
-@endsection
+@endsection --}}

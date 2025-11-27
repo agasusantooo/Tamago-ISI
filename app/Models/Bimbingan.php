@@ -11,17 +11,32 @@ class Bimbingan extends Model
     use HasFactory;
 
     // Karena tabel bernama "bimbingans", tidak perlu define $table lagi.
+    // Primary key in this table is `id_bimbingan` (not `id`).
+    protected $primaryKey = 'id_bimbingan';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'mahasiswa_id',
+        'nim',
+        'id_proyek_akhir',
+        'dosen_nidn',
         'topik',
         'catatan_mahasiswa',
+        'catatan_dosen',
         'file_pendukung',
         'status',
         'tanggal',
+        'waktu_mulai',
+        'ruang',
     ];
 
-    protected $dates = ['tanggal', 'created_at', 'updated_at'];
+    protected $casts = [
+        'tanggal' => 'datetime',
+        'waktu_mulai' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function mahasiswa()
     {

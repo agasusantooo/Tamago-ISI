@@ -10,6 +10,7 @@ class StoryConference extends Model
     use HasFactory;
 
     protected $table = 'story_conference';
+    protected $primaryKey = 'id_conference';
 
     protected $fillable = [
         'mahasiswa_id',

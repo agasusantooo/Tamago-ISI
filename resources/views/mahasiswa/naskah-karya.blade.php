@@ -194,8 +194,8 @@
                                             </div>
                                         </div>
                                         <div class="mt-6 flex justify-between">
-                                            <button class="px-4 py-2 bg-white border rounded">Simpan Draft</button>
-                                            <button class="px-4 py-2 bg-yellow-400 text-black rounded">Ajukan Verifikasi</button>
+                                            <button type="button" onclick="saveDraft()" class="px-4 py-2 bg-white border rounded hover:bg-gray-50 transition">Simpan Draft</button>
+                                            <button type="button" onclick="submitVerification()" class="px-4 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-500 transition">Ajukan Verifikasi</button>
                                         </div>
                                     </div>
                                 </div>
@@ -204,7 +204,24 @@
                     </div>
                 </div>
 
+                <!-- Modal Pop-up -->
+                <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 p-8 animate-fadeIn">
+                        <div class="text-center">
+                            <div id="modalIcon" class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"></div>
+                            <h2 id="modalTitle" class="text-xl font-bold text-gray-800 mb-2"></h2>
+                            <p id="modalMessage" class="text-gray-600 mb-6"></p>
+                        </div>
+                        <div class="flex gap-3 justify-center">
+                            <button id="modalBtn1" type="button" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-medium" onclick="closeModal()">Tutup</button>
+                            <button id="modalBtn2" type="button" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium hidden" onclick="confirmAction()"></button>
+                        </div>
+                    </div>
+                </div>
+
                 <script>
+                    let currentAction = null;
+
                     function updateFileName(input, displayId) {
                         const file = input.files[0];
                         const display = document.getElementById(displayId);
@@ -212,7 +229,86 @@
                             display.textContent = `✓ ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
                         }
                     }
+
+                    function showModal(title, message, icon, action = null, hasConfirmBtn = false, confirmBtnText = 'Konfirmasi') {
+                        const modal = document.getElementById('modal');
+                        const modalIcon = document.getElementById('modalIcon');
+                        const modalTitle = document.getElementById('modalTitle');
+                        const modalMessage = document.getElementById('modalMessage');
+                        const modalBtn2 = document.getElementById('modalBtn2');
+
+                        modalTitle.textContent = title;
+                        modalMessage.textContent = message;
+                        modalIcon.className = icon;
+                        currentAction = action;
+
+                        if (hasConfirmBtn) {
+                            modalBtn2.textContent = confirmBtnText;
+                            modalBtn2.classList.remove('hidden');
+                        } else {
+                            modalBtn2.classList.add('hidden');
+                        }
+
+                        modal.classList.remove('hidden');
+                    }
+
+                    function closeModal() {
+                        const modal = document.getElementById('modal');
+                        modal.classList.add('hidden');
+                        currentAction = null;
+                    }
+
+                    function confirmAction() {
+                        if (currentAction === 'verify') {
+                            closeModal();
+                            showModal(
+                                '✓ Berhasil!',
+                                'Verifikasi telah diajukan. Silakan tunggu review dari koordinator.',
+                                'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-green-100',
+                                null,
+                                false
+                            );
+                            // TODO: Kirim data ke backend
+                        }
+                    }
+
+                    function saveDraft() {
+                        showModal(
+                            'Simpan Draft',
+                            'Apakah Anda yakin ingin menyimpan draft? File akan tersimpan dalam sistem.',
+                            'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-blue-100',
+                            'draft',
+                            false
+                        );
+                    }
+
+                    function submitVerification() {
+                        showModal(
+                            'Ajukan Verifikasi',
+                            'Pastikan semua file sudah diunggah dengan benar. Apakah Anda yakin ingin mengajukan verifikasi?',
+                            'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-yellow-100',
+                            'verify',
+                            true,
+                            'Ya, Ajukan'
+                        );
+                    }
                 </script>
+
+                <style>
+                    @keyframes fadeIn {
+                        from {
+                            opacity: 0;
+                            transform: scale(0.95);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: scale(1);
+                        }
+                    }
+                    .animate-fadeIn {
+                        animation: fadeIn 0.3s ease-in-out;
+                    }
+                </style>
             </div>
         </div>
     </div>

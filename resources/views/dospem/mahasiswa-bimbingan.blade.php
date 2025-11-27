@@ -7,10 +7,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-blue-50 text-gray-800">
-    @php
-        $mahasiswaAktifCount = 15; // Dummy data
-        $tugasReview = 5; // Dummy data
-    @endphp
     <div class="flex h-screen overflow-hidden">
 
         @include('dospem.partials.sidebar-dospem')
@@ -25,7 +21,7 @@
                         <!-- Header Section -->
                         <div class="mb-6">
                             <h1 class="text-2xl font-bold text-blue-800 mb-1">Daftar Mahasiswa</h1>
-                            <div class="text-sm text-gray-600">Mahasiswa Aktif: <span class="font-semibold text-blue-700">{{ $jumlahMahasiswaAktif ?? '-' }}</span> | Tugas Review: <span class="font-semibold text-blue-700">{{ $jumlahTugasReview ?? '-' }}</span></div>
+                            <div class="text-sm text-gray-600">Mahasiswa Aktif: <span class="font-semibold text-blue-700">{{ $mahasiswaAktifCount ?? '-' }}</span> | Tugas Review: <span class="font-semibold text-blue-700">{{ $tugasReview ?? '-' }}</span></div>
                         </div>
 
                         <div class="flex justify-between items-center mb-4">
@@ -77,7 +73,7 @@
                                                 </td>
                                                 <td class="px-4 py-3 text-center text-sm text-gray-600">{{ $mhs->bimbingan_terakhir }}</td>
                                                 <td class="px-4 py-3 text-center">
-                                                    <a href="{{ route('dospem.mahasiswa-bimbingan.detail', ['id' => $mhs->id]) }}" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                                                    <a href="{{ route('dospem.mahasiswa-bimbingan.show', ['id' => $mhs->nim ?? $mhs->id]) }}" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
                                                         <i class="fas fa-eye mr-1"></i>Detail
                                                     </a>
                                                 </td>

@@ -23,6 +23,13 @@
                     <i class="fas fa-home w-5"></i><span>Dashboard</span>
                 </a>
             </li>
+            {{-- <li>
+                <a href="{{ route('kaprodi.dashboard.ta') }}"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition 
+                   {{ request()->routeIs('kaprodi.dashboard.ta') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
+                    <i class="fas fa-chalkboard-teacher w-5"></i><span>Dashboard TA</span>
+                </a>
+            </li> --}}
             <li>
                 <a href="{{ route('kaprodi.setup') }}"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg transition

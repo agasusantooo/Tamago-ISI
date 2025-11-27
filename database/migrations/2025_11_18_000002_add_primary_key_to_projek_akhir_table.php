@@ -13,9 +13,7 @@ class AddPrimaryKeyToProjekAkhirTable extends Migration
      */
     public function up()
     {
-        Schema::table('projek_akhir', function (Blueprint $table) {
-            $table->bigIncrements('id');
-        });
+        // Skip this migration as the table already has a primary key (id_proyek_akhir)
     }
 
     /**
@@ -25,8 +23,6 @@ class AddPrimaryKeyToProjekAkhirTable extends Migration
      */
     public function down()
     {
-        Schema::table('projek_akhir', function (Blueprint $table) {
-            $table->dropColumn('id');
-        });
+        // No action needed
     }
 }

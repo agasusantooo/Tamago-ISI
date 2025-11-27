@@ -68,7 +68,7 @@
 
                                 <div class="divide-y">
                                     @forelse($bimbinganList as $bimbingan)
-                                        <div class="p-6 hover:bg-gray-50 transition">
+                                        <div class="p-6 hover:bg-gray-50 transition" data-bimbingan-id="{{ $bimbingan->id_bimbingan }}" data-current-status="{{ $bimbingan->status }}">
                                             <div class="flex items-start justify-between mb-3">
                                                 <div class="flex-1">
                                                     <div class="flex items-center space-x-3 mb-2">
@@ -96,14 +96,14 @@
                                                         @endif>
                                                     </div>
                                                 </div>
-                                                <button onclick="toggleDetail({{ $bimbingan->id }})" 
+                                                <button onclick="toggleDetail({{ $bimbingan->id_bimbingan }})" 
                                                         class="text-blue-600 hover:text-blue-800 font-medium text-sm">
                                                     Lihat Detail
                                                 </button>
                                             </div>
 
                                             <!-- Detail Section (Hidden by default) -->
-                                            <div id="detail-{{ $bimbingan->id }}" class="hidden mt-4 pt-4 border-t">
+                                            <div id="detail-{{ $bimbingan->id_bimbingan }}" class="hidden mt-4 pt-4 border-t">
                                                 <div class="space-y-3">
                                                     <div>
                                                         <p class="text-sm font-semibold text-gray-700 mb-1">Catatan Mahasiswa:</p>
@@ -121,8 +121,8 @@
 
                                                     @if($bimbingan->file_pendukung)
                                                         <div>
-                                                            <a href="{{ route('mahasiswa.bimbingan.download', $bimbingan->id) }}" 
-                                                               class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
+                                                            <a href="{{ route('mahasiswa.bimbingan.download', $bimbingan->id_bimbingan) }}" 
+                                                                class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
                                                                 <i class="fas fa-download mr-2"></i>
                                                                 Download File Pendukung
                                                             </a>
@@ -228,6 +228,26 @@
                                         <p class="text-xs text-gray-500 mt-1">Minimum 20 karakter</p>
                                     </div>
 
+                                    <!-- Tanggal Pilihan Mahasiswa -->
+                                    <div class="mb-4">
+                                        <label for="tanggal" class="block text-sm font-semibold text-gray-700 mb-2">
+                                            Tanggal Bimbingan (pilih tanggal preferensi) <span class="text-red-500">*</span>
+                                        </label>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <input type="date" id="tanggal" name="tanggal"
+                                                value="{{ old('tanggal', \Carbon\Carbon::today()->toDateString()) }}"
+                                                min="{{ \Carbon\Carbon::today()->toDateString() }}"
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                                required />
+
+                                            <input type="time" id="waktu_mulai" name="waktu_mulai"
+                                                value="{{ old('waktu_mulai', '09:00') }}"
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                                required />
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Pilih tanggal dan jam preferensi Anda untuk sesi bimbingan. Dosen akan mengonfirmasi ketersediaan.</p>
+                                    </div>
+
                                     <!-- File Pendukung -->
                                     <div class="mb-4">
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -307,13 +327,104 @@
             document.getElementById('filePendukung').files = files;
             updateFileName(document.getElementById('filePendukung'), 'fileNameDisplay');
         }, false);
+
+        // ============================================================================
+        // Auto-refresh untuk deteksi update dari dospem (ACC/Reject bimbingan)
+        // ============================================================================
+        let lastUpdateTime = null;
+
+        function checkForBimbinganUpdates() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            fetch('{{ route("mahasiswa.bimbingan.check-updates") }}', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.bimbingan && data.bimbingan.length > 0) {
+                    // Check if any bimbingan status has changed
+                    let hasUpdates = false;
+                    
+                    data.bimbingan.forEach(bimbingan => {
+                        const statusElement = document.querySelector(`[data-bimbingan-id="${bimbingan.id}"]`);
+                        if (statusElement) {
+                            const currentStatus = statusElement.getAttribute('data-current-status');
+                            if (currentStatus !== bimbingan.status) {
+                                hasUpdates = true;
+                            }
+                        }
+                    });
+
+                    // If there are updates, show notification and reload after a delay
+                    if (hasUpdates) {
+                        showUpdateNotification();
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    }
+                }
+            })
+            .catch(err => {
+                console.warn('Update check failed:', err);
+                // Silently fail, don't bother user
+            });
+        }
+
+        function showUpdateNotification() {
+            // Create notification if not exists
+            let notification = document.getElementById('update-notification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'update-notification';
+                notification.className = 'fixed top-4 right-4 bg-green-50 border-l-4 border-green-400 p-4 shadow-lg rounded z-50 animate-slide-in';
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-sync-alt text-green-600 mr-3 animate-spin"></i>
+                        <div>
+                            <p class="text-green-700 font-medium">Ada pembaruan dari dospem!</p>
+                            <p class="text-sm text-green-600">Halaman akan dimuat ulang...</p>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+            }
+            notification.style.display = 'block';
+        }
+
+        // Start polling for updates every 10 seconds
+        setInterval(checkForBimbinganUpdates, 10000);
+        // Check immediately on page load
+        checkForBimbinganUpdates();
+
+        // Add CSS animation for notification
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            .animate-slide-in {
+                animation: slideIn 0.3s ease-out;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            .animate-spin {
+                animation: spin 2s linear infinite;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
-@extends('mahasiswa.layouts.app')
-
-@section('title', 'Bimbingan')
-
-@section('content')
-    @livewire('mahasiswa.bimbingan-mahasiswa')
-@endsection

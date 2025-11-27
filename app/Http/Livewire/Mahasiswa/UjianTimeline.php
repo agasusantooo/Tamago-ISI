@@ -40,8 +40,6 @@ class UjianTimeline extends Component
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
 
-        // Default empty timeline
-        $timeline = [];
         // Prefer ids passed from parent view (avoids Livewire model serialization/timing issues).
         if ($this->projekId) {
             $projek = ProjekAkhir::where('id_proyek_akhir', $this->projekId)->first();
@@ -49,55 +47,84 @@ class UjianTimeline extends Component
             $projek = $this->projek ?? ($mahasiswa ? ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first() : null);
         }
 
-        if ($this->ujianId) {
-            $ujian = UjianTA::where('id_ujian', $this->ujianId)->first();
-        } else {
-            $ujian = $this->ujianTA ?? ($projek ? UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first() : null);
+        // Always query fresh ujian from DB based on projek, even if ujianId was null before.
+        // This ensures newly created ujian records are picked up on poll refresh.
+        $ujian = null;
+        if ($projek) {
+            $ujian = UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first();
         }
+
+        // Debug: log current state
+        Log::debug('UjianTimeline refreshData', [
+            'has_projek' => (bool)$projek,
+            'projek_id' => $projek?->id_proyek_akhir,
+            'has_ujian' => (bool)$ujian,
+            'ujian_id' => $ujian?->id_ujian,
+            'status_pendaftaran' => $ujian?->status_pendaftaran,
+            'status_ujian' => $ujian?->status_ujian,
+        ]);
 
         // expose the ujian model to the blade view
         $this->ujianTA = $ujian;
-        $this->selectedStatus = $ujian->status_pendaftaran ?? null;
+        $this->selectedStatus = $ujian?->status_pendaftaran ?? null;
 
-    $this->hasUjian = (bool)$ujian;
-    $this->ujianStatus = $ujian->status_ujian ?? null;
+        $this->hasUjian = (bool)$ujian;
+        $this->ujianStatus = $ujian?->status_ujian ?? null;
 
         // Check produksi approval
         $produksi = Produksi::where('mahasiswa_id', $user->id)->latest()->first();
 
         // Build timeline items (use dates if available)
+        $timelineItems = [];
         if ($ujian) {
-            $timeline[] = [
+            // Always show "Pengajuan Ujian" as first item when ujian exists
+            $timelineItems[] = [
                 'title' => 'Pengajuan Ujian',
                 'date' => optional($ujian->tanggal_daftar)->format('d M Y') ?? '—',
                 'color' => 'green',
             ];
-            if ($ujian->status_pendaftaran === 'jadwal_ditetapkan' || $ujian->status_ujian !== 'belum_ujian') {
-                $timeline[] = [
+            
+            // Get raw DB values for comparison
+            $statusPendaftaran = strtolower(str_replace([' ', '-'], '_', $ujian->status_pendaftaran ?? ''));
+            $statusUjian = strtolower(str_replace([' ', '-'], '_', $ujian->status_ujian ?? ''));
+
+            // Check if jadwal ditetapkan status reached
+            if (strpos($statusPendaftaran, 'jadwal') !== false ||
+                strpos($statusPendaftaran, 'ujian_berlangsung') !== false ||
+                strpos($statusUjian, 'berlangsung') !== false ||
+                strpos($statusUjian, 'selesai') !== false) {
+                $timelineItems[] = [
                     'title' => 'Jadwal Ditetapkan',
                     'date' => optional($ujian->tanggal_ujian)->format('d M Y') ?? '—',
                     'color' => 'green',
                 ];
             }
-            if ($ujian->status_ujian === 'ujian_berlangsung' || $ujian->status_ujian === 'selesai_ujian') {
-                $timeline[] = [
+
+            // Check if ujian berlangsung or selesai
+            if (strpos($statusPendaftaran, 'ujian_berlangsung') !== false ||
+                strpos($statusUjian, 'berlangsung') !== false ||
+                strpos($statusUjian, 'selesai') !== false) {
+                $timelineItems[] = [
                     'title' => 'Ujian Berlangsung',
                     'date' => optional($ujian->tanggal_ujian)->format('d M Y') ?? '—',
-                    'color' => 'blue',
+                    'color' => strpos($statusUjian, 'selesai') !== false ? 'green' : 'blue',
                 ];
             }
-            $timeline[] = [
+            
+            // Revisi status
+            $timelineItems[] = [
                 'title' => 'Revisi Selesai',
-                'date' => $ujian->status_revisi === 'revisi_selesai' ? optional($ujian->tanggal_approve_revisi)->format('d M Y') ?? '—' : 'Pending',
-                'color' => $ujian->status_revisi === 'revisi_selesai' ? 'green' : 'gray',
+                'date' => (strpos(strtolower($ujian->status_revisi ?? ''), 'selesai') !== false) ? optional($ujian->tanggal_approve_revisi)->format('d M Y') ?? '—' : 'Pending',
+                'color' => (strpos(strtolower($ujian->status_revisi ?? ''), 'selesai') !== false) ? 'green' : 'gray',
             ];
+            
             $this->status = [
-                'text' => 'Status: ' . ($ujian->status_pendaftaran ? ucwords(str_replace('_',' ',$ujian->status_pendaftaran)) : 'Belum Daftar'),
-                'variant' => $ujian->status_pendaftaran === 'pengajuan_ujian' ? 'yellow' : 'green',
+                'text' => 'Status: ' . str_replace(['_'], ' ', ucfirst($ujian->status_pendaftaran ?? 'Tidak ada status')),
+                'variant' => strpos($statusPendaftaran, 'pengajuan') !== false ? 'yellow' : 'green',
             ];
         } else {
             // Fallback: show produksi status if no ujian registered yet
-            $timeline = [
+            $timelineItems = [
                 ['title' => 'Pengajuan Ujian', 'date' => '—', 'color' => 'green'],
                 ['title' => 'Jadwal Ditetapkan', 'date' => '—', 'color' => 'gray'],
                 ['title' => 'Ujian Berlangsung', 'date' => '—', 'color' => 'gray'],
@@ -111,7 +138,7 @@ class UjianTimeline extends Component
             }
         }
 
-        $this->timeline = $timeline;
+        $this->timeline = $timelineItems;
     }
 
     /**

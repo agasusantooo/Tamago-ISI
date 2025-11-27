@@ -29,7 +29,7 @@
                                 <h3 class="text-xl font-semibold text-gray-800">
                                     Selamat datang, <span class="uppercase">{{ Auth::user()->name }}</span> 👋
                                 </h3>
-                                <p class="mt-1 text-sm text-gray-600">NIM: 2021110001</p>
+                                <p class="mt-1 text-sm text-gray-600">NIM: {{ Auth::user()->mahasiswa->nim ?? 'N/A' }}</p>
                             </div>
 
                             <!-- Progres Tugas Akhir -->
@@ -42,14 +42,26 @@
                                         </button>
                                     </div>
                                     <div class="flex justify-center items-center">
+                                        @php
+                                            $pct = isset($progress) ? (int)$progress : 0;
+                                            $radius = 45;
+                                            $circ = 2 * pi() * $radius;
+                                            $dashOffset = $circ * (1 - ($pct / 100));
+                                        @endphp
                                         <div class="relative w-40 h-40">
-                                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                                <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-                                                <circle cx="50" cy="50" r="45" fill="none" stroke="#FACC15" stroke-width="8"
-                                                    stroke-dasharray="282.6" stroke-dashoffset="70.65" stroke-linecap="round"/>
+                                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                                <g transform="translate(50,50)">
+                                                    <circle r="{{ $radius }}" fill="none" stroke="#e5e7eb" stroke-width="8" />
+                                                    <circle r="{{ $radius }}" fill="none" stroke="#FACC15" stroke-width="8"
+                                                        stroke-dasharray="{{ $circ }}"
+                                                        stroke-dashoffset="{{ $dashOffset }}"
+                                                        stroke-linecap="round"
+                                                        transform="rotate(-90)"
+                                                    />
+                                                </g>
                                             </svg>
                                             <div class="absolute inset-0 flex items-center justify-center">
-                                                <span class="text-3xl font-bold text-yellow-600">75%</span>
+                                                <span class="text-3xl font-bold text-yellow-600">{{ $pct }}%</span>
                                             </div>
                                         </div>
                                     </div>
@@ -96,9 +108,9 @@
                                                 <span>+62 812-3456-7890</span>
                                             </div>
                                         </div>
-                                        <button class="w-full mt-3 px-4 py-2 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 transition">
+                                        <a href="{{ route('mahasiswa.bimbingan.index') }}" class="w-full mt-3 inline-block text-center px-4 py-2 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 transition">
                                             <i class="fas fa-calendar-alt mr-2"></i>Buat Jadwal Bimbingan
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -114,9 +126,9 @@
                                                 <i class="far fa-clock mr-1"></i>Deadline: 25 Mar 2024, 23:59
                                             </p>
                                         </div>
-                                        <button class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
+                                        <a href="{{ route('mahasiswa.proposal') }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
                                             Kerjakan
-                                        </button>
+                                        </a>
                                     </div>
                                     <div class="flex items-center justify-between p-4 bg-yellow-100 border-l-4 border-yellow-600 rounded-lg">
                                         <div>
@@ -125,9 +137,9 @@
                                                 <i class="far fa-clock mr-1"></i>Deadline: 30 Mar 2024, 17:00
                                             </p>
                                         </div>
-                                        <button class="px-4 py-2 text-sm font-medium text-gray-800 bg-yellow-400 rounded-lg hover:bg-yellow-500">
+                                        <a href="{{ route('mahasiswa.story-conference.index') }}" class="inline-block px-4 py-2 text-sm font-medium text-gray-800 bg-yellow-400 rounded-lg hover:bg-yellow-500">
                                             Daftar
-                                        </button>
+                                        </a>
                                     </div>
                                     <div class="flex items-center justify-between p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
                                         <div>
@@ -136,9 +148,9 @@
                                                 <i class="far fa-calendar mr-1"></i>Jadwal: 28 Mar 2024, 10:00
                                             </p>
                                         </div>
-                                        <button class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
+                                        <a href="{{ route('mahasiswa.bimbingan.index') }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
                                             Lihat Detail
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                             </div>

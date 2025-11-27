@@ -31,11 +31,14 @@ try {
     file_put_contents($transPath, "%PDF-1.4 Dummy PDF content\n");
 
     // create UploadedFile instances
+    // Symfony UploadedFile constructor: (path, originalName, mimeType = null, size = null, error = null, test = false)
+    // Provide explicit error code 0 and mark as test to allow isValid() in CLI context.
     $uploadedSurat = new \Symfony\Component\HttpFoundation\File\UploadedFile(
         $suratPath,
         basename($suratPath),
         'application/pdf',
         null,
+        0,
         true
     );
     $uploadedTrans = new \Symfony\Component\HttpFoundation\File\UploadedFile(
@@ -43,6 +46,7 @@ try {
         basename($transPath),
         'application/pdf',
         null,
+        0,
         true
     );
 

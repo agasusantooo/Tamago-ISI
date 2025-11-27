@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('projek_akhir', function (Blueprint $table) {
-            $table->unsignedBigInteger('proposal_id')->nullable();
+            if (!Schema::hasColumn('projek_akhir', 'proposal_id')) {
+                $table->unsignedBigInteger('proposal_id')->nullable();
+            }
             // Uncomment below if you want to add a foreign key constraint
             // $table->foreign('proposal_id')->references('id')->on('proposal')->onDelete('set null');
         });

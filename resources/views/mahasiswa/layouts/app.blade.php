@@ -21,6 +21,29 @@
 
             {{-- Konten halaman --}}
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                {{-- Flash messages --}}
+                @if(session('success'))
+                    <div class="max-w-7xl mx-auto mb-4 p-4 bg-green-50 border-l-4 border-green-400 rounded">
+                        <p class="text-green-800 font-semibold">{{ session('success') }}</p>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="max-w-7xl mx-auto mb-4 p-4 bg-red-50 border-l-4 border-red-400 rounded">
+                        <p class="text-red-800 font-semibold">{{ session('error') }}</p>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="max-w-7xl mx-auto mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                        <ul class="list-disc list-inside text-sm text-yellow-800">
+                            @foreach($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 @yield('content')
             </main>
         </div>

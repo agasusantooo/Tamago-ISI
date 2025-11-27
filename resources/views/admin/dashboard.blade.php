@@ -183,7 +183,7 @@
                         <div class="bg-white rounded-xl shadow-sm p-6">
                             <h3 class="text-lg font-semibold text-gray-800 mb-4">Notifikasi Penting Sistem</h3>
                             <div class="space-y-3">
-                                @forelse($notifikasiPenting as $notif)
+                                @forelse($notifikasiPenting ?? collect() as $notif)
                                     <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
                                         <p class="text-sm font-semibold">{{ $notif->title }}</p>
                                         <p class="text-xs text-gray-600">{{ $notif->message }}</p>

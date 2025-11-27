@@ -17,13 +17,17 @@ class BimbinganController extends Controller
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
         if (!$mahasiswa) {
-            return redirect()->route('mahasiswa.proposal')->with('error', 'Profil mahasiswa tidak ditemukan.');
+            Log::error("Mahasiswa profile not found for user: {$user->id} ({$user->email}) - {$user->name}");
+            return redirect()->route('mahasiswa.proposal')->with('error', 'Profil mahasiswa tidak ditemukan. Hubungi administrator untuk verifikasi data.');
         }
 
         // Ambil semua riwayat bimbingan mahasiswa (gunakan nim sebagai kunci)
-        $bimbinganList = Bimbingan::where('nim', $mahasiswa->nim)
-            ->orderBy('created_at', 'desc')
-            ->get()
+                $bimbinganList = Bimbingan::where(function($q) use ($mahasiswa) {
+                                $q->where('nim', $mahasiswa->nim)
+                                    ->orWhere('mahasiswa_id', $mahasiswa->id);
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->get()
             ->map(function ($item) {
                 // Tambahkan warna dan teks status untuk tampilan
                 $statusMap = [
@@ -65,6 +69,8 @@ class BimbinganController extends Controller
             'topik' => 'required|string|max:255',
             'catatan_mahasiswa' => 'required|string|min:5',
             'file_pendukung' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'tanggal' => 'nullable|date|after_or_equal:today',
+            'waktu_mulai' => 'nullable|date_format:H:i',
         ]);
 
     $user = Auth::user();
@@ -84,6 +90,27 @@ class BimbinganController extends Controller
         $filePath = $request->file('file_pendukung')->store('bimbingan_files', 'public');
     }
 
+        // Determine tanggal (use submitted tanggal if provided, otherwise default to now)
+        $submittedTanggal = $request->input('tanggal');
+        $tanggalToStore = $submittedTanggal ? \Carbon\Carbon::parse($submittedTanggal)->startOfDay() : now();
+
+        // Waktu mulai yang dipilih (optional)
+        $waktuMulai = $request->input('waktu_mulai');
+
+        // Simple conflict check: jika ada jadwal disetujui pada tanggal dan jam yang sama, tolak
+        if ($waktuMulai) {
+            $conflict = Bimbingan::whereDate('tanggal', $tanggalToStore)
+                ->where('waktu_mulai', $waktuMulai)
+                ->where('status', 'disetujui')
+                ->exists();
+
+            if ($conflict) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Slot pada tanggal dan jam tersebut sudah terisi. Silakan pilih waktu lain.');
+            }
+        }
+
         // Insert data bimbingan
         Bimbingan::create([
             'id_proyek_akhir' => $projekAkhir?->id_proyek_akhir,
@@ -92,7 +119,8 @@ class BimbinganController extends Controller
             'catatan_mahasiswa' => $request->catatan_mahasiswa,
             'file_pendukung' => $filePath,
             'status' => 'pending',
-            'tanggal' => now(),
+            'tanggal' => $tanggalToStore,
+            'waktu_mulai' => $waktuMulai,
         ]);
 
     return redirect()
@@ -116,5 +144,41 @@ class BimbinganController extends Controller
     {
         $bimbingan = Bimbingan::findOrFail($id);
         return view('mahasiswa.bimbingan-detail', compact('bimbingan'));
+    }
+
+    /**
+     * Get bimbingan status updates via AJAX (for real-time refresh)
+     */
+    public function checkUpdates(Request $request)
+    {
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        
+        if (!$mahasiswa) {
+            return response()->json(['error' => 'Mahasiswa not found'], 404);
+        }
+
+        // Get all bimbingan for this mahasiswa with their current status
+        $bimbinganList = Bimbingan::where(function($q) use ($mahasiswa) {
+                $q->where('nim', $mahasiswa->nim)
+                  ->orWhere('mahasiswa_id', $mahasiswa->id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get(['id_bimbingan', 'status', 'catatan_dosen', 'catatan_mahasiswa', 'topik', 'tanggal', 'updated_at'])
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id_bimbingan,
+                    'status' => $item->status,
+                    'topik' => $item->topik,
+                    'tanggal' => $item->tanggal?->format('Y-m-d'),
+                    'catatan_dosen' => $item->catatan_dosen,
+                    'updated_at' => $item->updated_at?->timestamp
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'bimbingan' => $bimbinganList
+        ]);
     }
 }

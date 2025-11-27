@@ -11,7 +11,10 @@ return new class extends Migration
     public function up(): void
     {
         // Use raw SQL to avoid requiring the doctrine/dbal dependency for column changes
-        DB::statement('ALTER TABLE `ujian_tugas_akhir` MODIFY `tanggal_ujian` DATE NULL');
+        // SQLite (used by tests) does not support MODIFY — skip in that case
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE `ujian_tugas_akhir` MODIFY `tanggal_ujian` DATE NULL');
+        }
     }
 
     /**
@@ -19,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('ALTER TABLE `ujian_tugas_akhir` MODIFY `tanggal_ujian` DATE NOT NULL');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE `ujian_tugas_akhir` MODIFY `tanggal_ujian` DATE NOT NULL');
+        }
     }
 };

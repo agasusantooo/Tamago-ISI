@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
+use App\Traits\MapsUjianStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -13,9 +14,12 @@ use App\Models\Produksi;
 use App\Models\Proposal;
 use App\Models\ProjekAkhir;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class UjianTAController extends Controller
 {
+    use MapsUjianStatus;
+
     /**
      * Display ujian TA page (Informasi & Pendaftaran)
      */
@@ -146,8 +150,41 @@ class UjianTAController extends Controller
             if (in_array('dosen_pembimbing_id', $cols)) $data['dosen_pembimbing_id'] = $proposal->dosen_id ?? null;
             if (in_array('file_surat_pengantar', $cols)) $data['file_surat_pengantar'] = $fileSuratPengantar;
             if (in_array('file_transkrip_nilai', $cols)) $data['file_transkrip_nilai'] = $fileTranskrip;
-            if (in_array('status_pendaftaran', $cols)) $data['status_pendaftaran'] = 'pengajuan_ujian';
-            if (in_array('status_ujian', $cols)) $data['status_ujian'] = 'belum_ujian';
+            // When the DB column is an ENUM, ensure we insert a valid enum value to avoid truncation warnings.
+            if (in_array('status_pendaftaran', $cols)) {
+                $desired = 'pengajuan_ujian';
+                // try to read allowed enum values from DB
+                $allowed = null;
+                try {
+                    $col = DB::select("SHOW COLUMNS FROM ujian_tugas_akhir LIKE 'status_pendaftaran'");
+                    if (!empty($col) && isset($col[0]->Type)) {
+                        // Type looks like: enum('val1','val2',...)
+                        preg_match_all("/'([^']+)'/", $col[0]->Type, $m);
+                        $allowed = $m[1] ?? [];
+                    }
+                } catch (\Throwable $t) {
+                    // ignore — fallback to default
+                    $allowed = null;
+                }
+
+                if (is_array($allowed) && count($allowed) > 0) {
+                    if (in_array($desired, $allowed)) {
+                        $data['status_pendaftaran'] = $desired;
+                    } elseif (in_array(str_replace('_', '-', $desired), $allowed)) {
+                        $data['status_pendaftaran'] = str_replace('_', '-', $desired);
+                    } elseif (in_array(str_replace('_', ' ', $desired), $allowed)) {
+                        $data['status_pendaftaran'] = str_replace('_', ' ', $desired);
+                    } else {
+                        // fallback to first allowed value to guarantee DB insert succeeds
+                        $data['status_pendaftaran'] = $allowed[0];
+                    }
+                } else {
+                    $data['status_pendaftaran'] = $desired;
+                }
+            }
+            if (in_array('status_ujian', $cols)) {
+                $data['status_ujian'] = $this->mapUjianStatus('belum_ujian');
+            }
             if (in_array('tanggal_daftar', $cols)) $data['tanggal_daftar'] = now();
 
             $ujianTA = UjianTA::create($data);
@@ -169,6 +206,65 @@ class UjianTAController extends Controller
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
                 ->withInput();
         }
+    }
+
+    /**
+     * Map a desired status string to an allowed enum value for a table column.
+     * Returns a valid enum value present in the DB or a sensible fallback.
+     */
+    protected function mapToEnumValueForTable(string $table, string $column, $desired)
+    {
+        $desiredNorm = $this->normalizeString($desired);
+
+        try {
+            $col = DB::select("SHOW COLUMNS FROM {$table} LIKE ?", [$column]);
+            $allowed = [];
+            if (!empty($col) && isset($col[0]->Type)) {
+                preg_match_all("/'([^']+)'/", $col[0]->Type, $m);
+                $allowed = $m[1] ?? [];
+            }
+        } catch (\Throwable $t) {
+            $allowed = [];
+        }
+
+        $normMap = [];
+        foreach ($allowed as $val) {
+            $normMap[$this->normalizeString($val)] = $val;
+        }
+
+        if (isset($normMap[$desiredNorm])) {
+            return $normMap[$desiredNorm];
+        }
+
+        $alt = str_replace(['_', '-'], ' ', $desired);
+        $altNorm = $this->normalizeString($alt);
+        if (isset($normMap[$altNorm])) {
+            return $normMap[$altNorm];
+        }
+
+        $synonyms = [
+            'belumujian' => 'Menunggu_hasil',
+            'ujianberlangsung' => 'Berlangsung',
+            'selesaiujian' => 'Selesai',
+            'lulus' => 'Lulus',
+            'tidaklulus' => 'Tidak Lulus',
+            'menungguhasil' => 'Menunggu_hasil',
+        ];
+        $d = $desiredNorm;
+        if (isset($synonyms[$d]) && in_array($synonyms[$d], $allowed)) {
+            return $synonyms[$d];
+        }
+
+        return $allowed[0] ?? $desired;
+    }
+
+    protected function normalizeString($s)
+    {
+        if (is_null($s)) return '';
+        $s = mb_strtolower((string)$s);
+        $s = str_replace([' ', '_', '-'], '', $s);
+        $s = preg_replace('/[^a-z0-9]/u', '', $s);
+        return $s;
     }
 
     /**

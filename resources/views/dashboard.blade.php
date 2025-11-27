@@ -150,7 +150,7 @@
                                     Selamat datang, <span class="uppercase">{{ Auth::user()->name }}</span> 👋
                                 </h3>
                                 <p class="mt-1 text-sm text-gray-600">
-                                    NIM: 2021110001
+                                    NIM: {{ Auth::user()->mahasiswa->nim ?? 'N/A' }}
                                 </p>
                             </div>
 

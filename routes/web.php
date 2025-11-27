@@ -16,6 +16,7 @@ use App\Http\Controllers\Mahasiswa\NaskahKaryaController;
 use App\Http\Controllers\Mahasiswa\UjianTAController;
 
 use App\Http\Controllers\DosenPembimbingController;
+use App\Http\Controllers\KoordinatorTA\KoordinatorTaskController;
 
 /*
 |--------------------------------------------------------------------------
@@ -96,6 +97,7 @@ Route::middleware(['auth', 'role:mahasiswa'])
                 Route::post('/store', 'store')->name('store');
                 Route::get('/{id}', 'show')->name('show');
                 Route::get('/{id}/download', 'download')->name('download');
+                Route::get('/check/updates', 'checkUpdates')->name('check-updates');
             });
 
         // ------------------------
@@ -170,6 +172,16 @@ Route::middleware(['auth', 'role:dospem'])
                 Route::get('/riwayat-bimbingan', 'riwayatBimbingan')->name('riwayat-bimbingan');
             });
 
+        // Jadwal Approval Routes
+        Route::controller(\App\Http\Controllers\Dospem\JadwalApprovalController::class)
+            ->prefix('jadwal')
+            ->name('jadwal.')
+            ->group(function () {
+                Route::get('/{id}', 'getJadwal')->name('show');
+                Route::post('/{id}/approve', 'approve')->name('approve');
+                Route::post('/{id}/reject', 'reject')->name('reject');
+            });
+
         // Jadwal Bimbingan API Routes
         Route::controller(\App\Http\Controllers\Dospem\JadwalBimbinganController::class)
             ->prefix('jadwal-bimbingan')
@@ -182,8 +194,30 @@ Route::middleware(['auth', 'role:dospem'])
             });
 
         Route::get('/profile', function () {
-            return view('mahasiswa.akun');
+            return view('dospem.profile');
         })->name('profile');
+
+        // Routes for Mahasiswa Bimbingan detail / feedback
+        Route::match(['GET', 'POST'], '/mahasiswa-bimbingan/{id}', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'show'])->name('mahasiswa-bimbingan.show');
+        Route::post('/mahasiswa-bimbingan/{id}/feedback', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'submitFeedback'])->name('mahasiswa.feedback.submit');
+
+        // Routes for Proposal approval/rejection
+        Route::post('/proposal/{id}/update-status', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'updateProposalStatus'])->name('proposal.update-status');
+        Route::post('/proposal/{id}/approve', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'approveProposal'])->name('proposal.approve');
+        Route::post('/proposal/{id}/reject', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'rejectProposal'])->name('proposal.reject');
+
+        // Routes for Bimbingan approval/rejection
+        Route::post('/bimbingan/{id}/approve', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'approveBimbingan'])->name('bimbingan.approve');
+        Route::post('/bimbingan/{id}/reject', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'rejectBimbingan'])->name('bimbingan.reject');
+
+        // Routes for Produksi approval/feedback
+        Route::controller(\App\Http\Controllers\Dospem\MahasiswaProduksiController::class)
+            ->prefix('produksi')
+            ->name('produksi.')
+            ->group(function () {
+                Route::post('/{id}/pra-produksi', 'approvePraProduksi')->name('pra-produksi');
+                Route::post('/{id}/produksi-akhir', 'approveProduksiAkhir')->name('produksi-akhir');
+            });
     });
 
 /*
@@ -196,6 +230,8 @@ Route::middleware(['auth', 'role:kaprodi'])
     ->name('kaprodi.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'kaprodiDashboard'])->name('dashboard');
+        // Dashboard khusus Kaprodi untuk Tugas Akhir
+        Route::get('/dashboard-ta', [DashboardController::class, 'kaprodiTADashboard'])->name('dashboard.ta');
         Route::view('/verifikasi', 'kaprodi.verifikasi')->name('verifikasi');
         Route::view('/laporan', 'kaprodi.laporan')->name('laporan');
         Route::view('/statistik', 'kaprodi.statistik')->name('statistik');
@@ -203,6 +239,9 @@ Route::middleware(['auth', 'role:kaprodi'])
         Route::view('/monitoring', 'koordinator_ta.monitoring')->name('monitoring'); // Assuming this points to koordinator_ta.monitoring as it was a duplicate name
         Route::view('/setup', 'kaprodi.setup')->name('setup');
         Route::view('/pengelolaan', 'kaprodi.pengelolaan')->name('pengelolaan');
+        // Kaprodi task actions (approve / reject) for TA proposals
+        Route::post('/tasks/{id}/approve', [\App\Http\Controllers\Kaprodi\KaprodiTaskController::class, 'approve'])->name('tasks.approve');
+        Route::post('/tasks/{id}/reject', [\App\Http\Controllers\Kaprodi\KaprodiTaskController::class, 'reject'])->name('tasks.reject');
     });
 
 /*
@@ -230,6 +269,10 @@ Route::middleware(['auth', 'role:koordinator_ta'])
                 Route::put('/events/{id}', 'update')->name('update');
                 Route::delete('/events/{id}', 'destroy')->name('destroy');
             });
+
+        // Koordinator task actions (approve / reject)
+        Route::post('/tasks/{id}/approve', [KoordinatorTaskController::class, 'approve'])->name('tasks.approve');
+        Route::post('/tasks/{id}/reject', [KoordinatorTaskController::class, 'reject'])->name('tasks.reject');
     });
 
 /*

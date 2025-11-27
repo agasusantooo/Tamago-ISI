@@ -11,7 +11,13 @@ use App\Models\User;
 use App\Models\ProjekAkhir;
 use App\Models\UjianTA;
 use App\Models\Proposal;
+use App\Traits\MapsUjianStatus;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+class TestUjianHelper {
+    use MapsUjianStatus;
+}
 
 try {
     $user = User::find($uid);
@@ -55,12 +61,14 @@ try {
 
     // Create ujian if missing. Use only columns that actually exist in DB to avoid migration mismatch.
     $ujian = UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first();
+    $helper = new TestUjianHelper();
+    
     if (!$ujian) {
         $cols = Schema::getColumnListing('ujian_tugas_akhir');
         $data = [];
         if (in_array('id_proyek_akhir', $cols)) $data['id_proyek_akhir'] = $projek->id_proyek_akhir;
-        if (in_array('status_pendaftaran', $cols)) $data['status_pendaftaran'] = 'jadwal_ditetapkan';
-        if (in_array('status_ujian', $cols)) $data['status_ujian'] = 'selesai_ujian';
+        if (in_array('status_pendaftaran', $cols)) $data['status_pendaftaran'] = 'pengajuan_ujian';
+        if (in_array('status_ujian', $cols)) $data['status_ujian'] = $helper->mapUjianStatus('selesai_ujian');
         if (in_array('tanggal_daftar', $cols)) $data['tanggal_daftar'] = now();
         if (in_array('tanggal_ujian', $cols)) $data['tanggal_ujian'] = now();
         if (in_array('nilai_akhir', $cols)) $data['nilai_akhir'] = 85;
@@ -70,9 +78,9 @@ try {
         echo "Created UjianTA id=" . ($ujian->id_ujian ?? $ujian->getKey()) . " (status_ujian=" . ($ujian->status_ujian ?? 'n/a') . ")\n";
     } else {
         echo "Existing UjianTA id={$ujian->id_ujian} (status_ujian={$ujian->status_ujian})\n";
-        if (Schema::hasColumn('ujian_tugas_akhir', 'status_ujian') && $ujian->status_ujian !== 'selesai_ujian') {
-            $ujian->update(['status_ujian' => 'selesai_ujian']);
-            echo "Updated UjianTA id={$ujian->id_ujian} to status_ujian=selesai_ujian\n";
+        if (Schema::hasColumn('ujian_tugas_akhir', 'status_ujian') && $ujian->status_ujian !== $helper->mapUjianStatus('selesai_ujian')) {
+            $ujian->update(['status_ujian' => $helper->mapUjianStatus('selesai_ujian')]);
+            echo "Updated UjianTA id={$ujian->id_ujian} to status_ujian=" . $helper->mapUjianStatus('selesai_ujian') . "\n";
         }
     }
 

@@ -9,6 +9,22 @@ class UjianTA extends Model
 {
     use HasFactory;
 
+    /**
+     * The primary key associated with the table.
+     * The table uses a non-standard primary key `id_ujian`.
+     */
+    protected $primaryKey = 'id_ujian';
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     */
+    public $incrementing = true;
+
+    /**
+     * The data type of the primary key.
+     */
+    protected $keyType = 'int';
+
     // migration creates table 'ujian_tugas_akhir'
     protected $table = 'ujian_tugas_akhir';
 
@@ -38,12 +54,97 @@ class UjianTA extends Model
     ];
 
     protected $casts = [
-        'tanggal_ujian' => 'date',
+        'tanggal_ujian' => 'datetime',
         'waktu_ujian' => 'datetime',
         'tanggal_daftar' => 'datetime',
         'tanggal_submit_revisi' => 'datetime',
         'tanggal_approve_revisi' => 'datetime',
     ];
+
+    /**
+     * Cache of enum values per column to avoid repeated DB queries.
+     * @var array
+     */
+    protected static $enumCache = [];
+
+    /**
+     * Mutator for status_ujian - since columns are strings, no enum mapping needed
+     */
+    public function setStatusUjianAttribute($value)
+    {
+        $this->attributes['status_ujian'] = $value;
+    }
+
+    /**
+     * Map a desired value to a valid enum value for given column.
+     * Returns first allowed enum that matches normalized form or a sensible fallback.
+     */
+    protected function mapToEnumValue(string $column, $desired)
+    {
+        $desiredNorm = $this->normalizeString($desired);
+
+        // load allowed values from cache or DB
+        if (!isset(self::$enumCache[$column])) {
+            try {
+                $col = \Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM " . $this->getTable() . " LIKE ?", [$column]);
+                $allowed = [];
+                if (!empty($col) && isset($col[0]->Type)) {
+                    preg_match_all("/'([^']+)'/", $col[0]->Type, $m);
+                    $allowed = $m[1] ?? [];
+                }
+            } catch (\Throwable $t) {
+                $allowed = [];
+            }
+            self::$enumCache[$column] = $allowed;
+        } else {
+            $allowed = self::$enumCache[$column];
+        }
+
+        // Normalized allowed map
+        $normMap = [];
+        foreach ($allowed as $val) {
+            $normMap[$this->normalizeString($val)] = $val;
+        }
+
+        // direct normalized match
+        if (isset($normMap[$desiredNorm])) {
+            return $normMap[$desiredNorm];
+        }
+
+        // try replacing underscores/hyphens in desired and match
+        $alt = str_replace(['_', '-'], ' ', $desired);
+        $altNorm = $this->normalizeString($alt);
+        if (isset($normMap[$altNorm])) {
+            return $normMap[$altNorm];
+        }
+
+        // fallback synonyms mapping (common conversions)
+        $synonyms = [
+            'belumujian' => 'Menunggu_hasil',
+            'ujianberlangsung' => 'Berlangsung',
+            'selesaiujian' => 'Selesai',
+            'lulus' => 'Lulus',
+            'tidaklulus' => 'Tidak Lulus',
+            'menungguhasil' => 'Menunggu_hasil',
+        ];
+        $d = $desiredNorm;
+        if (isset($synonyms[$d]) && in_array($synonyms[$d], $allowed)) {
+            return $synonyms[$d];
+        }
+
+        // As last resort, if there is any allowed value, return the first one
+        return $allowed[0] ?? $desired;
+    }
+
+    protected function normalizeString($s)
+    {
+        if (is_null($s)) return '';
+        // lowercase, remove non-alphanumeric
+        $s = mb_strtolower((string)$s);
+        $s = str_replace([' ', '_', '-'], '', $s);
+        $s = preg_replace('/[^a-z0-9]/u', '', $s);
+        return $s;
+    }
 
     /**
      * Get mahasiswa
@@ -140,5 +241,31 @@ class UjianTA extends Model
         ];
 
         return $colors[$this->status_revisi] ?? 'bg-gray-100 text-gray-800';
+    }
+
+    /**
+     * Automatically update status_ujian based on conditions
+     */
+    public function updateStatusUjianIfNeeded()
+    {
+        // If exam date has passed and status is still 'belum_ujian', mark as 'selesai_ujian'
+        if ($this->tanggal_ujian && $this->status_ujian === 'belum_ujian') {
+            $examDateTime = $this->tanggal_ujian->setTimeFromTimeString($this->waktu_ujian ?? '00:00:00');
+            if (now()->greaterThanOrEqualTo($examDateTime)) {
+                $this->status_ujian = 'selesai_ujian';
+                $this->save();
+                return true;
+            }
+        }
+
+        // If results are entered (nilai_akhir or catatan_penguji), mark as completed
+        if ($this->status_ujian === 'belum_ujian' &&
+            (!is_null($this->nilai_akhir) || !empty($this->catatan_penguji))) {
+            $this->status_ujian = 'selesai_ujian';
+            $this->save();
+            return true;
+        }
+
+        return false;
     }
 }
