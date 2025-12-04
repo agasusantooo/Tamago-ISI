@@ -137,7 +137,7 @@
                                                 <i class="far fa-clock mr-1"></i>Deadline: 25 Mar 2024, 23:59
                                             </p>
                                         </div>
-                                        <a href="{{ route('mahasiswa.proposal') }}" class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
+                                        <a href="{{ route('mahasiswa.proposal.index') }}" class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
                                             Kerjakan
                                         </a>
                                     </div>

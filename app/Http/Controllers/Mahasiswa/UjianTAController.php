@@ -47,7 +47,7 @@ class UjianTAController extends Controller
             ->first();
 
         $produksiNotApproved = false;
-        if (!$produksi || $produksi->status_produksi_akhir !== 'disetujui') {
+        if (!$produksi || $produksi->status_produksi !== 'disetujui') {
             // show page with message instead of redirect so mahasiswa tahu langkah selanjutnya
             $produksiNotApproved = true;
         }

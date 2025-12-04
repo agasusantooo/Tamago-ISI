@@ -33,7 +33,7 @@ class MahasiswaProduksiController extends Controller
                 return [
                     'id' => $p->id,
                     'status_pra_produksi' => $p->status_pra_produksi ?? 'belum_upload',
-                    'status_produksi_akhir' => $p->status_produksi_akhir ?? 'belum_upload',
+                    status_produksi => $p->status_produksi_akhir ?? 'belum_upload',
                     'file_skenario' => $p->file_skenario,
                     'file_storyboard' => $p->file_storyboard,
                     'file_dokumen_pendukung' => $p->file_dokumen_pendukung,
@@ -150,7 +150,7 @@ class MahasiswaProduksiController extends Controller
             
             // Update status dan feedback
             $produksi->update([
-                'status_produksi_akhir' => $status,
+                status_produksi => $status,
                 'feedback_produksi_akhir' => $feedback,
                 'tanggal_review_akhir' => now(),
             ]);
@@ -188,7 +188,7 @@ class MahasiswaProduksiController extends Controller
 
             // Update status ke ditolak
             $produksi->update([
-                'status_produksi_akhir' => 'ditolak',
+                status_produksi => 'ditolak',
                 'feedback_produksi_akhir' => $validated['feedback'],
                 'tanggal_review_akhir' => now(),
             ]);

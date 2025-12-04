@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Story Conference & Tefa Fair - Tamago ISI</title>
+    <title>Story Conference - Tamago ISI</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -61,8 +61,8 @@
                             <!-- Jadwal Story Conference -->
                             <div class="bg-white rounded-lg shadow-sm">
                                 <div class="p-6 border-b">
-                                    <h2 class="text-xl font-bold text-gray-800">Story Conference & Tefa Fair</h2>
-                                    <p class="text-sm text-gray-600 mt-1">Jadwal acara presentasi tugas akhir dan pameran karya mahasiswa</p>
+                                    <h2 class="text-xl font-bold text-gray-800">Jadwal Story Conference</h2>
+                                    <p class="text-sm text-gray-600 mt-1">Jadwal acara diskusi dan review untuk proyek tugas akhir.</p>
                                 </div>
 
                                 <div class="p-6 space-y-4">
@@ -105,19 +105,15 @@
                                     <i class="fas fa-clipboard-list text-blue-600 mr-2"></i>
                                     Persyaratan Pendaftaran:
                                 </h3>
-                                <ul class="space-y-2">
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle text-green-600 mr-3 mt-1"></i>
-                                        <span class="text-gray-700">Mahasiswa tingkat akhir yang telah menyelesaikan minimal 120 SKS</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle text-green-600 mr-3 mt-1"></i>
-                                        <span class="text-gray-700">Memiliki proposal tugas akhir yang telah disetujui pembimbing</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle text-green-600 mr-3 mt-1"></i>
-                                        <span class="text-gray-700">Menyiapkan materi presentasi dalam format PDF atau PPT</span>
-                                    </li>
+                                <ul class="space-y-2 text-sm">
+                                    @if(!empty($jadwalStoryConference[0]['persyaratan']))
+                                        @foreach($jadwalStoryConference[0]['persyaratan'] as $req)
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle text-green-600 mr-3 mt-1"></i>
+                                                <span class="text-gray-700">{{ $req }}</span>
+                                            </li>
+                                        @endforeach
+                                    @endif
                                 </ul>
                             </div>
                         </div>
@@ -258,19 +254,10 @@
                                                 required>
                                         </div>
 
-                                        <!-- Pilih Slot Waktu -->
-                                        <div class="mb-4">
-                                            <label for="slot_waktu" class="block text-sm font-semibold text-gray-700 mb-2">
-                                                Pilih Slot Waktu <span class="text-red-500">*</span>
-                                            </label>
-                                            <select id="slot_waktu" name="slot_waktu"
-                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                                required>
-                                                <option value="">-- Pilih Slot Waktu --</option>
-                                                <option value="15 Desember 2024 - 08:00-17:00">15 Desember 2024 (08:00-17:00 WIB)</option>
-                                                <option value="20-22 Desember 2024 - 09:00-16:00">20-22 Desember 2024 (09:00-16:00 WIB)</option>
-                                            </select>
-                                        </div>
+                                        <!-- Hidden Slot Waktu -->
+                                        @if(!empty($jadwalStoryConference[0]))
+                                            <input type="hidden" name="slot_waktu" value="{{ $jadwalStoryConference[0]['tanggal'] . ' - ' . $jadwalStoryConference[0]['waktu'] }}">
+                                        @endif
 
                                         <!-- Upload Materi Presentasi -->
                                         <div class="mb-6">

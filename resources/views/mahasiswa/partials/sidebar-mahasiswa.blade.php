@@ -25,9 +25,9 @@
             </li>
 
             <li>
-                <a href="{{ route('mahasiswa.proposal') }}"
+                <a href="{{ route('mahasiswa.proposal.index') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                {{ request()->routeIs('mahasiswa.proposal') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
+                {{ request()->routeIs('mahasiswa.proposal.*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                     <i class="fas fa-file-alt w-5"></i>
                     <span>Pengajuan Proposal</span>
                 </a>
@@ -48,6 +48,15 @@
                 {{ request()->routeIs('mahasiswa.story-conference.*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                     <i class="fas fa-comments w-5"></i>
                     <span>Story Conference</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('mahasiswa.tefa-fair.index') }}"
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                {{ request()->routeIs('mahasiswa.tefa-fair.index') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
+                    <i class="fas fa-store w-5"></i>
+                    <span>Tefa Fair</span>
                 </a>
             </li>
 

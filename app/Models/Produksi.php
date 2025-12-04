@@ -18,24 +18,30 @@ class Produksi extends Model
         'file_skenario',
         'file_storyboard',
         'file_dokumen_pendukung',
-        'file_produksi_akhir',
-        'file_luaran_tambahan',
         'catatan_produksi',
         'status_pra_produksi',
-        'status_produksi_akhir',
         'tanggal_upload_pra',
-        'tanggal_upload_akhir',
         'tanggal_review_pra',
-        'tanggal_review_akhir',
         'feedback_pra_produksi',
-        'feedback_produksi_akhir',
+        'status_produksi',
+        'file_produksi',
+        'feedback_produksi',
+        'tanggal_upload_produksi',
+        'tanggal_review_produksi',
+        'status_pasca_produksi',
+        'file_pasca_produksi',
+        'feedback_pasca_produksi',
+        'tanggal_upload_pasca',
+        'tanggal_review_pasca',
     ];
 
     protected $casts = [
         'tanggal_upload_pra' => 'datetime',
-        'tanggal_upload_akhir' => 'datetime',
         'tanggal_review_pra' => 'datetime',
-        'tanggal_review_akhir' => 'datetime',
+        'tanggal_upload_produksi' => 'datetime',
+        'tanggal_review_produksi' => 'datetime',
+        'tanggal_upload_pasca' => 'datetime',
+        'tanggal_review_pasca' => 'datetime',
     ];
 
     /**
@@ -68,62 +74,46 @@ class Produksi extends Model
     public function getStatusPraProduksiBadgeAttribute()
     {
         $badges = [
-            'belum_upload' => ['color' => 'gray', 'text' => 'Belum Upload', 'icon' => 'clock'],
-            'menunggu_review' => ['color' => 'yellow', 'text' => 'Menunggu Review', 'icon' => 'hourglass-half'],
-            'disetujui' => ['color' => 'green', 'text' => 'Disetujui', 'icon' => 'check-circle'],
-            'revisi' => ['color' => 'orange', 'text' => 'Perlu Revisi', 'icon' => 'exclamation-triangle'],
-            'ditolak' => ['color' => 'red', 'text' => 'Ditolak', 'icon' => 'times-circle'],
+            'belum_upload' => ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Belum Upload'],
+            'menunggu_review' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Menunggu Review'],
+            'disetujui' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Disetujui'],
+            'revisi' => ['class' => 'bg-orange-100 text-orange-800', 'text' => 'Perlu Revisi'],
+            'ditolak' => ['class' => 'bg-red-100 text-red-800', 'text' => 'Ditolak'],
         ];
 
-        return $badges[$this->status_pra_produksi] ?? ['color' => 'gray', 'text' => 'Unknown', 'icon' => 'question'];
+        return $badges[$this->status_pra_produksi] ?? ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Unknown'];
     }
 
     /**
-     * Get status badge for produksi akhir
+     * Get status badge for produksi
      */
-    public function getStatusProduksiAkhirBadgeAttribute()
+    public function getStatusProduksiBadgeAttribute()
     {
         $badges = [
-            'belum_upload' => ['color' => 'gray', 'text' => 'Belum Upload', 'icon' => 'clock'],
-            'menunggu_review' => ['color' => 'yellow', 'text' => 'Menunggu Review', 'icon' => 'hourglass-half'],
-            'disetujui' => ['color' => 'green', 'text' => 'Disetujui', 'icon' => 'check-circle'],
-            'revisi' => ['color' => 'orange', 'text' => 'Perlu Revisi', 'icon' => 'exclamation-triangle'],
-            'ditolak' => ['color' => 'red', 'text' => 'Ditolak', 'icon' => 'times-circle'],
+            'belum_upload' => ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Belum Upload'],
+            'menunggu_review' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Menunggu Review'],
+            'disetujui' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Disetujui'],
+            'revisi' => ['class' => 'bg-orange-100 text-orange-800', 'text' => 'Perlu Revisi'],
+            'ditolak' => ['class' => 'bg-red-100 text-red-800', 'text' => 'Ditolak'],
         ];
 
-        return $badges[$this->status_produksi_akhir] ?? ['color' => 'gray', 'text' => 'Unknown', 'icon' => 'question'];
+        return $badges[$this->status_produksi] ?? ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Unknown'];
     }
 
-    /**
-     * Get status color for pra produksi
+     /**
+     * Get status badge for pasca produksi
      */
-    public function getStatusPraProduksiColorAttribute()
+    public function getStatusPascaProduksiBadgeAttribute()
     {
-        $colors = [
-            'belum_upload' => 'bg-gray-100 text-gray-800',
-            'menunggu_review' => 'bg-yellow-100 text-yellow-800',
-            'disetujui' => 'bg-green-100 text-green-800',
-            'revisi' => 'bg-orange-100 text-orange-800',
-            'ditolak' => 'bg-red-100 text-red-800',
+        $badges = [
+            'belum_upload' => ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Belum Upload'],
+            'menunggu_review' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Menunggu Review'],
+            'disetujui' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Selesai'],
+            'revisi' => ['class' => 'bg-orange-100 text-orange-800', 'text' => 'Perlu Revisi'],
+            'ditolak' => ['class' => 'bg-red-100 text-red-800', 'text' => 'Ditolak'],
         ];
 
-        return $colors[$this->status_pra_produksi] ?? 'bg-gray-100 text-gray-800';
-    }
-
-    /**
-     * Get status color for produksi akhir
-     */
-    public function getStatusProduksiAkhirColorAttribute()
-    {
-        $colors = [
-            'belum_upload' => 'bg-gray-100 text-gray-800',
-            'menunggu_review' => 'bg-yellow-100 text-yellow-800',
-            'disetujui' => 'bg-green-100 text-green-800',
-            'revisi' => 'bg-orange-100 text-orange-800',
-            'ditolak' => 'bg-red-100 text-red-800',
-        ];
-
-        return $colors[$this->status_produksi_akhir] ?? 'bg-gray-100 text-gray-800';
+        return $badges[$this->status_pasca_produksi] ?? ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Unknown'];
     }
 
     /**
@@ -135,19 +125,20 @@ class Produksi extends Model
     }
 
     /**
-     * Scope untuk filter berdasarkan status produksi akhir
+     * Scope untuk filter berdasarkan status produksi
      */
-    public function scopeByStatusAkhir($query, $status)
+    public function scopeByStatusProduksi($query, $status)
     {
-        return $query->where('status_produksi_akhir', $status);
+        return $query->where('status_produksi', $status);
     }
 
     /**
-     * Scope untuk produksi yang sudah selesai (kedua tahap disetujui)
+     * Scope untuk produksi yang sudah selesai (semua tahap disetujui)
      */
     public function scopeCompleted($query)
     {
         return $query->where('status_pra_produksi', 'disetujui')
-            ->where('status_produksi_akhir', 'disetujui');
+            ->where('status_produksi', 'disetujui')
+            ->where('status_pasca_produksi', 'disetujui');
     }
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\Mahasiswa\StoryConferenceController;
 use App\Http\Controllers\Mahasiswa\ProduksiController;
 use App\Http\Controllers\Mahasiswa\NaskahKaryaController;
 use App\Http\Controllers\Mahasiswa\UjianTAController;
+use App\Http\Controllers\Mahasiswa\TefaFairController;
 
 use App\Http\Controllers\DosenPembimbingController;
 use App\Http\Controllers\KoordinatorTA\KoordinatorTaskController;
@@ -80,8 +81,11 @@ Route::middleware(['auth', 'role:mahasiswa'])
         // ------------------------
         // PROPOSAL ROUTES
         // ------------------------
-        Route::get('/proposal', [ProposalController::class, 'index'])->name('proposal');
-        Route::post('/proposal/submit', [ProposalController::class, 'submit'])->name('proposal.submit');
+        Route::get('/proposal', [ProposalController::class, 'index'])->name('proposal.index');
+        Route::get('/proposal/create', [ProposalController::class, 'create'])->name('proposal.create');
+        Route::post('/proposal', [ProposalController::class, 'store'])->name('proposal.store');
+        Route::get('/proposal/{proposal}/edit', [ProposalController::class, 'edit'])->name('proposal.edit');
+        Route::put('/proposal/{proposal}', [ProposalController::class, 'update'])->name('proposal.update');
         Route::post('/proposal/draft', [ProposalController::class, 'saveDraft'])->name('proposal.draft');
         Route::get('/proposal/{id}', [ProposalController::class, 'show'])->name('proposal.show');
         Route::get('/proposal/{id}/download', [ProposalController::class, 'download'])->name('proposal.download');
@@ -108,6 +112,7 @@ Route::middleware(['auth', 'role:mahasiswa'])
             ->name('story-conference.')
             ->group(function () {
                 Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
                 Route::post('/store', 'store')->name('store');
                 Route::get('/{id}/download', 'download')->name('download');
                 Route::delete('/{id}/cancel', 'cancel')->name('cancel');
@@ -121,8 +126,10 @@ Route::middleware(['auth', 'role:mahasiswa'])
             ->name('produksi.')
             ->group(function () {
                 Route::get('/', 'index')->name('index');
+                Route::get('/manage', [ProduksiController::class, 'manage'])->name('manage');
                 Route::post('/store-pra', 'storePraProduksi')->name('store.pra');
-                Route::post('/produksi-akhir', 'storeProduksiAkhir')->name('produksi-akhir');
+                Route::post('/store-produksi', 'storeProduksi')->name('store.produksi');
+                Route::post('/store-pasca', 'storePascaProduksi')->name('store.pasca');
                 Route::post('/luaran-tambahan', 'storeLuaranTambahan')->name('luaran-tambahan');
                 Route::get('/{id}/{type}', 'download')->name('download');
             });
@@ -139,6 +146,18 @@ Route::middleware(['auth', 'role:mahasiswa'])
                 Route::get('/hasil', 'hasil')->name('hasil');
                 Route::post('/submit-revisi', 'submitRevisi')->name('submit-revisi');
                 Route::get('/{id}/{type}', 'download')->name('download');
+            });
+
+        // ------------------------
+        // TEFA FAIR ROUTES
+        // ------------------------
+        Route::controller(TefaFairController::class)
+            ->prefix('tefa-fair')
+            ->name('tefa-fair.')
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
             });
 
 

@@ -93,7 +93,7 @@ class ProgressService
 
                 case 'production_upload':
                     $produksiDone = Produksi::where('mahasiswa_id', $userId)
-                        ->where('status_produksi_akhir', 'disetujui')
+                        ->where('status_produksi', 'disetujui')
                         ->exists();
                     $fraction = $produksiDone ? 1.0 : 0.0;
                     break;
@@ -129,7 +129,7 @@ class ProgressService
                         ->exists();
                     if (!$finalDoc) {
                         $finalDoc = Produksi::where('mahasiswa_id', $userId)
-                            ->where('status_produksi_akhir', 'disetujui')
+                            ->where('status_produksi', 'disetujui')
                             ->exists();
                     }
                     $fraction = $finalDoc ? 1.0 : 0.0;

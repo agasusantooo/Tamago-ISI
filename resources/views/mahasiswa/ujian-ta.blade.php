@@ -18,7 +18,7 @@
                         <div class="font-semibold text-red-700">Proposal belum disetujui</div>
                         <div class="text-sm text-gray-700 mt-1">Anda perlu mempunyai proposal yang disetujui terlebih dahulu sebelum dapat mendaftar ujian TA.</div>
                         <div class="mt-3">
-                            <a href="{{ route('mahasiswa.proposal') }}" class="inline-block px-4 py-2 bg-red-600 text-white rounded">Lihat Proposal</a>
+                            <a href="{{ route('mahasiswa.proposal.index') }}" class="inline-block px-4 py-2 bg-red-600 text-white rounded">Lihat Proposal</a>
                         </div>
                     </div>
                 @endif

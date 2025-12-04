@@ -131,7 +131,7 @@ class UjianTimeline extends Component
                 ['title' => 'Revisi Selesai', 'date' => 'Pending', 'color' => 'gray'],
             ];
 
-            if ($produksi && $produksi->status_produksi_akhir === 'disetujui') {
+            if ($produksi && $produksi->status_produksi === 'disetujui') {
                 $this->status = ['text' => 'Produksi akhir disetujui', 'variant' => 'green'];
             } else {
                 $this->status = ['text' => 'Menunggu Persetujuan', 'variant' => 'yellow'];
