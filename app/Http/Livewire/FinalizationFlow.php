@@ -58,7 +58,7 @@ class FinalizationFlow extends Component
             return;
         }
 
-        $this->produksi->status_produksi_akhir = 'menunggu_review';
+        $this->produksi->status_produksi = 'menunggu_review';
         $this->produksi->tanggal_upload_akhir = Carbon::now();
         $this->produksi->save();
 

@@ -14,6 +14,7 @@ class Proposal extends Model
         'dosen_id',
         'judul',
         'deskripsi',
+        'rumpun_ilmu',
         'file_proposal',
         'file_pitch_deck',
         'versi',

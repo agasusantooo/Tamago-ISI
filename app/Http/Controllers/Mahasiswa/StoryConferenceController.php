@@ -19,88 +19,108 @@ class StoryConferenceController extends Controller
      */
     public function index()
     {
+        // $mahasiswa = Auth::user()->mahasiswa;
+        // $history = collect();
+
+        // if ($mahasiswa) {
+        //     $history = StoryConference::where('mahasiswa_nim', $mahasiswa->nim)
+        //         ->orderBy('tanggal_daftar', 'desc')
+        //         ->get();
+        // }
+
+        $statusBadges = [
+            'menunggu_persetujuan' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Menunggu Persetujuan'],
+            'disetujui' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Disetujui'],
+            'ditolak' => ['class' => 'bg-red-100 text-red-800', 'text' => 'Ditolak'],
+            'selesai' => ['class' => 'bg-blue-100 text-blue-800', 'text' => 'Selesai'],
+        ];
+
+        $dummyHistory = collect([
+            (object)[
+                'id' => 1,
+                'judul_karya' => 'Membangun Karakter Melalui Film Animasi Stop Motion',
+                'tanggal_daftar' => \Carbon\Carbon::parse('2024-11-20'),
+                'slot_waktu' => '18 Desember 2024 - 09:00-15:00',
+                'status' => 'disetujui',
+                'statusBadge' => $statusBadges['disetujui'],
+            ],
+            (object)[
+                'id' => 2,
+                'judul_karya' => 'Analisis Visual dalam Video Musik Kontemporer',
+                'tanggal_daftar' => \Carbon\Carbon::parse('2024-11-15'),
+                'slot_waktu' => '18 Desember 2024 - 09:00-15:00',
+                'status' => 'menunggu_persetujuan',
+                'statusBadge' => $statusBadges['menunggu_persetujuan'],
+            ],
+            (object)[
+                'id' => 3,
+                'judul_karya' => 'Penggunaan CGI dalam Film Fiksi Ilmiah Indonesia',
+                'tanggal_daftar' => \Carbon\Carbon::parse('2024-11-10'),
+                'slot_waktu' => '18 Desember 2024 - 09:00-15:00',
+                'status' => 'ditolak',
+                'statusBadge' => $statusBadges['ditolak'],
+            ],
+            (object)[
+                'id' => 4,
+                'judul_karya' => 'Narasi Interaktif dalam Game Edukasi',
+                'tanggal_daftar' => \Carbon\Carbon::parse('2024-11-05'),
+                'slot_waktu' => '18 Desember 2024 - 09:00-15:00',
+                'status' => 'selesai',
+                'statusBadge' => $statusBadges['selesai'],
+            ],
+        ]);
+        $history = $dummyHistory;
+
+        $jadwalStoryConference = [
+            [
+                'jenis' => 'Story Conference',
+                'tanggal' => '18 Desember 2024',
+                'waktu' => '09:00 - 15:00 WIB',
+                'tempat' => 'Ruang Diskusi Kreatif',
+                'deskripsi' => 'Sesi diskusi dan review ide cerita, skenario, dan konsep visual untuk proyek tugas akhir. Setiap mahasiswa akan mempresentasikan draf awal karyanya.',
+                'persyaratan' => [
+                    'Proposal tugas akhir telah disetujui oleh pembimbing.',
+                    'Menyiapkan draf skenario atau naskah awal.',
+                    'Menyiapkan materi presentasi konsep (moodboard, referensi visual, dll).'
+                ],
+                'bg_color' => 'bg-purple-50',
+                'border_color' => 'border-purple-500'
+            ]
+        ];
+        
+        return view('mahasiswa.story-conference.index', compact('history', 'jadwalStoryConference'));
+    }
+
+    /**
+     * Show the form for creating a new registration.
+     */
+    public function create()
+    {
         $mahasiswa = Auth::user()->mahasiswa;
         if (!$mahasiswa) {
-            return redirect()->route('mahasiswa.proposal')
+            return redirect()->route('mahasiswa.proposal.index')
                 ->with('error', 'Profil mahasiswa tidak ditemukan.');
         }
-        // Get the latest proposal for this mahasiswa (might not be approved yet)
+
         $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
             ->latest()
             ->first();
 
-        // If the student has no proposal at all, redirect to proposal page
         if (!$proposal) {
-            return redirect()->route('mahasiswa.proposal')
+            return redirect()->route('mahasiswa.proposal.index')
                 ->with('error', 'Anda belum memiliki proposal. Silakan ajukan proposal terlebih dahulu.');
         }
 
-        // Find existing story conference registration defensively based on available columns
-        $storyConference = null;
-        $table = 'story_conference';
-
-        // Determine which mahasiswa column exists (nim-based or id-based)
-        if (Schema::hasTable($table)) {
-            if (Schema::hasColumn($table, 'mahasiswa_nim')) {
-                $query = StoryConference::where('mahasiswa_nim', $mahasiswa->nim);
-            } elseif (Schema::hasColumn($table, 'mahasiswa_id')) {
-                // If mahasiswa_id exists but mahasiswa table uses nim as PK, attempt to use user->mahasiswa->id if present
-                $mahasiswaId = property_exists($mahasiswa, 'id') ? $mahasiswa->id : null;
-                $query = StoryConference::where('mahasiswa_id', $mahasiswaId);
-            } else {
-                $query = StoryConference::query();
-            }
-
-            // Determine proposal column name
-            if (Schema::hasColumn($table, 'proposal_id')) {
-                $query->where('proposal_id', $proposal->id);
-            } elseif (Schema::hasColumn($table, 'proposals_id')) {
-                $query->where('proposals_id', $proposal->id);
-            }
-
-            $storyConference = $query->first();
-        }
+        $storyConference = StoryConference::where('mahasiswa_nim', $mahasiswa->nim)
+            ->where('proposal_id', $proposal->id)
+            ->first();
         
-    // Get jadwal story conference (hardcoded untuk demo, bisa dari database)
-        $jadwalStoryConference = [
-            [
-                'jenis' => 'Presentasi Tugas Akhir',
-                'tanggal' => '15 Desember 2024',
-                'waktu' => '08:00 - 17:00 WIB',
-                'tempat' => 'Auditorium Utama Informatika',
-                'deskripsi' => 'Presentasi hasil penelitian tugas akhir mahasiswa dengan durasi 15 menit per mahasiswa',
-                'persyaratan' => [
-                    'Mahasiswa tingkat akhir yang telah menyelesaikan minimal 120 SKS',
-                    'Memiliki proposal tugas akhir yang telah disetujui pembimbing',
-                    'Menyiapkan materi presentasi dalam format PDF atau PPT'
-                ],
-                'bg_color' => 'bg-blue-50',
-                'border_color' => 'border-blue-500'
-            ],
-            [
-                'jenis' => 'Presentasi Tugas Akhir',
-                'tanggal' => '20-22 Desember 2024',
-                'waktu' => '09:00 - 16:00 WIB',
-                'tempat' => 'Gedung Exhibition',
-                'deskripsi' => 'Pameran produk dan inovasi teknologi hasil karya mahasiswa beserta presentasi',
-                'persyaratan' => [
-                    'Mahasiswa tingkat akhir dengan proposal yang disetujui',
-                    'Membawa produk atau prototype untuk dipamerkan',
-                    'Menyiapkan poster atau standing banner'
-                ],
-                'bg_color' => 'bg-yellow-50',
-                'border_color' => 'border-yellow-500'
-            ]
-        ];
-        
-        // If proposal exists but is not approved, show the page with a clear message rather than redirecting
         if ($proposal->status !== 'disetujui') {
-            // pass a flag the view can use to show registration disabled state and the current proposal status/feedback
-            return view('mahasiswa.story-conference', compact('proposal', 'storyConference', 'jadwalStoryConference'))
+            return view('mahasiswa.story-conference.create', compact('proposal', 'storyConference'))
                 ->with('error', 'Proposal Anda belum disetujui. Silakan cek status proposal atau hubungi pembimbing.');
         }
 
-        return view('mahasiswa.story-conference', compact('proposal', 'storyConference', 'jadwalStoryConference'));
+        return view('mahasiswa.story-conference.create', compact('proposal', 'storyConference'));
     }
 
     /**

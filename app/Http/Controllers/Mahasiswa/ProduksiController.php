@@ -17,31 +17,100 @@ class ProduksiController extends Controller
      */
     public function index()
     {
+        $produksiBadges = [
+            'belum_dimulai' => ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Belum Dimulai'],
+            'menunggu_review_pra' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Review Pra-Produksi'],
+            'revisi_pra' => ['class' => 'bg-orange-100 text-orange-800', 'text' => 'Revisi Pra-Produksi'],
+            'menunggu_review_produksi' => ['class' => 'bg-yellow-200 text-yellow-900', 'text' => 'Review Produksi'],
+            'revisi_produksi' => ['class' => 'bg-orange-200 text-orange-900', 'text' => 'Revisi Produksi'],
+            'menunggu_review_pasca' => ['class' => 'bg-yellow-300 text-yellow-900', 'text' => 'Review Pasca-Produksi'],
+            'revisi_pasca' => ['class' => 'bg-orange-300 text-orange-900', 'text' => 'Revisi Pasca-Produksi'],
+            'selesai' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Selesai'],
+        ];
+
+        // Dummy data for multiple production projects
+        $produksis = collect([
+            (object)[
+                'id' => 1,
+                'proposal' => (object)['judul' => 'Produksi Film Pendek: "Lembayung Senja"'],
+                'status_pra_produksi' => 'disetujui',
+                'status_produksi' => 'disetujui',
+                'status_pasca_produksi' => 'menunggu_review',
+            ],
+            (object)[
+                'id' => 2,
+                'proposal' => (object)['judul' => 'Game Edukasi Interaktif: "Petualangan Kucing Oren"'],
+                'status_pra_produksi' => 'disetujui',
+                'status_produksi' => 'revisi',
+                'status_pasca_produksi' => 'belum_upload',
+            ],
+            (object)[
+                'id' => 3,
+                'proposal' => (object)['judul' => 'Animasi Motion Graphic: "Sejarah Wayang Kulit"'],
+                'status_pra_produksi' => 'menunggu_review',
+                'status_produksi' => 'belum_upload',
+                'status_pasca_produksi' => 'belum_upload',
+            ],
+             (object)[
+                'id' => 4,
+                'proposal' => (object)['judul' => 'Sound Design untuk Film Horor: "Bisikan Arwah"'],
+                'status_pra_produksi' => 'disetujui',
+                'status_produksi' => 'disetujui',
+                'status_pasca_produksi' => 'disetujui',
+            ],
+        ])->map(function ($produksi) use ($produksiBadges) {
+            // Determine overall status
+            if ($produksi->status_pra_produksi === 'disetujui' && $produksi->status_produksi === 'disetujui' && $produksi->status_pasca_produksi === 'disetujui') {
+                $produksi->overallStatus = 'selesai';
+            } elseif ($produksi->status_pasca_produksi === 'revisi') {
+                $produksi->overallStatus = 'revisi_pasca';
+            } elseif ($produksi->status_pasca_produksi === 'menunggu_review') {
+                $produksi->overallStatus = 'menunggu_review_pasca';
+            } elseif ($produksi->status_produksi === 'revisi') {
+                $produksi->overallStatus = 'revisi_produksi';
+            } elseif ($produksi->status_produksi === 'menunggu_review') {
+                $produksi->overallStatus = 'menunggu_review_produksi';
+            } elseif ($produksi->status_pra_produksi === 'revisi') {
+                $produksi->overallStatus = 'revisi_pra';
+            } elseif ($produksi->status_pra_produksi === 'menunggu_review') {
+                $produksi->overallStatus = 'menunggu_review_pra';
+            } else {
+                $produksi->overallStatus = 'belum_dimulai';
+            }
+            $produksi->overallStatusBadge = $produksiBadges[$produksi->overallStatus];
+            return $produksi;
+        });
+        
+        return view('mahasiswa.produksi.index', compact('produksis'));
+    }
+
+    /**
+     * Display produksi management page with upload forms
+     */
+    public function manage()
+    {
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
         if (!$mahasiswa) {
-            return redirect()->route('mahasiswa.proposal')
+            return redirect()->route('mahasiswa.produksi.index')
                 ->with('error', 'Profil mahasiswa tidak ditemukan.');
         }
         
-        // Get approved proposal
         $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
             ->where('status', 'disetujui')
             ->latest()
             ->first();
         
         if (!$proposal) {
-            return redirect()->route('mahasiswa.proposal')
+            return redirect()->route('mahasiswa.produksi.index')
                 ->with('error', 'Anda belum memiliki proposal yang disetujui.');
         }
         
-        // Get produksi data (pra produksi dan produksi akhir)
-        // tim_produksi.mahasiswa_id references users.id, so use the authenticated user's id
         $produksi = Produksi::where('mahasiswa_id', $user->id)
             ->where('proposal_id', $proposal->id)
             ->first();
         
-        return view('mahasiswa.produksi', compact('proposal', 'produksi'));
+        return view('mahasiswa.produksi.manage', compact('proposal', 'produksi'));
     }
 
     /**
@@ -149,7 +218,8 @@ class ProduksiController extends Controller
                     'file_storyboard' => $fileStoryboard,
                     'file_dokumen_pendukung' => $fileDokumenPendukung,
                     'status_pra_produksi' => 'menunggu_review',
-                    'status_produksi_akhir' => 'belum_upload',
+                    'status_produksi' => 'belum_upload',
+                    'status_pasca_produksi' => 'belum_upload',
                     'tanggal_upload_pra' => now(),
                 ]);
             }
@@ -166,17 +236,17 @@ class ProduksiController extends Controller
     }
 
     /**
-     * Store or update produksi akhir
+     * Store or update produksi
      */
-    public function storeProduksiAkhir(Request $request)
+    public function storeProduksi(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'file_produksi_akhir' => 'required|file|mimes:mp4,mov,avi,mkv|max:512000', // 500MB
+            'file_produksi' => 'required|file|mimes:mp4,mov,avi,mkv|max:512000', // 500MB
             'catatan_produksi' => 'nullable|string|max:1000',
         ], [
-            'file_produksi_akhir.required' => 'File produksi akhir wajib diunggah',
-            'file_produksi_akhir.mimes' => 'File produksi akhir harus berformat MP4, MOV, AVI, atau MKV',
-            'file_produksi_akhir.max' => 'File produksi akhir maksimal 500 MB',
+            'file_produksi.required' => 'File produksi wajib diunggah',
+            'file_produksi.mimes' => 'File produksi harus berformat MP4, MOV, AVI, atau MKV',
+            'file_produksi.max' => 'File produksi maksimal 500 MB',
         ]);
 
         if ($validator->fails()) {
@@ -187,10 +257,9 @@ class ProduksiController extends Controller
             $user = Auth::user();
             $mahasiswa = $user->mahasiswa;
             if (!$mahasiswa) {
-                \Illuminate\Support\Facades\Log::warning('storeProduksiAkhir: authenticated user has no mahasiswa relation', ['user_id' => $user->id]);
                 return back()->with('error', 'Profil mahasiswa tidak ditemukan.')->withInput();
             }
-            // Get approved proposal for this mahasiswa
+            
             $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
                 ->where('status', 'disetujui')
                 ->latest()
@@ -200,7 +269,6 @@ class ProduksiController extends Controller
                 return back()->with('error', 'Proposal belum disetujui')->withInput();
             }
 
-            // Get produksi scoped to this proposal and mahasiswa (users.id)
             $produksi = Produksi::where('mahasiswa_id', $user->id)
                 ->where('proposal_id', $proposal->id)
                 ->first();
@@ -209,36 +277,84 @@ class ProduksiController extends Controller
                 return back()->with('error', 'Mohon upload pra produksi terlebih dahulu');
             }
 
-            // Check if pra produksi approved
             if ($produksi->status_pra_produksi !== 'disetujui') {
-                return back()->with('error', 'Pra produksi harus disetujui terlebih dahulu sebelum upload produksi akhir');
+                return back()->with('error', 'Pra produksi harus disetujui terlebih dahulu sebelum upload file produksi');
             }
 
-            // Upload file produksi akhir
-            $fileProduksiAkhir = null;
-            if ($request->hasFile('file_produksi_akhir')) {
-                $file = $request->file('file_produksi_akhir');
-                $fileName = 'produksi_akhir_' . time() . '.' . $file->getClientOriginalExtension();
-                $fileProduksiAkhir = $file->storeAs('produksi/' . $user->id, $fileName, 'public');
+            $fileProduksi = null;
+            if ($request->hasFile('file_produksi')) {
+                $file = $request->file('file_produksi');
+                $fileName = 'produksi_' . time() . '.' . $file->getClientOriginalExtension();
+                $fileProduksi = $file->storeAs('produksi/' . $user->id, $fileName, 'public');
             }
 
             $produksi->update([
-                'file_produksi_akhir' => $fileProduksiAkhir,
+                'file_produksi' => $fileProduksi,
                 'catatan_produksi' => $request->catatan_produksi,
-                'status_produksi_akhir' => 'menunggu_review',
-                'tanggal_upload_akhir' => now(),
-            ]);
-
-            // Log stored path for debugging
-            \Illuminate\Support\Facades\Log::info('storeProduksiAkhir: produksi updated', [
-                'produksi_id' => $produksi->id,
-                'file_produksi_akhir' => $produksi->file_produksi_akhir,
-                'status_produksi_akhir' => $produksi->status_produksi_akhir,
+                'status_produksi' => 'menunggu_review',
+                'tanggal_upload_produksi' => now(),
             ]);
 
             return redirect()
                 ->route('mahasiswa.produksi.index')
-                ->with('success', 'File produksi akhir berhasil diunggah! Menunggu review dari dosen pembimbing.');
+                ->with('success', 'File produksi berhasil diunggah! Menunggu review dari dosen pembimbing.');
+
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Store or update pasca produksi
+     */
+    public function storePascaProduksi(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'file_pasca_produksi' => 'required|file|mimes:pdf,doc,docx|max:10240', // 10MB
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        try {
+            $user = Auth::user();
+            $mahasiswa = $user->mahasiswa;
+            $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
+                ->where('status', 'disetujui')
+                ->latest()
+                ->first();
+            
+            if (!$proposal) {
+                return back()->with('error', 'Proposal belum disetujui')->withInput();
+            }
+
+            $produksi = Produksi::where('mahasiswa_id', $user->id)
+                ->where('proposal_id', $proposal->id)
+                ->first();
+
+            if (!$produksi || $produksi->status_produksi !== 'disetujui') {
+                return back()->with('error', 'Tahap produksi harus disetujui terlebih dahulu.');
+            }
+
+            $filePath = null;
+            if ($request->hasFile('file_pasca_produksi')) {
+                $file = $request->file('file_pasca_produksi');
+                $fileName = 'pasca_produksi_' . time() . '.' . $file->getClientOriginalExtension();
+                $filePath = $file->storeAs('produksi/' . $user->id, $fileName, 'public');
+            }
+
+            $produksi->update([
+                'file_pasca_produksi' => $filePath,
+                'status_pasca_produksi' => 'menunggu_review',
+                'tanggal_upload_pasca' => now(),
+            ]);
+
+            return redirect()
+                ->route('mahasiswa.produksi.index')
+                ->with('success', 'File pasca produksi berhasil diunggah!');
 
         } catch (\Exception $e) {
             return back()

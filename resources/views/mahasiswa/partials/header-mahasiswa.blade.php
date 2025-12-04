@@ -1,6 +1,7 @@
 <header class="bg-white border-b shadow-md flex items-center px-6 py-4">
     <div class="flex-1 mr-8">
         <h1 class="text-lg font-semibold text-gray-700">@yield('page-title', 'Mahasiswa')</h1>
+        @if(!isset($hideProgressBar) || !$hideProgressBar)
         <div class="flex items-center mt-2 mb-1">
             <p class="text-xs text-gray-500 mr-2">Progress Tugas Akhir</p>
             @php
@@ -14,6 +15,9 @@
                 {{ $headerPct }}%
             </p>
         </div>
+        @else
+        <div class="h-3"></div>
+        @endif
         <div class="h-3"></div>
     </div>
 
