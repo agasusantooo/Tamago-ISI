@@ -5,7 +5,9 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Dosen;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DemoUserSeeder extends Seeder
 {
@@ -21,6 +23,7 @@ class DemoUserSeeder extends Seeder
         $roleKoordinatorTA = Role::where('name', 'koordinator_ta')->first();
         $roleDosenPenguji = Role::where('name', 'dosen_penguji')->first();
         $roleAdmin = Role::where('name', 'admin')->first();
+        $roleKoordinatorTefa = Role::where('name', 'koordinator_tefa')->first();
 
         // Buat user demo untuk setiap role
         $users = [
@@ -29,30 +32,6 @@ class DemoUserSeeder extends Seeder
                 'email' => 'mahasiswa@test.com',
                 'password' => Hash::make('password'),
                 'role_id' => $roleMahasiswa->id,
-            ],
-            [
-                'name' => 'Dr. Sarah Wijaya',
-                'email' => 'dospem@test.com',
-                'password' => Hash::make('password'),
-                'role_id' => $roleDospem->id,
-            ],
-            [
-                'name' => 'Prof. Ahmad Rahman',
-                'email' => 'kaprodi@test.com',
-                'password' => Hash::make('password'),
-                'role_id' => $roleKaprodi->id,
-            ],
-            [
-                'name' => 'Dr. Siti Aminah',
-                'email' => 'koordinator_ta@test.com',
-                'password' => Hash::make('password'),
-                'role_id' => $roleKoordinatorTA->id,
-            ],
-            [
-                'name' => 'Dr. Indah Permata',
-                'email' => 'dosen_penguji@test.com',
-                'password' => Hash::make('password'),
-                'role_id' => $roleDosenPenguji->id,
             ],
             [
                 'name' => 'Admin System',
@@ -66,14 +45,69 @@ class DemoUserSeeder extends Seeder
             User::firstOrCreate(['email' => $userData['email']], $userData);
         }
 
-        $this->command->info('✓ Demo users berhasil dibuat!');
+        // === Buat Dosen Demo dalam jumlah banyak ===
+        $jabatanRanks = ['Asisten Ahli', 'Lektor', 'Lektor Kepala', 'Guru Besar'];
+        $dosenNames = [
+            'Dr. Sarah Wijaya', 'Prof. Ahmad Rahman', 'Dr. Siti Aminah', 'Dr. Indah Permata', 'Dr. Rendi Pratama',
+            'Prof. Dr. Dewi Lestari', 'Dr. Bambang Susanto', 'Dr. Fitriani Hartono', 'Agus Setiawan, M.Kom.', 'Dr. Dian Novitasari',
+            'Muhammad Iqbal, M.Sn.', 'Dr. Eko Prasetyo', 'Lina Marlina, M.Ds.', 'Dr. Yuniar Supriadi', 'Dr. Heru Wibowo'
+        ];
+
+        $dosenEmails = [
+            'dospem@test.com', 'kaprodi@test.com', 'koordinator_ta@test.com', 'dosen_penguji@test.com', 'koordinator_tefa@test.com'
+        ];
+
+        $dosenRoles = [
+            'dospem@test.com' => $roleDospem->id,
+            'kaprodi@test.com' => $roleKaprodi->id,
+            'koordinator_ta@test.com' => $roleKoordinatorTA->id,
+            'dosen_penguji@test.com' => $roleDosenPenguji->id,
+            'koordinator_tefa@test.com' => $roleKoordinatorTefa->id,
+        ];
+        
+        $i = 0;
+        foreach ($dosenNames as $name) {
+            $email = Str::slug($name) . '@test.com';
+            
+            // Override email for specific roles
+            if (isset($dosenEmails[$i])) {
+                $email = $dosenEmails[$i];
+            }
+
+            // Assign a role, default to dospem
+            $role_id = $dosenRoles[$email] ?? $roleDospem->id;
+            
+            $user = User::firstOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $name,
+                    'password' => Hash::make('password'),
+                    'role_id' => $role_id,
+                ]
+            );
+
+            Dosen::firstOrCreate(
+                ['nidn' => '00112233' . str_pad($i, 2, '0', STR_PAD_LEFT)],
+                [
+                    'user_id' => $user->id,
+                    'nama' => $name,
+                    'jabatan' => 'Dosen',
+                    'rumpun_ilmu' => 'Umum', // Default value
+                    'jabatan_fungsional' => $jabatanRanks[array_rand($jabatanRanks)],
+                    'status' => 'aktif'
+                ]
+            );
+            $i++;
+        }
+
+        $this->command->info('✓ Demo users & dosens berhasil dibuat!');
         $this->command->info('');
-        $this->command->info('Login credentials:');
-        $this->command->info('Mahasiswa   : mahasiswa@test.com / password');
-        $this->command->info('Dosen       : dospem@test.com / password');
-        $this->command->info('Kaprodi     : kaprodi@test.com / password');
-        $this->command->info('Koordinator : koordinator_ta@test.com / password');
-        $this->command->info('Penguji     : dosen_penguji@test.com / password');
-        $this->command->info('Admin       : admin@test.com / password');
+        $this->command->info('Login credentials: password');
+        $this->command->info('Mahasiswa   : mahasiswa@test.com');
+        $this->command->info('Dosen       : dospem@test.com');
+        $this->command->info('Kaprodi     : kaprodi@test.com');
+        $this->command->info('Koordinator : koordinator_ta@test.com');
+        $this->command->info('Penguji     : dosen_penguji@test.com');
+        $this->command->info('Admin       : admin@test.com');
     }
 }

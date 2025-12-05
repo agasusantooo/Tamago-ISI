@@ -50,7 +50,7 @@
                     </li>
                     <li>
                         <a href="{{ route('dospem.review-tugas') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 rounded-lg transition">
-                            <i class="fas fa-tasks w-5"></i><span>Review Tugas</span>
+                            <i class="fas fa-tasks w-5"></i><span>Review Progress</span>
                         </a>
                     </li>
                     <li>
@@ -177,6 +177,7 @@
                                     <table class="w-full">
                                         <thead class="bg-blue-50 border-b border-blue-100">
                                             <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">NIM</th>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">Nama Mahasiswa</th>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">Judul TA</th>
                                                 <th class="px-4 py-3 text-center text-xs font-semibold text-blue-700">Progress</th>
@@ -186,6 +187,7 @@
                                         <tbody class="divide-y divide-blue-50">
                                             @forelse($mahasiswaBimbingan as $mhs)
                                             <tr class="hover:bg-blue-50 transition">
+                                                <td class="px-4 py-3 text-sm text-gray-700">{{ $mhs->nim }}</td>
                                                 <td class="px-4 py-3">
                                                     <div class="flex items-center space-x-3">
                                                         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -216,7 +218,7 @@
                                             </tr>
                                             @empty
                                             <tr>
-                                                <td colspan="4" class="px-4 py-6 text-center text-gray-500">Tidak ada mahasiswa bimbingan</td>
+                                                <td colspan="5" class="px-4 py-6 text-center text-gray-500">Tidak ada mahasiswa bimbingan</td>
                                             </tr>
                                             @endforelse
                                         </tbody>
@@ -231,7 +233,7 @@
                                     <div class="flex items-center justify-between p-4 bg-sky-50 border-l-4 border-sky-400 rounded-lg">
                                         <div>
                                             <p class="font-semibold text-blue-900">{{ $tugas->judul }}</p>
-                                            <p class="text-xs text-gray-600 mt-1">{{ $tugas->mahasiswa_name }}</p>
+                                            <p class="text-xs text-gray-600 mt-1">{{ $tugas->mahasiswa_nim }} - {{ $tugas->mahasiswa_name }}</p>
                                             <p class="text-xs text-sky-600 mt-1">Diajukan: {{ $tugas->created_at }}</p>
                                         </div>
                                         <button class="px-4 py-2 text-sm bg-sky-600 text-white rounded-lg hover:bg-sky-700">
@@ -252,7 +254,7 @@
                                 <div class="space-y-3">
                                     @forelse($jadwalBimbingan as $jadwal)
                                     <div class="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
-                                        <p class="font-semibold text-blue-900 text-sm">{{ $jadwal->mahasiswa_name }}</p>
+                                        <p class="font-semibold text-blue-900 text-sm">{{ $jadwal->mahasiswa_nim }} - {{ $jadwal->mahasiswa_name }}</p>
                                         <p class="text-xs text-blue-600 mt-1">
                                             <i class="far fa-calendar mr-1"></i>{{ $jadwal->tanggal }}
                                         </p>

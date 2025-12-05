@@ -23,25 +23,53 @@
                     <i class="fas fa-home w-5"></i><span>Dashboard</span>
                 </a>
             </li>
-            {{-- <li>
-                <a href="{{ route('kaprodi.dashboard.ta') }}"
-                   class="flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition 
-                   {{ request()->routeIs('kaprodi.dashboard.ta') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
-                    <i class="fas fa-chalkboard-teacher w-5"></i><span>Dashboard TA</span>
+            <li>
+                <a href="{{ route('kaprodi.monitoring') }}"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   {{ request()->routeIs('kaprodi.monitoring') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
+                    <i class="fas fa-tv w-5"></i><span>Monitoring Mahasiswa</span>
                 </a>
-            </li> --}}
+            </li>
             <li>
                 <a href="{{ route('kaprodi.setup') }}"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                    {{ request()->routeIs('kaprodi.setup') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
-                    <i class="fas fa-cogs w-5"></i><span>Setup & Timeline</span>
+                    <i class="fas fa-cogs w-5"></i><span>Setup Semester</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('kaprodi.timeline') }}"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   {{ request()->routeIs('kaprodi.timeline') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
+                    <i class="fas fa-tasks w-5"></i><span>Setup Timeline</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('kaprodi.pengelolaan') }}"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                    {{ request()->routeIs('kaprodi.pengelolaan') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
-                    <i class="fas fa-sitemap w-5"></i><span>Pengelolaan</span>
+                    <i class="fas fa-users-cog w-5"></i><span>Setup Dosen Pembimbing</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('kaprodi.rumpun-ilmu') }}"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   {{ request()->routeIs('kaprodi.rumpun-ilmu') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
+                    <i class="fas fa-sitemap w-5"></i><span>Setup Rumpun Ilmu</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('kaprodi.dosen-seminar') }}"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   {{ request()->routeIs('kaprodi.dosen-seminar') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
+                    <i class="fas fa-chalkboard-teacher w-5"></i><span>Setup Dosen Seminar</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('kaprodi.koordinator-tefa') }}"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   {{ request()->routeIs('kaprodi.koordinator-tefa') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
+                    <i class="fas fa-bullhorn w-5"></i><span>Setup Koordinator TEFA</span>
                 </a>
             </li>
 

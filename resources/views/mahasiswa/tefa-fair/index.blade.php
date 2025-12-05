@@ -24,7 +24,7 @@
             <h2 class="text-xl font-bold text-gray-800 mb-4">Jadwal Tefa Fair</h2>
             @foreach($jadwalTefaFair as $jadwal)
                 <div class="space-y-3 text-sm">
-                    <p class="flex items-center text-gray-700"><i class="fas fa-calendar-alt fa-fw mr-2 text-green-600"></i><span class="font-semibold mr-1">Tanggal:</span> {{ $jadwal['tanggal'] }}</p>
+                    <p class="flex items-center text-gray-700"><i class="fas fa-calendar-alt fa-fw mr-2 text-green-600"></i><span class="font-semibold mr-1">Periode:</span> {{ $jadwal['tanggal'] }}</p>
                     <p class="flex items-center text-gray-700"><i class="fas fa-clock fa-fw mr-2 text-green-600"></i><span class="font-semibold mr-1">Waktu:</span> {{ $jadwal['waktu'] }}</p>
                     <p class="flex items-center text-gray-700"><i class="fas fa-map-marker-alt fa-fw mr-2 text-green-600"></i><span class="font-semibold mr-1">Tempat:</span> {{ $jadwal['tempat'] }}</p>
                     <p class="flex items-start text-gray-700"><i class="fas fa-info-circle fa-fw mr-2 mt-1 text-green-600"></i><span class="font-semibold mr-1">Deskripsi:</span> <span class="flex-1">{{ $jadwal['deskripsi'] }}</span></p>

@@ -62,7 +62,7 @@
                             <div class="bg-white rounded-lg shadow-sm">
                                 <div class="p-6 border-b">
                                     <h2 class="text-xl font-bold text-gray-800">Jadwal Story Conference</h2>
-                                    <p class="text-sm text-gray-600 mt-1">Jadwal acara diskusi dan review untuk proyek tugas akhir.</p>
+                                    <p class="text-sm text-gray-600 mt-1">Jadwal kegiatan diskusi dan review untuk proyek tugas akhir.</p>
                                 </div>
 
                                 <div class="p-6 space-y-4">

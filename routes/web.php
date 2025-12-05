@@ -18,6 +18,9 @@ use App\Http\Controllers\Mahasiswa\TefaFairController;
 
 use App\Http\Controllers\DosenPembimbingController;
 use App\Http\Controllers\KoordinatorTA\KoordinatorTaskController;
+use App\Http\Controllers\Kaprodi\SetupController;
+use App\Http\Controllers\Kaprodi\PengelolaanController;
+use App\Http\Controllers\Kaprodi\MonitoringController;
 
 /*
 |--------------------------------------------------------------------------
@@ -255,9 +258,25 @@ Route::middleware(['auth', 'role:kaprodi'])
         Route::view('/laporan', 'kaprodi.laporan')->name('laporan');
         Route::view('/statistik', 'kaprodi.statistik')->name('statistik');
         Route::view('/manajemen-data', 'kaprodi.manajemen_data')->name('manajemen-data');
-        Route::view('/monitoring', 'koordinator_ta.monitoring')->name('monitoring'); // Assuming this points to koordinator_ta.monitoring as it was a duplicate name
-        Route::view('/setup', 'kaprodi.setup')->name('setup');
-        Route::view('/pengelolaan', 'kaprodi.pengelolaan')->name('pengelolaan');
+        Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring');
+        Route::get('/monitoring/{mahasiswa:nim}', [MonitoringController::class, 'show'])->name('monitoring.show');
+        
+        // Setup and Timeline routes
+        Route::get('/setup', [SetupController::class, 'index'])->name('setup');
+        Route::post('/setup/semester', [SetupController::class, 'storeSemester'])->name('semester.store');
+        Route::get('/timeline', [SetupController::class, 'configureActivitySemesters'])->name('timeline');
+        Route::post('/timeline', [SetupController::class, 'storeActivitySemesters'])->name('timeline.store');
+
+        Route::get('/pengelolaan', [PengelolaanController::class, 'index'])->name('pengelolaan');
+        Route::post('/pengelolaan/dosen/{dosen}', [PengelolaanController::class, 'updateDosen'])->name('pengelolaan.dosen.update');
+        Route::get('/rumpun-ilmu', [PengelolaanController::class, 'rumpunIlmuIndex'])->name('rumpun-ilmu');
+        Route::post('/rumpun-ilmu', [PengelolaanController::class, 'rumpunIlmuStore'])->name('rumpun-ilmu.store');
+        Route::post('/rumpun-ilmu/assign', [PengelolaanController::class, 'assignDosenToRumpun'])->name('rumpun-ilmu.assign');
+        Route::get('/dosen-seminar', [PengelolaanController::class, 'dosenSeminarIndex'])->name('dosen-seminar');
+        Route::post('/dosen-seminar', [PengelolaanController::class, 'dosenSeminarUpdate'])->name('dosen-seminar.update');
+        Route::get('/koordinator-tefa', [PengelolaanController::class, 'koordinatorTefaIndex'])->name('koordinator-tefa');
+        Route::post('/koordinator-tefa', [PengelolaanController::class, 'koordinatorTefaUpdate'])->name('koordinator-tefa.update');
+
         // Kaprodi task actions (approve / reject) for TA proposals
         Route::post('/tasks/{id}/approve', [\App\Http\Controllers\Kaprodi\KaprodiTaskController::class, 'approve'])->name('tasks.approve');
         Route::post('/tasks/{id}/reject', [\App\Http\Controllers\Kaprodi\KaprodiTaskController::class, 'reject'])->name('tasks.reject');
@@ -273,12 +292,12 @@ Route::middleware(['auth', 'role:koordinator_ta'])
     ->name('koordinator_ta.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'koordinatorTADashboard'])->name('dashboard');
-        Route::view('/jadwal', 'koordinator_ta.jadwal')->name('jadwal');
+        Route::get('/jadwal', [\App\Http\Controllers\KoordinatorTA\JadwalController::class, 'showJadwalPage'])->name('jadwal');
         Route::view('/monitoring', 'koordinator_ta.monitoring')->name('monitoring');
         Route::view('/matakuliah', 'koordinator_ta.matakuliah')->name('matakuliah');
         Route::view('/profile', 'koordinator_ta.profile')->name('profile');
 
-        // Jadwal Acara API Routes
+        // Jadwal Kegiatan API Routes
         Route::controller(\App\Http\Controllers\KoordinatorTA\JadwalController::class)
             ->prefix('jadwal')
             ->name('jadwal.')

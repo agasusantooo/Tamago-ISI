@@ -38,6 +38,7 @@
                             <table class="w-full">
                                 <thead class="bg-blue-50 border-b border-blue-100">
                                     <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">NIM</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">Nama Mahasiswa</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">Judul TA</th>
                                         <th class="px-4 py-3 text-center text-xs font-semibold text-blue-700">Progress</th>
@@ -49,6 +50,7 @@
                                     @if(isset($mahasiswaBimbingan) && count($mahasiswaBimbingan))
                                         @forelse($mahasiswaBimbingan as $mhs)
                                             <tr class="hover:bg-blue-50 transition">
+                                                <td class="px-4 py-3 text-sm text-gray-700">{{ $mhs->nim }}</td>
                                                 <td class="px-4 py-3">
                                                     <div class="flex items-center space-x-3">
                                                         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -80,12 +82,12 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="100%" class="text-center py-4 text-gray-500">Tidak ada data mahasiswa bimbingan.</td>
+                                                <td colspan="6" class="text-center py-4 text-gray-500">Tidak ada data mahasiswa bimbingan.</td>
                                             </tr>
                                         @endforelse
                                     @else
                                         <tr>
-                                            <td colspan="100%" class="text-center py-4 text-gray-500">Data mahasiswa bimbingan tidak tersedia.</td>
+                                            <td colspan="6" class="text-center py-4 text-gray-500">Data mahasiswa bimbingan tidak tersedia.</td>
                                         </tr>
                                     @endif
                                 </tbody>

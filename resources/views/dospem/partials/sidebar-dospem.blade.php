@@ -41,7 +41,7 @@
                 <a href="{{ route('dospem.review-tugas') }}"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                    {{ request()->routeIs('dospem.review-tugas') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-blue-50' }}">
-                    <i class="fas fa-tasks w-5"></i><span>Review Tugas</span>
+                    <i class="fas fa-tasks w-5"></i><span>Review Progress</span>
                 </a>
             </li>
 
