@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jadwal Acara - Tamago ISI</title>
+    <title>Jadwal Kegiatan - Tamago ISI</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.13/index.global.min.js'></script>
@@ -22,82 +22,32 @@
             @include('koordinator_ta.partials.header-koordinator')
 
             <main class="flex-1 overflow-y-auto p-6">
-                <div class="max-w-7xl mx-auto">
+                <div class="max-w-4xl mx-auto">
                     <div class="bg-white rounded-xl shadow-sm p-6">
-                        <h3 class="text-lg font-semibold text-green-800 mb-4">Jadwal Story Conference & TEFA Fair</h3>
-                        <div id="calendar"></div>
+                        <h3 class="text-xl font-bold text-green-800 mb-6">Jadwal Story Conference & TEFA Fair</h3>
+                        
+                        <div class="space-y-6">
+                            @if(isset($jadwal) && count($jadwal) > 0)
+                                @foreach($jadwal as $item)
+                                    <div class="p-5 border-l-4 rounded-r-lg {{ $loop->first ? 'border-purple-500 bg-purple-50' : 'border-green-500 bg-green-50' }}">
+                                        <h4 class="text-lg font-semibold {{ $loop->first ? 'text-purple-800' : 'text-green-800' }}">{{ $item['nama'] }}</h4>
+                                        <p class="text-sm text-gray-600 mt-1 mb-2">{{ $item['deskripsi'] }}</p>
+                                        <div class="text-sm font-medium text-gray-800">
+                                            <i class="fas fa-calendar-alt fa-fw mr-2"></i>
+                                            <span>Periode:</span>
+                                            <span class="font-semibold">{{ $item['tanggal_mulai'] }} - {{ $item['tanggal_akhir'] }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <p class="text-center text-gray-500">Tidak ada jadwal yang tersedia saat ini.</p>
+                            @endif
+                        </div>
+
                     </div>
                 </div>
             </main>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'id',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,listWeek'
-                },
-                events: '{{ route("koordinator_ta.jadwal.events") }}', // Route to fetch events
-                selectable: true,
-                editable: true,
-
-                select: function(info) {
-                    const title = prompt('Masukkan Nama Acara:');
-                    if (title) {
-                        // Simple color picker for demo
-                        const color = prompt("Masukkan warna (contoh: '#3788d8' untuk biru, '#f0ad4e' untuk kuning):", '#3788d8');
-                        
-                        fetch('{{ route("koordinator_ta.jadwal.store") }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            },
-                            body: JSON.stringify({ title, start: info.startStr, end: info.endStr, color })
-                        })
-                        .then(response => response.json())
-                        .then(() => calendar.refetchEvents());
-                    }
-                    calendar.unselect();
-                },
-
-                eventDrop: function(info) {
-                    const event = info.event;
-                    fetch(`/koordinator-ta/jadwal/events/${event.id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify({ title: event.title, start: event.startStr, end: event.endStr, color: event.backgroundColor })
-                    });
-                },
-
-                eventClick: function(info) {
-                    if (confirm("Apakah Anda yakin ingin menghapus acara '" + info.event.title + "'?")) {
-                        fetch(`/koordinator-ta/jadwal/events/${info.event.id}`, {
-                            method: 'DELETE',
-                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
-                        })
-                        .then(() => info.event.remove());
-                    }
-                },
-
-                eventDidMount: function(info) {
-                    if (info.event.extendedProps.color) {
-                        info.el.style.backgroundColor = info.event.extendedProps.color;
-                        info.el.style.borderColor = info.event.extendedProps.color;
-                    }
-                }
-            });
-            calendar.render();
-        });
-    </script>
 </body>
 </html>

@@ -5,9 +5,30 @@ namespace App\Http\Controllers\KoordinatorTA;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\JadwalAcara; // Assuming a model named JadwalAcara exists
+use Carbon\Carbon;
 
 class JadwalController extends Controller
 {
+    public function showJadwalPage()
+    {
+        $jadwal = [
+            [
+                'nama' => 'Story Conference',
+                'tanggal_mulai' => Carbon::parse('2024-12-18')->format('d M Y'),
+                'tanggal_akhir' => Carbon::parse('2024-12-20')->format('d M Y'),
+                'deskripsi' => 'Sesi diskusi dan review ide cerita, skenario, dan konsep visual untuk proyek tugas akhir.'
+            ],
+            [
+                'nama' => 'Tefa Fair',
+                'tanggal_mulai' => Carbon::parse('2025-01-15')->format('d M Y'),
+                'tanggal_akhir' => Carbon::parse('2025-01-17')->format('d M Y'),
+                'deskripsi' => 'Pameran karya akhir mahasiswa dari berbagai program studi. Terbuka untuk umum.'
+            ]
+        ];
+
+        return view('koordinator_ta.jadwal', compact('jadwal'));
+    }
+
     public function index()
     {
         // Fetch events and return as JSON

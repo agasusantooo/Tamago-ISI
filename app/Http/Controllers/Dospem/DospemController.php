@@ -66,6 +66,7 @@ class DospemController extends Controller
                 return (object)[
                     'id' => $b->id_bimbingan ?? $b->id,
                     'topik' => $b->topik ?? $b->catatan_bimbingan ?? 'Bimbingan',
+                    'mahasiswa_nim' => $b->nim,
                     'mahasiswa_name' => $mahasiswaName,
                     'created_at' => $b->created_at,
                     'status' => $b->status ?? 'pending'
