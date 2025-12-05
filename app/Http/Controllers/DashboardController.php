@@ -146,6 +146,7 @@ class DashboardController extends Controller
                     $mahasiswaName = $m ? ($m->nama ?? optional($m->user)->name) : $b->nim;
                 }
                 return (object)[
+                    'mahasiswa_nim' => $b->nim,
                     'mahasiswa_name' => $mahasiswaName,
                     'tanggal' => isset($b->tanggal) ? (is_string($b->tanggal) ? $b->tanggal : $b->tanggal->format('d M Y')) : null,
                     'topik' => $b->topik ?? ($b->catatan_bimbingan ?? 'Bimbingan'),
@@ -166,6 +167,7 @@ class DashboardController extends Controller
                 }
                 return (object)[
                     'judul' => $p->judul,
+                    'mahasiswa_nim' => $p->mahasiswa_nim,
                     'mahasiswa_name' => $mahasiswaName,
                     'created_at' => isset($p->created_at) ? $p->created_at->format('d M Y H:i') : now()->format('d M Y H:i'),
                 ];

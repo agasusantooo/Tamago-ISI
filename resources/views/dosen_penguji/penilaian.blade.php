@@ -28,6 +28,7 @@
                             <table class="w-full">
                                 <thead class="bg-purple-50 border-b border-purple-100">
                                     <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700">NIM</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700">Nama Mahasiswa</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold text-purple-700">Judul TA</th>
                                         <th class="px-4 py-3 text-center text-xs font-semibold text-purple-700">Tanggal Ujian</th>
@@ -38,14 +39,15 @@
                                 <tbody class="divide-y divide-purple-50">
                                     @php
                                     $ujian = [
-                                        ['id' => 1, 'nama' => 'Budi Santoso', 'judul' => 'Sistem Rekomendasi Film', 'tanggal' => '2025-11-20', 'status' => 'Belum Dinilai'],
-                                        ['id' => 2, 'nama' => 'Siti Lestari', 'judul' => 'Analisis Sentimen Media Sosial', 'tanggal' => '2025-11-21', 'status' => 'Belum Dinilai'],
-                                        ['id' => 3, 'nama' => 'Ahmad Fauzi', 'judul' => 'Aplikasi Mobile untuk Petani', 'tanggal' => '2025-11-19', 'status' => 'Sudah Dinilai'],
+                                        ['id' => 1, 'nim' => '19.11.2740', 'nama' => 'Budi Santoso', 'judul' => 'Sistem Rekomendasi Film', 'tanggal' => '2025-11-20', 'status' => 'Belum Dinilai'],
+                                        ['id' => 2, 'nim' => '19.11.2741', 'nama' => 'Siti Lestari', 'judul' => 'Analisis Sentimen Media Sosial', 'tanggal' => '2025-11-21', 'status' => 'Belum Dinilai'],
+                                        ['id' => 3, 'nim' => '19.11.2742', 'nama' => 'Ahmad Fauzi', 'judul' => 'Aplikasi Mobile untuk Petani', 'tanggal' => '2025-11-19', 'status' => 'Sudah Dinilai'],
                                     ];
                                     @endphp
 
                                     @foreach($ujian as $item)
                                     <tr class="hover:bg-purple-50 transition">
+                                        <td class="px-4 py-3 font-medium text-gray-900">{{ $item['nim'] }}</td>
                                         <td class="px-4 py-3 font-medium text-gray-900">{{ $item['nama'] }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $item['judul'] }}</td>
                                         <td class="px-4 py-3 text-center text-sm text-gray-600">{{ $item['tanggal'] }}</td>

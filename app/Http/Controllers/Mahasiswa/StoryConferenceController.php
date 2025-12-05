@@ -74,8 +74,9 @@ class StoryConferenceController extends Controller
         $jadwalStoryConference = [
             [
                 'jenis' => 'Story Conference',
-                'tanggal' => '18 Desember 2024',
-                'waktu' => '09:00 - 15:00 WIB',
+                'tanggal_mulai' => Carbon::parse('2024-12-18')->format('d M Y'),
+                'tanggal_akhir' => Carbon::parse('2024-12-20')->format('d M Y'),
+                'waktu' => '09:00 - 15:00 WIB', // Keep waktu for potential future use or more detailed display if needed
                 'tempat' => 'Ruang Diskusi Kreatif',
                 'deskripsi' => 'Sesi diskusi dan review ide cerita, skenario, dan konsep visual untuk proyek tugas akhir. Setiap mahasiswa akan mempresentasikan draf awal karyanya.',
                 'persyaratan' => [
