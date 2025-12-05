@@ -19,14 +19,29 @@ class MahasiswaBimbinganController extends Controller
      */
     public function index()
     {
-        // Data dummy untuk daftar mahasiswa
-        $mahasiswaBimbingan = [
-            (object)['id' => 1, 'name' => 'Budi Santoso', 'email' => 'budi@example.com', 'judul_ta' => 'Sistem Rekomendasi Film', 'progress' => 75, 'bimbingan_terakhir' => '2025-11-01'],
-            (object)['id' => 2, 'name' => 'Siti Lestari', 'email' => 'siti@example.com', 'judul_ta' => 'Analisis Sentimen Media Sosial', 'progress' => 60, 'bimbingan_terakhir' => '2025-10-28'],
-            (object)['id' => 3, 'name' => 'Ahmad Fauzi', 'email' => 'ahmad@example.com', 'judul_ta' => 'Aplikasi Mobile untuk Petani', 'progress' => 90, 'bimbingan_terakhir' => '2025-11-05'],
-        ];
+        // Get mahasiswa yang dibimbing oleh dosen ini
+        $nidn = Auth::user()->nidn;
+        $mahasiswaBimbingan = Mahasiswa::where('dosen_pembimbing_id', $nidn)
+            ->with('user', 'projekAkhir')
+            ->get()
+            ->map(function ($m) {
+                return (object)[
+                    'id' => $m->nim,
+                    'nim' => $m->nim,
+                    'name' => $m->nama ?? optional($m->user)->name,
+                    'email' => optional($m->user)->email ?? $m->email,
+                    'judul_ta' => optional($m->projekAkhir)->judul_proyek ?? 'Belum ada judul',
+                    'progress' => optional($m->projekAkhir)->progress_persentase ?? 0,
+                    'bimbingan_terakhir' => optional($m->projekAkhir)->updated_at?->format('Y-m-d') ?? '-'
+                ];
+            });
 
-        return view('dospem.mahasiswa-bimbingan', compact('mahasiswaBimbingan'));
+        $mahasiswaAktifCount = $mahasiswaBimbingan->count();
+        $tugasReview = Bimbingan::where('dosen_nidn', $nidn)
+            ->whereIn('status', ['pending', 'diajukan', 'review'])
+            ->count();
+
+        return view('dospem.mahasiswa-bimbingan', compact('mahasiswaBimbingan', 'mahasiswaAktifCount', 'tugasReview'));
     }
 
     /**
@@ -112,8 +127,10 @@ class MahasiswaBimbinganController extends Controller
             $produksi = $produksiController->getProduksiList($mahasiswa->nim);
 
             // Provide header variables expected by the partials
-        $mahasiswaAktifCount = 15;
-        $tugasReview = 5;
+        $mahasiswaAktifCount = Mahasiswa::where('dosen_pembimbing_id', $nidn)->count();
+        $tugasReview = Bimbingan::where('dosen_nidn', $nidn)
+            ->whereIn('status', ['pending', 'diajukan', 'review'])
+            ->count();
         $jumlahMahasiswaAktif = $mahasiswaAktifCount;
         $jumlahTugasReview = $tugasReview;
 
@@ -221,32 +238,35 @@ class MahasiswaBimbinganController extends Controller
     public function approveBimbingan(Request $request, $id)
     {
         try {
-            // Find bimbingan by its primary id (id_bimbingan)
-            $bimbingan = Bimbingan::findOrFail($id);
+            // Find bimbingan by its primary id (id_bimbingan atau id)
+            $bimbingan = Bimbingan::where('id_bimbingan', $id)
+                ->orWhere('id', $id)
+                ->firstOrFail();
 
-            // Ensure current dosen is owner of this bimbingan (if dosen_nidn exists)
+            // Ensure current dosen is owner of this bimbingan
             $nidn = Auth::user()->nidn ?? null;
             if ($bimbingan->dosen_nidn && $nidn && $bimbingan->dosen_nidn !== $nidn) {
                 return $this->handleResponse($request, 'error', 'Anda tidak berhak menyetujui jadwal ini.', 403);
             }
 
             // Update bimbingan status to 'disetujui'
-            $bimbingan->update([
-                'status' => 'disetujui',
-                'catatan_dosen' => $request->input('catatan_ringkas') ?? $request->input('alasan') ?? $bimbingan->catatan_dosen,
-                'updated_at' => now()
-            ]);
+            $bimbingan->status = 'disetujui';
+            $bimbingan->catatan_dosen = $request->input('catatan_ringkas') ?? $request->input('alasan') ?? $bimbingan->catatan_dosen;
+            $bimbingan->updated_at = now();
+            $bimbingan->save();
 
             // Update mahasiswa status so mahasiswa role sees the change
             if (!empty($bimbingan->nim)) {
                 $mahasiswa = Mahasiswa::where('nim', $bimbingan->nim)->first();
                 if ($mahasiswa) {
-                    $mahasiswa->update(['status' => 'bimbingan_disetujui']);
+                    $mahasiswa->status = 'bimbingan_disetujui';
+                    $mahasiswa->save();
                 }
             }
 
             return $this->handleResponse($request, 'success', '✅ Jadwal bimbingan berhasil diterima!', 200);
         } catch (\Exception $e) {
+            \Log::error('approveBimbingan error: ' . $e->getMessage());
             return $this->handleResponse($request, 'error', '❌ Gagal menerima jadwal: ' . $e->getMessage(), 500);
         }
     }
@@ -257,8 +277,10 @@ class MahasiswaBimbinganController extends Controller
     public function rejectBimbingan(Request $request, $id)
     {
         try {
-            // Find bimbingan by its primary id (id_bimbingan)
-            $bimbingan = Bimbingan::findOrFail($id);
+            // Find bimbingan by its primary id (id_bimbingan atau id)
+            $bimbingan = Bimbingan::where('id_bimbingan', $id)
+                ->orWhere('id', $id)
+                ->firstOrFail();
 
             // Ensure current dosen is owner
             $nidn = Auth::user()->nidn ?? null;
@@ -267,22 +289,23 @@ class MahasiswaBimbinganController extends Controller
             }
 
             // Update bimbingan status to 'ditolak'
-            $bimbingan->update([
-                'status' => 'ditolak',
-                'catatan_dosen' => $request->input('alasan') ?? ($request->input('catatan_ringkas') ?? $bimbingan->catatan_dosen),
-                'updated_at' => now()
-            ]);
+            $bimbingan->status = 'ditolak';
+            $bimbingan->catatan_dosen = $request->input('alasan') ?? ($request->input('catatan_ringkas') ?? $bimbingan->catatan_dosen);
+            $bimbingan->updated_at = now();
+            $bimbingan->save();
 
             // Update mahasiswa status
             if (!empty($bimbingan->nim)) {
                 $mahasiswa = Mahasiswa::where('nim', $bimbingan->nim)->first();
                 if ($mahasiswa) {
-                    $mahasiswa->update(['status' => 'bimbingan_ditolak']);
+                    $mahasiswa->status = 'bimbingan_ditolak';
+                    $mahasiswa->save();
                 }
             }
 
             return $this->handleResponse($request, 'success', '✅ Jadwal bimbingan berhasil ditolak.', 200);
         } catch (\Exception $e) {
+            \Log::error('rejectBimbingan error: ' . $e->getMessage());
             return $this->handleResponse($request, 'error', '❌ Gagal menolak jadwal: ' . $e->getMessage(), 500);
         }
     }

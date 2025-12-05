@@ -42,9 +42,12 @@ class UjianTAController extends Controller
 
         // Check if produksi akhir approved
         // produksi.mahasiswa_id references users.id
-        $produksi = Produksi::where('mahasiswa_id', $user->id)
-            ->where('proposal_id', $proposal->id)
-            ->first();
+        $produksi = null;
+        if ($proposal) {
+            $produksi = Produksi::where('mahasiswa_id', $user->id)
+                ->where('proposal_id', $proposal->id)
+                ->first();
+        }
 
         $produksiNotApproved = false;
         if (!$produksi || $produksi->status_produksi !== 'disetujui') {

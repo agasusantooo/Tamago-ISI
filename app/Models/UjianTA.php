@@ -46,11 +46,14 @@ class UjianTA extends Model
         'status_ujian',
         'status_revisi',
         'nilai_akhir',
+        'hasil_akhir',
+        'catatan_penguj',
         'catatan_penguji',
         'feedback_revisi',
         'tanggal_daftar',
         'tanggal_submit_revisi',
         'tanggal_approve_revisi',
+        'status_kelayakan',
     ];
 
     protected $casts = [

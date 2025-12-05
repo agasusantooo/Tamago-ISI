@@ -17,21 +17,29 @@ class UjianTimeline extends Component
     public $hasUjian = false;
     public $ujianStatus = null;
     public $selectedStatus = null;
+    public $ujianStatusPendaftaran = null;
+    public $ujianTanggalDaftar = null;
     // statuses that can be set by authorised users
     public $allowedStatuses = [
         'belum_upload', 'menunggu_review', 'disetujui', 'revisi', 'ditolak',
         // existing workflow statuses
         'pengajuan_ujian', 'jadwal_ditetapkan', 'ujian_berlangsung', 'selesai_ujian'
     ];
-    // optionally accept projek and ujian passed from parent view for initial sync
-    public $projek = null;
-    public $ujianTA = null;
     // accept ids from parent to avoid model serialization issues
     public $projekId = null;
     public $ujianId = null;
+    
+    // Private properties (not tracked by Livewire) for storing models
+    private $ujianTA = null;
+    private $projek = null;
 
     public function mount()
     {
+        Log::debug('UjianTimeline mount', [
+            'projekId' => $this->projekId,
+            'ujianId' => $this->ujianId,
+            'user_id' => Auth::id(),
+        ]);
         $this->refreshData();
     }
 
@@ -42,71 +50,81 @@ class UjianTimeline extends Component
 
         // Prefer ids passed from parent view (avoids Livewire model serialization/timing issues).
         if ($this->projekId) {
-            $projek = ProjekAkhir::where('id_proyek_akhir', $this->projekId)->first();
+            $this->projek = ProjekAkhir::where('id_proyek_akhir', $this->projekId)->first();
         } else {
-            $projek = $this->projek ?? ($mahasiswa ? ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first() : null);
+            $this->projek = $mahasiswa ? ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first() : null;
         }
 
         // Always query fresh ujian from DB based on projek, even if ujianId was null before.
         // This ensures newly created ujian records are picked up on poll refresh.
-        $ujian = null;
-        if ($projek) {
-            $ujian = UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first();
+        $this->ujianTA = null;
+        if ($this->projek) {
+            $this->ujianTA = UjianTA::where('id_proyek_akhir', $this->projek->id_proyek_akhir)->latest()->first();
         }
 
         // Debug: log current state
         Log::debug('UjianTimeline refreshData', [
-            'has_projek' => (bool)$projek,
-            'projek_id' => $projek?->id_proyek_akhir,
-            'has_ujian' => (bool)$ujian,
-            'ujian_id' => $ujian?->id_ujian,
-            'status_pendaftaran' => $ujian?->status_pendaftaran,
-            'status_ujian' => $ujian?->status_ujian,
+            'has_projek' => (bool)$this->projek,
+            'projek_id' => $this->projek?->id_proyek_akhir,
+            'has_ujian' => (bool)$this->ujianTA,
+            'ujian_id' => $this->ujianTA?->id_ujian,
+            'status_pendaftaran' => $this->ujianTA?->status_pendaftaran,
+            'status_ujian' => $this->ujianTA?->status_ujian,
         ]);
 
-        // expose the ujian model to the blade view
-        $this->ujianTA = $ujian;
-        $this->selectedStatus = $ujian?->status_pendaftaran ?? null;
-
-        $this->hasUjian = (bool)$ujian;
-        $this->ujianStatus = $ujian?->status_ujian ?? null;
+        // Extract scalar values from model for serialization
+        if ($this->ujianTA) {
+            $this->ujianStatusPendaftaran = $this->ujianTA->status_pendaftaran;
+            $this->ujianTanggalDaftar = $this->ujianTA->tanggal_daftar ? $this->ujianTA->tanggal_daftar->format('d M Y') : '—';
+            $this->selectedStatus = $this->ujianTA->status_pendaftaran;
+            $this->hasUjian = true;
+            $this->ujianStatus = $this->ujianTA->status_ujian;
+        } else {
+            $this->ujianStatusPendaftaran = null;
+            $this->ujianTanggalDaftar = '—';
+            $this->selectedStatus = null;
+            $this->hasUjian = false;
+            $this->ujianStatus = null;
+        }
 
         // Check produksi approval
         $produksi = Produksi::where('mahasiswa_id', $user->id)->latest()->first();
 
         // Build timeline items (use dates if available)
         $timelineItems = [];
-        if ($ujian) {
+        if ($this->ujianTA) {
             // Always show "Pengajuan Ujian" as first item when ujian exists
             $timelineItems[] = [
                 'title' => 'Pengajuan Ujian',
-                'date' => optional($ujian->tanggal_daftar)->format('d M Y') ?? '—',
+                'date' => $this->ujianTanggalDaftar,
                 'color' => 'green',
             ];
             
-            // Get raw DB values for comparison
-            $statusPendaftaran = strtolower(str_replace([' ', '-'], '_', $ujian->status_pendaftaran ?? ''));
-            $statusUjian = strtolower(str_replace([' ', '-'], '_', $ujian->status_ujian ?? ''));
+            // Get raw DB values for comparison - normalize the strings
+            $statusPendaftaran = strtolower(str_replace([' ', '-', '_'], '', $this->ujianTA->status_pendaftaran ?? ''));
+            $statusUjian = strtolower(str_replace([' ', '-', '_'], '', $this->ujianTA->status_ujian ?? ''));
 
             // Check if jadwal ditetapkan status reached
             if (strpos($statusPendaftaran, 'jadwal') !== false ||
-                strpos($statusPendaftaran, 'ujian_berlangsung') !== false ||
+                strpos($statusPendaftaran, 'ujianberlangsung') !== false ||
                 strpos($statusUjian, 'berlangsung') !== false ||
                 strpos($statusUjian, 'selesai') !== false) {
+                $tanggalUjian = $this->ujianTA->tanggal_ujian ? $this->ujianTA->tanggal_ujian->format('d M Y') : '—';
                 $timelineItems[] = [
                     'title' => 'Jadwal Ditetapkan',
-                    'date' => optional($ujian->tanggal_ujian)->format('d M Y') ?? '—',
+                    'date' => $tanggalUjian,
                     'color' => 'green',
                 ];
             }
 
             // Check if ujian berlangsung or selesai
-            if (strpos($statusPendaftaran, 'ujian_berlangsung') !== false ||
+            if (strpos($statusPendaftaran, 'ujianberlangsung') !== false ||
                 strpos($statusUjian, 'berlangsung') !== false ||
                 strpos($statusUjian, 'selesai') !== false) {
+                $tanggalUjian = $this->ujianTA->tanggal_ujian ? $this->ujianTA->tanggal_ujian->format('d M Y') : '—';
                 $timelineItems[] = [
                     'title' => 'Ujian Berlangsung',
-                    'date' => optional($ujian->tanggal_ujian)->format('d M Y') ?? '—',
+                    'date' => $tanggalUjian,
                     'color' => strpos($statusUjian, 'selesai') !== false ? 'green' : 'blue',
                 ];
             }
@@ -114,12 +132,12 @@ class UjianTimeline extends Component
             // Revisi status
             $timelineItems[] = [
                 'title' => 'Revisi Selesai',
-                'date' => (strpos(strtolower($ujian->status_revisi ?? ''), 'selesai') !== false) ? optional($ujian->tanggal_approve_revisi)->format('d M Y') ?? '—' : 'Pending',
-                'color' => (strpos(strtolower($ujian->status_revisi ?? ''), 'selesai') !== false) ? 'green' : 'gray',
+                'date' => (strpos(strtolower($this->ujianTA->status_revisi ?? ''), 'selesai') !== false) ? $this->ujianTA->tanggal_approve_revisi?->format('d M Y') ?? '—' : 'Pending',
+                'color' => (strpos(strtolower($this->ujianTA->status_revisi ?? ''), 'selesai') !== false) ? 'green' : 'gray',
             ];
             
             $this->status = [
-                'text' => 'Status: ' . str_replace(['_'], ' ', ucfirst($ujian->status_pendaftaran ?? 'Tidak ada status')),
+                'text' => 'Status: ' . str_replace(['_'], ' ', ucfirst($this->ujianTA->status_pendaftaran ?? 'Tidak ada status')),
                 'variant' => strpos($statusPendaftaran, 'pengajuan') !== false ? 'yellow' : 'green',
             ];
         } else {
@@ -182,6 +200,19 @@ class UjianTimeline extends Component
     {
         // refresh each render to pick up DB changes (also wire:poll will call render periodically)
         $this->refreshData();
-        return view('livewire.mahasiswa.ujian-timeline');
+        
+        // Build data for view - use ONLY scalar values, NOT Eloquent models
+        $viewData = [
+            'timeline' => $this->timeline,
+            'status' => $this->status,
+            'hasUjian' => $this->hasUjian,
+            'ujianStatus' => $this->ujianStatus,
+            'ujianStatusPendaftaran' => $this->ujianStatusPendaftaran,
+            'ujianTanggalDaftar' => $this->ujianTanggalDaftar,
+            'allowedStatuses' => $this->allowedStatuses,
+            'selectedStatus' => $this->selectedStatus,
+        ];
+        
+        return view('livewire.mahasiswa.ujian-timeline', $viewData);
     }
 }

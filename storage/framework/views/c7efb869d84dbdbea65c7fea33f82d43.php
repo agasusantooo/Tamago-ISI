@@ -1,4 +1,4 @@
-<div wire:poll.5s>
+<div wire:poll.3s>
     <?php
         // guard against undefined variables when this blade is accidentally rendered outside Livewire
         $timeline = $timeline ?? [];
@@ -6,27 +6,35 @@
         // guard newly added Livewire props
         $hasUjian = $hasUjian ?? false;
         $ujianStatus = $ujianStatus ?? null;
+        $ujianStatusPendaftaran = $ujianStatusPendaftaran ?? null;
+        $ujianTanggalDaftar = $ujianTanggalDaftar ?? '—';
+        $allowedStatuses = $allowedStatuses ?? [];
+        $selectedStatus = $selectedStatus ?? null;
     ?>
 
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <h4 class="font-semibold mb-3">Timeline Ujian</h4>
-        <ul class="space-y-3 text-sm text-gray-700">
-            <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $timeline; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                <li class="flex items-start">
-                    <?php
-                        $color = $item['color'] ?? 'gray';
-                        $dotClass = $color === 'green' ? 'bg-green-500' : ($color === 'blue' ? 'bg-blue-500' : 'bg-gray-300');
-                    ?>
-                    <span class="w-3 h-3 <?php echo e($dotClass); ?> rounded-full mr-3 mt-1"></span>
-                    <div>
-                        <div class="font-semibold"><?php echo e($item['title']); ?></div>
-                        <div class="text-xs text-gray-500"><?php echo e($item['date']); ?></div>
-                    </div>
-                </li>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                <li class="text-sm text-gray-500">Belum ada aktivitas.</li>
-            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
-        </ul>
+        <!--[if BLOCK]><![endif]--><?php if(count($timeline) > 0): ?>
+            <ul class="space-y-3 text-sm text-gray-700">
+                <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $timeline; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <li class="flex items-start">
+                        <?php
+                            $color = $item['color'] ?? 'gray';
+                            $dotClass = $color === 'green' ? 'bg-green-500' : ($color === 'blue' ? 'bg-blue-500' : 'bg-gray-300');
+                        ?>
+                        <span class="w-3 h-3 <?php echo e($dotClass); ?> rounded-full mr-3 mt-1"></span>
+                        <div>
+                            <div class="font-semibold"><?php echo e($item['title']); ?></div>
+                            <div class="text-xs text-gray-500"><?php echo e($item['date']); ?></div>
+                        </div>
+                    </li>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <li class="text-sm text-gray-500">Belum ada aktivitas.</li>
+                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+            </ul>
+        <?php else: ?>
+            <p class="text-sm text-gray-500">Belum ada aktivitas.</p>
+        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
     </div>
 
     <div class="bg-white rounded-lg shadow p-4">
@@ -41,14 +49,16 @@
                 'selesai_ujian' => ['label' => 'Selesai Ujian', 'bg' => 'bg-green-100', 'text' => 'text-green-800'],
             ];
 
-            // Determine current status info from the available ujianTA if present, else fallback to $status
+            // Determine current status info from ujianStatusPendaftaran (scalar string)
             $currentPendaftaran = null;
-            if (!empty($ujianTA)) {
-                $key = $ujianTA->status_pendaftaran ?? null;
-                $currentPendaftaran = $pendaftaranMap[$key] ?? ['label' => ucfirst(str_replace('_',' ',$key ?? 'Tidak ada status')), 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'];
+            if ($ujianStatusPendaftaran) {
+                $key = $ujianStatusPendaftaran;
+                $currentPendaftaran = isset($pendaftaranMap[$key]) ? $pendaftaranMap[$key] : ['label' => ucfirst(str_replace('_',' ',$key)), 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'];
             } else {
-                $variant = $status['variant'] ?? 'yellow';
-                $currentPendaftaran = ['label' => $status['text'] ?? 'Tidak ada status', 'bg' => 'bg-'.$variant.'-50', 'text' => 'text-'.$variant.'-800'];
+                // Fallback to $status if no ujian status available
+                $variant = isset($status['variant']) ? $status['variant'] : 'yellow';
+                $statusText = isset($status['text']) ? $status['text'] : 'Tidak ada status';
+                $currentPendaftaran = ['label' => $statusText, 'bg' => 'bg-'.$variant.'-50', 'text' => 'text-'.$variant.'-800'];
             }
         ?>
 
@@ -68,8 +78,9 @@
                             
                             <?php
                                 $label = $pendaftaranMap[$key]['label'] ?? ucwords(str_replace('_',' ',$key));
+                                $isSelected = $ujianStatusPendaftaran && $ujianStatusPendaftaran == $key;
                             ?>
-                            <option value="<?php echo e($key); ?>" <?php if(($ujianTA->status_pendaftaran ?? null) == $key): ?> selected <?php endif; ?>><?php echo e($label); ?></option>
+                            <option value="<?php echo e($key); ?>" <?php if($isSelected): ?> selected <?php endif; ?>><?php echo e($label); ?></option>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                     </select>
                     <button wire:click="updateStatus" class="px-3 py-2 bg-green-600 text-white rounded text-sm">Simpan</button>
@@ -77,8 +88,15 @@
             </div>
         <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
         <div class="mt-4 text-center">
-            <!--[if BLOCK]><![endif]--><?php if($hasUjian && $ujianStatus === 'selesai_ujian'): ?>
-                <a href="<?php echo e(route('mahasiswa.ujian-ta.hasil')); ?>" class="inline-block px-4 py-2 bg-indigo-600 text-white rounded shadow text-sm hover:bg-indigo-700">Lihat Hasil Ujian</a>
+            <?php
+                // Normalize ujianStatus for comparison (remove underscores, hyphens, spaces)
+                $ujianStatusNorm = strtolower(str_replace([' ', '-', '_'], '', $ujianStatus ?? ''));
+                $isSelesai = strpos($ujianStatusNorm, 'selesai') !== false;
+            ?>
+            <!--[if BLOCK]><![endif]--><?php if($hasUjian && $isSelesai): ?>
+                <a href="<?php echo e(route('mahasiswa.ujian-ta.hasil')); ?>" class="inline-block px-4 py-2 bg-indigo-600 text-white rounded shadow text-sm hover:bg-indigo-700">
+                    <i class="fas fa-eye mr-1"></i>Lihat Hasil Ujian
+                </a>
             <?php elseif($hasUjian): ?>
                 <span class="inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded text-sm">Hasil akan tersedia setelah ujian selesai</span>
             <?php else: ?>
@@ -86,24 +104,4 @@
             <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
         </div>
     </div>
- </div>
-
-<script>
-    // Simple browser event handler fallback for Livewire notifications
-    window.addEventListener('notify', function(e) {
-        try {
-            var detail = e.detail || {};
-            var message = detail.message || 'Notifikasi';
-            // prefer a nicer toast if available, otherwise simple alert
-            if (window.toastr) {
-                if (detail.type === 'success') toastr.success(message);
-                else if (detail.type === 'error') toastr.error(message);
-                else toastr.info(message);
-            } else {
-                alert(message);
-            }
-        } catch (ex) {
-            // noop
-        }
-    });
-</script><?php /**PATH D:\C\Tamago-ISI\resources\views\livewire/mahasiswa/ujian-timeline.blade.php ENDPATH**/ ?>
+ </div><?php /**PATH D:\C\Tamago-ISI\resources\views\livewire/mahasiswa/ujian-timeline.blade.php ENDPATH**/ ?>

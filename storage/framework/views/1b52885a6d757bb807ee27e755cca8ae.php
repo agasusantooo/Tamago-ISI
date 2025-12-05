@@ -25,6 +25,15 @@
                         </a>
                     </div>
 
+                    <!-- Header Stats -->
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold text-blue-800 mb-1">Detail Mahasiswa</h1>
+                        <div class="text-sm text-gray-600">
+                            Mahasiswa Aktif: <span class="font-semibold text-blue-700"><?php echo e($mahasiswaAktifCount ?? 0); ?></span> | 
+                            Tugas Review: <span class="font-semibold text-blue-700"><?php echo e($tugasReview ?? 0); ?></span>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-12 gap-6">
                         <!-- Left column: profile + tabs -->
                         <div class="col-span-8">
@@ -126,18 +135,15 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Feedback/Catatan -->
-                                                <div class="mb-6">
-                                                    <label class="text-sm font-bold text-gray-700 mb-2 block">Feedback & Catatan Dosen</label>
-                                                    <textarea 
-                                                        name="feedback" 
-                                                        rows="4" 
-                                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                        placeholder="Tulis feedback, saran, atau alasan penolakan untuk mahasiswa..."
-                                                        required></textarea>
-                                                </div>
-
-                                                <!-- Buttons -->
+                                <!-- Feedback/Catatan -->
+                                <div class="mb-6">
+                                    <label class="text-sm font-bold text-gray-700 mb-2 block">Feedback & Catatan Dosen <span class="text-red-500">(Opsional untuk approve)</span></label>
+                                    <textarea 
+                                        name="feedback" 
+                                        rows="4" 
+                                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Tulis feedback, saran, atau alasan penolakan untuk mahasiswa..."></textarea>
+                                </div>                                                <!-- Buttons -->
                                                 <div class="flex justify-end gap-3 pt-4 border-t">
                                                     <button 
                                                         type="button"
@@ -190,8 +196,9 @@
                                                 return;
                                             }
 
-                                            if (!feedback.trim()) {
-                                                alert('Feedback tidak boleh kosong!');
+                                            // Feedback opsional untuk approve, wajib untuk revisi/tolak
+                                            if (status !== 'disetujui' && (!feedback || feedback.trim().length < 5)) {
+                                                alert('Feedback minimal 5 karakter untuk status revisi/tolak!');
                                                 submitBtn.disabled = false;
                                                 submitBtn.innerHTML = '<i class="fas fa-check"></i> Kirim Tindakan';
                                                 return;
@@ -520,8 +527,9 @@
             return;
         }
 
-        if (!feedback.trim() || feedback.length < 5) {
-            alert('⚠️ Feedback minimal 5 karakter!');
+        // Feedback adalah opsional untuk status approved, tapi wajib untuk revisi dan ditolak
+        if (status !== 'disetujui' && (!feedback.trim() || feedback.length < 5)) {
+            alert('⚠️ Feedback minimal 5 karakter untuk status revisi/ditolak!');
             return;
         }
 
@@ -548,8 +556,8 @@
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                status: status,
-                feedback: feedback
+                produksi_status: status,
+                produksi_feedback: feedback
             })
         })
         .then(res => res.json())
@@ -701,13 +709,12 @@
 
             <!-- Feedback -->
             <div class="mb-6">
-                <label class="text-sm font-bold text-gray-700 mb-2 block">Feedback & Catatan</label>
+                <label class="text-sm font-bold text-gray-700 mb-2 block">Feedback & Catatan <span class="text-red-500">(Opsional untuk approve)</span></label>
                 <textarea 
                     name="produksi_feedback" 
                     rows="4" 
                     class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="Tulis feedback, saran, atau alasan penolakan..."
-                    required minlength="5"></textarea>
+                    placeholder="Tulis feedback, saran, atau alasan penolakan..."></textarea>
             </div>
 
             <!-- Buttons -->

@@ -10,10 +10,6 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.13/index.global.min.js'></script>
 </head>
 <body class="bg-blue-50 text-gray-800">
-    @php
-        $mahasiswaAktifCount = 15; // Dummy data
-        $tugasReview = 5; // Dummy data
-    @endphp
     <div class="flex h-screen overflow-hidden">
 
         @include('dospem.partials.sidebar-dospem')
@@ -24,6 +20,12 @@
 
             <main class="flex-1 overflow-y-auto p-6">
                 <div class="max-w-7xl mx-auto">
+                    <!-- Header Stats -->
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold text-blue-800 mb-1">Jadwal Bimbingan</h1>
+                        <div class="text-sm text-gray-600">Mahasiswa Aktif: <span class="font-semibold text-blue-700">{{ $mahasiswaAktifCount ?? 0 }}</span> | Tugas Review: <span class="font-semibold text-blue-700">{{ $tugasReview ?? 0 }}</span></div>
+                    </div>
+
                     <!-- Tab Navigation -->
                     <div class="mb-6 flex space-x-2 border-b border-gray-200">
                         <button onclick="switchJadwalTab('calendar')" class="jadwal-tab-btn px-4 py-3 border-b-2 border-blue-600 text-blue-600 font-medium" data-tab="calendar">
