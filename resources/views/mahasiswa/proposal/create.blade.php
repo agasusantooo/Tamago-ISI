@@ -4,6 +4,8 @@ $isEdit = isset($proposal) && !empty($proposal->id);
 
 @extends('mahasiswa.layouts.app')
 
+@section('page-title', 'Progress Tugas Akhir')
+
 @section('title', $isEdit ? 'Edit Revisi Proposal' : 'Pengajuan Proposal Baru')
 
 @section('content')

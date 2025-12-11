@@ -11,6 +11,29 @@ use Illuminate\Support\Facades\Storage;
 class ProfileController extends Controller
 {
     /**
+     * Display the user's profile form.
+     */
+    public function index(Request $request)
+    {
+        $role = $request->user()->role->name;
+
+        $viewMap = [
+            'mahasiswa' => 'mahasiswa.akun',
+            'admin' => 'admin.akun',
+            'kaprodi' => 'kaprodi.akun',
+            'dospem' => 'dospem.profile',
+            'koordinator_ta' => 'koordinator_ta.profile',
+            'koordinator_tefa' => 'koordinator_tefa.profile',
+            'koordinator_story_conference' => 'koordinator_story_conference.profile',
+            'dosen_penguji' => 'dosen_penguji.profile',
+        ];
+
+        $view = $viewMap[$role] ?? 'profile'; // Default to a generic profile view if role not found
+
+        return view($view);
+    }
+
+    /**
      * Update the authenticated user's profile (name, email, nim) and optionally password.
      */
     public function update(Request $request)

@@ -90,6 +90,12 @@ class RoleSeeder extends Seeder
 
                 'description' => 'Role untuk koordinator TEFA Fair'
 
+            ],
+
+            [
+                'name' => 'koordinator_story_conference',
+                'display_name' => 'Koordinator Story Conference',
+                'description' => 'Role untuk koordinator story conference'
             ]
 
         ];

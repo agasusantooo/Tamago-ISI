@@ -1,16 +1,16 @@
 @extends('mahasiswa.layouts.app')
 
 @section('title', 'Produksi - Tamago ISI')
-@section('page-title', 'Produksi')
+@section('page-title', 'Progress Tugas Akhir')
 
 @section('content')
     <div class="max-w-7xl mx-auto">
         <!-- Alert Messages -->
         @if(session('success'))
-            <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
                 <div class="flex items-center">
-                    <i class="fas fa-check-circle text-green-600 mr-3"></i>
-                    <p class="text-green-700">{{ session('success') }}</p>
+                    <i class="fas fa-check-circle text-yellow-600 mr-3"></i>
+                    <p class="text-yellow-700">{{ session('success') }}</p>
                 </div>
             </div>
         @endif
@@ -50,7 +50,7 @@
                                 <nav class="flex">
                                     <button onclick="switchTab('pra-produksi')" 
                                             id="tab-pra-produksi"
-                                            class="tab-button px-6 py-4 text-sm font-medium border-b-2 border-blue-600 text-blue-600">
+                                            class="tab-button px-6 py-4 text-sm font-medium border-b-2 border-yellow-600 text-yellow-600">
                                         Pra Produksi
                                     </button>
                                     <button onclick="switchTab('produksi')" 
@@ -75,12 +75,12 @@
                                         <!-- File Skenario -->
                                         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                                             <h3 class="font-bold text-gray-800 mb-4">File Skenario</h3>
-                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition cursor-pointer" 
+                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer" 
                                                 onclick="document.getElementById('fileSkenario').click()">
                                                 <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
                                                 <p class="text-sm text-gray-600 mb-1">Drag & drop file skenario atau</p>
                                                 <button type="button" onclick="document.getElementById('fileSkenario').click()"
-                                                    class="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+                                                    class="mt-2 px-6 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">
                                                     Pilih File
                                                 </button>
                                                 <p class="text-xs text-gray-500 mt-2">Maksimal 10MB</p>
@@ -88,12 +88,12 @@
                                                     accept=".pdf,.doc,.docx" 
                                                     class="hidden" 
                                                     onchange="updateFileName(this, 'skenarioFileName')">
-                                                <p id="skenarioFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
+                                                <p id="skenarioFileName" class="text-sm text-yellow-600 font-medium mt-2"></p>
                                             </div>
                                             @if($produksi?->file_skenario)
                                                 <div class="mt-3 text-center">
                                                     <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'skenario']) }}" 
-                                                       class="text-sm text-blue-600 hover:underline">
+                                                       class="text-sm text-yellow-600 hover:underline">
                                                         <i class="fas fa-download mr-1"></i> Download File Skenario
                                                     </a>
                                                 </div>
@@ -103,12 +103,12 @@
                                         <!-- File Story Board -->
                                         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                                             <h3 class="font-bold text-gray-800 mb-4">File Story Board</h3>
-                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition cursor-pointer" 
+                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer" 
                                                 onclick="document.getElementById('fileStoryboard').click()">
                                                 <i class="fas fa-images text-4xl text-gray-400 mb-3"></i>
                                                 <p class="text-sm text-gray-600 mb-1">Upload storyboard sequence</p>
                                                 <button type="button" onclick="document.getElementById('fileStoryboard').click()"
-                                                    class="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+                                                    class="mt-2 px-6 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">
                                                     Pilih File
                                                 </button>
                                                 <p class="text-xs text-gray-500 mt-2">Maksimal 20MB</p>
@@ -116,12 +116,12 @@
                                                     accept=".pdf,.jpg,.jpeg,.png" 
                                                     class="hidden" 
                                                     onchange="updateFileName(this, 'storyboardFileName')">
-                                                <p id="storyboardFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
+                                                <p id="storyboardFileName" class="text-sm text-yellow-600 font-medium mt-2"></p>
                                             </div>
                                             @if($produksi?->file_storyboard)
                                                 <div class="mt-3 text-center">
                                                     <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'storyboard']) }}" 
-                                                       class="text-sm text-blue-600 hover:underline">
+                                                       class="text-sm text-yellow-600 hover:underline">
                                                         <i class="fas fa-download mr-1"></i> Download File Storyboard
                                                     </a>
                                                 </div>
@@ -131,12 +131,12 @@
                                         <!-- Dokumen Pendukung Lain -->
                                         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                                             <h3 class="font-bold text-gray-800 mb-4">Dokumen Pendukung Lain</h3>
-                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition cursor-pointer" 
+                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer" 
                                                 onclick="document.getElementById('fileDokumen').click()">
                                                 <i class="fas fa-file-archive text-4xl text-gray-400 mb-3"></i>
                                                 <p class="text-sm text-gray-600 mb-1">Upload dokumen pendukung</p>
                                                 <button type="button" onclick="document.getElementById('fileDokumen').click()"
-                                                    class="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+                                                    class="mt-2 px-6 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">
                                                     Pilih File
                                                 </button>
                                                 <p class="text-xs text-gray-500 mt-2">Maksimal 20MB</p>
@@ -144,12 +144,12 @@
                                                     accept=".pdf,.doc,.docx,.zip" 
                                                     class="hidden" 
                                                     onchange="updateFileName(this, 'dokumenFileName')">
-                                                <p id="dokumenFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
+                                                <p id="dokumenFileName" class="text-sm text-yellow-600 font-medium mt-2"></p>
                                             </div>
                                             @if($produksi?->file_dokumen_pendukung)
                                                 <div class="mt-3 text-center">
                                                     <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'dokumen']) }}" 
-                                                       class="text-sm text-blue-600 hover:underline">
+                                                       class="text-sm text-yellow-600 hover:underline">
                                                         <i class="fas fa-download mr-1"></i> Download Dokumen Pendukung
                                                     </a>
                                                 </div>
@@ -159,7 +159,7 @@
                                         <!-- Submit Button -->
                                         <div class="flex justify-end">
                                             <button type="submit" 
-                                                class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                                                class="px-8 py-3 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700 transition">
                                                 <i class="fas fa-upload mr-2"></i>
                                                 {{ $produksi && $produksi->file_skenario ? 'Update' : 'Upload' }} File Pra Produksi
                                             </button>
@@ -211,8 +211,8 @@
                                     <!-- File Karya Final -->
                                     <div class="bg-white rounded-lg shadow-sm p-6">
                                         <div class="flex items-center space-x-3 mb-4">
-                                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-video text-blue-600"></i>
+                                            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-video text-yellow-600"></i>
                                             </div>
                                             <div>
                                                 <h3 class="font-bold text-gray-800">File Karya Produksi</h3>
@@ -224,7 +224,7 @@
                                             <form method="POST" action="{{ route('mahasiswa.produksi.store.produksi') }}" enctype="multipart/form-data">
                                                 @csrf
                                                 
-                                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition cursor-pointer mb-4" 
+                                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer mb-4" 
                                                     onclick="document.getElementById('fileProduksi').click()">
                                                     <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
                                                     <p class="text-sm text-gray-600 mb-1">Drag & drop file atau klik untuk upload</p>
@@ -234,26 +234,26 @@
                                                         class="hidden" 
                                                         onchange="updateFileName(this, 'karyaFinalFileName')">
                                                     <button type="button" onclick="document.getElementById('fileProduksi').click()"
-                                                        class="mt-3 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+                                                        class="mt-3 px-6 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">
                                                         Pilih File
                                                     </button>
-                                                    <p id="karyaFinalFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
+                                                    <p id="karyaFinalFileName" class="text-sm text-yellow-600 font-medium mt-2"></p>
                                                 </div>
                                                 
                                                 @if($produksi?->file_produksi)
-                                                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                                                        <p class="text-xs text-green-800 mb-1">
+                                                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                                                        <p class="text-xs text-yellow-800 mb-1">
                                                             <i class="fas fa-check-circle mr-1"></i> File sudah diunggah
                                                         </p>
                                                         <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'produksi']) }}" 
-                                                           class="text-sm text-blue-600 hover:underline">
+                                                           class="text-sm text-yellow-600 hover:underline">
                                                             <i class="fas fa-download mr-1"></i> Download File
                                                         </a>
                                                     </div>
                                                 @endif
 
                                                 <button type="submit" 
-                                                    class="w-full bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition text-sm">
+                                                    class="w-full bg-yellow-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-yellow-700 transition text-sm">
                                                     <i class="fas fa-upload mr-2"></i>Upload File
                                                 </button>
                                             </form>
@@ -269,8 +269,8 @@
                                     <!-- File Luaran Tambahan -->
                                     <div class="bg-white rounded-lg shadow-sm p-6">
                                         <div class="flex items-center space-x-3 mb-4">
-                                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-images text-purple-600"></i>
+                                            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-images text-yellow-600"></i>
                                             </div>
                                             <div>
                                                 <h3 class="font-bold text-gray-800">File Luaran Tambahan</h3>
@@ -282,7 +282,7 @@
                                             <form method="POST" action="{{ route('mahasiswa.produksi.luaran-tambahan') }}" enctype="multipart/form-data">
                                                 @csrf
                                                 
-                                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-400 transition cursor-pointer mb-4" 
+                                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer mb-4" 
                                                     onclick="document.getElementById('fileLuaranTambahan').click()">
                                                     <i class="fas fa-plus-circle text-4xl text-gray-400 mb-3"></i>
                                                     <p class="text-sm text-gray-600 mb-1">Upload file pendukung (opsional)</p>
@@ -292,26 +292,26 @@
                                                         class="hidden" 
                                                         onchange="updateFileName(this, 'luaranTambahanFileName')">
                                                     <button type="button" onclick="document.getElementById('fileLuaranTambahan').click()"
-                                                        class="mt-3 px-6 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">
+                                                        class="mt-3 px-6 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">
                                                         Pilih File
                                                     </button>
-                                                    <p id="luaranTambahanFileName" class="text-sm text-purple-600 font-medium mt-2"></p>
+                                                    <p id="luaranTambahanFileName" class="text-sm text-yellow-600 font-medium mt-2"></p>
                                                 </div>
 
                                                 @if($produksi?->file_luaran_tambahan)
-                                                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                                                        <p class="text-xs text-green-800 mb-1">
+                                                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                                                        <p class="text-xs text-yellow-800 mb-1">
                                                             <i class="fas fa-check-circle mr-1"></i> File sudah diunggah
                                                         </p>
                                                         <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'luaran']) }}" 
-                                                           class="text-sm text-blue-600 hover:underline">
+                                                           class="text-sm text-yellow-600 hover:underline">
                                                             <i class="fas fa-download mr-1"></i> Download File
                                                         </a>
                                                     </div>
                                                 @endif
 
                                                 <button type="submit" 
-                                                    class="w-full bg-purple-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-purple-700 transition text-sm">
+                                                    class="w-full bg-yellow-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-yellow-700 transition text-sm">
                                                     <i class="fas fa-upload mr-2"></i>Upload File
                                                 </button>
                                             </form>
@@ -332,22 +332,22 @@
                                     @if($produksi && $produksi->status_produksi === 'disetujui')
                                     <form method="POST" action="{{ route('mahasiswa.produksi.store.pasca') }}" enctype="multipart/form-data">
                                         @csrf
-                                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-400 transition cursor-pointer" onclick="document.getElementById('filePasca').click()">
+                                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer" onclick="document.getElementById('filePasca').click()">
                                             <i class="fas fa-film text-4xl text-gray-400 mb-3"></i>
                                             <p class="text-sm text-gray-600 mb-1">Upload file pasca produksi (misal: Laporan Akhir)</p>
-                                            <button type="button" onclick="document.getElementById('filePasca').click()" class="mt-2 px-6 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Pilih File</button>
+                                            <button type="button" onclick="document.getElementById('filePasca').click()" class="mt-2 px-6 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">Pilih File</button>
                                             <input type="file" id="filePasca" name="file_pasca_produksi" class="hidden" onchange="updateFileName(this, 'pascaFileName')">
-                                            <p id="pascaFileName" class="text-sm text-green-600 font-medium mt-2"></p>
+                                            <p id="pascaFileName" class="text-sm text-yellow-600 font-medium mt-2"></p>
                                         </div>
                                          @if($produksi?->file_pasca_produksi)
                                             <div class="mt-3 text-center">
-                                                <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'pasca']) }}" class="text-sm text-blue-600 hover:underline">
+                                                <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'pasca']) }}" class="text-sm text-yellow-600 hover:underline">
                                                     <i class="fas fa-download mr-1"></i> Download File Pasca Produksi
                                                 </a>
                                             </div>
                                         @endif
                                         <div class="flex justify-end mt-4">
-                                            <button type="submit" class="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">Upload File</button>
+                                            <button type="submit" class="px-8 py-3 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700 transition">Upload File</button>
                                         </div>
                                     </form>
                                     @else
@@ -379,7 +379,7 @@
 
                         // Remove active state from all tabs
                         document.querySelectorAll('.tab-button').forEach(button => {
-                            button.classList.remove('border-blue-600', 'text-blue-600');
+                            button.classList.remove('border-yellow-600', 'text-yellow-600');
                             button.classList.add('border-transparent', 'text-gray-500');
                         });
 
@@ -389,7 +389,7 @@
                         // Add active state to selected tab
                         const selectedTab = document.getElementById('tab-' + tabName);
                         selectedTab.classList.remove('border-transparent', 'text-gray-500');
-                        selectedTab.classList.add('border-blue-600', 'text-blue-600');
+                        selectedTab.classList.add('border-yellow-600', 'text-yellow-600');
                     }
 
                     // Drag & Drop functionality
@@ -410,13 +410,13 @@
 
                         ['dragenter', 'dragover'].forEach(eventName => {
                             dropZone.addEventListener(eventName, () => {
-                                dropZone.classList.add('border-blue-500', 'bg-blue-50');
+                                dropZone.classList.add('border-yellow-500', 'bg-yellow-50');
                             }, false);
                         });
 
                         ['dragleave', 'drop'].forEach(eventName => {
                             dropZone.addEventListener(eventName, () => {
-                                dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+                                dropZone.classList.remove('border-yellow-500', 'bg-yellow-50');
                             }, false);
                         });
 

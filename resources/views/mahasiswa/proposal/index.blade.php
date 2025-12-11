@@ -1,5 +1,7 @@
 @extends('mahasiswa.layouts.app')
 
+@section('page-title', 'Progress Tugas Akhir')
+
 @section('title', 'Riwayat Pengajuan Proposal - Tamago ISI')
 
 @section('content')

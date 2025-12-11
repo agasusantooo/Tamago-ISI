@@ -1,14 +1,14 @@
 @extends('mahasiswa.layouts.app')
 
 @section('title', 'Produksi - Tamago ISI')
-@section('page-title', 'Produksi')
+@section('page-title', 'Progress Tugas Akhir')
 
 @section('content')
 <div class="max-w-7xl mx-auto">
     <!-- Alerts -->
     @if(session('success'))
-        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded-md shadow-sm">
-            <p class="text-green-700">{{ session('success') }}</p>
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-md shadow-sm">
+            <p class="text-yellow-700">{{ session('success') }}</p>
         </div>
     @endif
     @if(session('error'))
@@ -23,7 +23,7 @@
                 <h3 class="text-2xl font-bold text-gray-800">Ringkasan Produksi</h3>
                 <p class="text-sm text-gray-600 mt-1">Status dan ringkasan tahapan produksi Anda.</p>
             </div>
-            <a href="{{ route('mahasiswa.produksi.manage') }}" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+            <a href="{{ route('mahasiswa.produksi.manage') }}" class="bg-yellow-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-700 transition">
                 <i class="fas fa-tasks mr-2"></i>Kelola Produksi
             </a>
         </div>
@@ -49,7 +49,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ route('mahasiswa.produksi.manage', $produksi->id) }}" class="text-blue-600 hover:text-blue-900">Kelola</a>
+                                <a href="{{ route('mahasiswa.produksi.manage', $produksi->id) }}" class="text-yellow-600 hover:text-yellow-900">Kelola</a>
                             </td>
                         </tr>
                     @empty

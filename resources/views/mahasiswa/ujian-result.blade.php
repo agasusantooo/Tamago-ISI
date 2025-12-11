@@ -1,5 +1,7 @@
 @extends('mahasiswa.layouts.app')
 
+@section('page-title', 'Progress Tugas Akhir')
+
 @section('title', 'Hasil Ujian TA')
 
 @section('content')

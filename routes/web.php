@@ -284,6 +284,52 @@ Route::middleware(['auth', 'role:kaprodi'])
 
 /*
 |--------------------------------------------------------------------------
+| ROLE: KOORDINATOR TEFA
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:koordinator_tefa'])
+    ->prefix('koordinator-tefa')
+    ->name('koordinator_tefa.')
+    ->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\KoordinatorTefa\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/monitoring', [\App\Http\Controllers\KoordinatorTefa\MonitoringController::class, 'index'])->name('monitoring');
+        Route::post('/monitoring/{id}/approve', [\App\Http\Controllers\KoordinatorTefa\MonitoringController::class, 'approve'])->name('monitoring.approve');
+        Route::post('/monitoring/{id}/reject', [\App\Http\Controllers\KoordinatorTefa\MonitoringController::class, 'reject'])->name('monitoring.reject');
+        
+        Route::controller(\App\Http\Controllers\KoordinatorTefa\JadwalController::class)
+            ->prefix('jadwal')
+            ->name('jadwal.')
+            ->group(function() {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+            });
+    });
+
+/*
+|--------------------------------------------------------------------------
+| ROLE: KOORDINATOR STORY CONFERENCE
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:koordinator_story_conference'])
+    ->prefix('koordinator-story-conference')
+    ->name('koordinator_story_conference.')
+    ->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\KoordinatorStoryConference\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/monitoring', [\App\Http\Controllers\KoordinatorStoryConference\MonitoringController::class, 'index'])->name('monitoring');
+        Route::post('/monitoring/{id}/approve', [\App\Http\Controllers\KoordinatorStoryConference\MonitoringController::class, 'approve'])->name('monitoring.approve');
+        Route::post('/monitoring/{id}/reject', [\App\Http\Controllers\KoordinatorStoryConference\MonitoringController::class, 'reject'])->name('monitoring.reject');
+
+        Route::controller(\App\Http\Controllers\KoordinatorStoryConference\JadwalController::class)
+            ->prefix('jadwal')
+            ->name('jadwal.')
+            ->group(function() {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+            });
+    });
+
+/*
+|--------------------------------------------------------------------------
 | ROLE: KOORDINATOR TA
 |--------------------------------------------------------------------------
 */
@@ -293,7 +339,9 @@ Route::middleware(['auth', 'role:koordinator_ta'])
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'koordinatorTADashboard'])->name('dashboard');
         Route::get('/jadwal', [\App\Http\Controllers\KoordinatorTA\JadwalController::class, 'showJadwalPage'])->name('jadwal');
-        Route::view('/monitoring', 'koordinator_ta.monitoring')->name('monitoring');
+        Route::get('/monitoring', [\App\Http\Controllers\KoordinatorTA\MonitoringController::class, 'index'])->name('monitoring');
+        Route::post('/monitoring/{id}/approve', [\App\Http\Controllers\KoordinatorTA\MonitoringController::class, 'approve'])->name('monitoring.approve');
+        Route::post('/monitoring/{id}/reject', [\App\Http\Controllers\KoordinatorTA\MonitoringController::class, 'reject'])->name('monitoring.reject');
         Route::view('/matakuliah', 'koordinator_ta.matakuliah')->name('matakuliah');
         Route::view('/profile', 'koordinator_ta.profile')->name('profile');
 
@@ -366,6 +414,10 @@ Route::get('/dashboard/default', function () {
             return redirect()->route('kaprodi.dashboard');
         case 'koordinator_ta':
             return redirect()->route('koordinator_ta.dashboard');
+        case 'koordinator_tefa':
+            return redirect()->route('koordinator_tefa.dashboard');
+        case 'koordinator_story_conference':
+            return redirect()->route('koordinator_story_conference.dashboard');
         case 'dosen_penguji':
             return redirect()->route('dosen_penguji.dashboard');
         default:
@@ -379,9 +431,9 @@ Route::get('/dashboard/default', function () {
 | PROFILE ROUTE (Untuk Semua Role)
 |--------------------------------------------------------------------------
 */
-Route::get('/profile', function () {
-    return view('mahasiswa.akun');
-})->middleware('auth')->name('profile.edit');
+Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'index'])
+    ->middleware('auth')
+    ->name('profile.edit');
 
 // Handle profile update (name, email, nim, optional password)
 Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'update'])
