@@ -17,6 +17,9 @@ class ProduksiController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        
         $produksiBadges = [
             'belum_dimulai' => ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Belum Dimulai'],
             'menunggu_review_pra' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Review Pra-Produksi'],
@@ -28,59 +31,43 @@ class ProduksiController extends Controller
             'selesai' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Selesai'],
         ];
 
-        // Dummy data for multiple production projects
-        $produksis = collect([
-            (object)[
-                'id' => 1,
-                'proposal' => (object)['judul' => 'Produksi Film Pendek: "Lembayung Senja"'],
-                'status_pra_produksi' => 'disetujui',
-                'status_produksi' => 'disetujui',
-                'status_pasca_produksi' => 'menunggu_review',
-            ],
-            (object)[
-                'id' => 2,
-                'proposal' => (object)['judul' => 'Game Edukasi Interaktif: "Petualangan Kucing Oren"'],
-                'status_pra_produksi' => 'disetujui',
-                'status_produksi' => 'revisi',
-                'status_pasca_produksi' => 'belum_upload',
-            ],
-            (object)[
-                'id' => 3,
-                'proposal' => (object)['judul' => 'Animasi Motion Graphic: "Sejarah Wayang Kulit"'],
-                'status_pra_produksi' => 'menunggu_review',
-                'status_produksi' => 'belum_upload',
-                'status_pasca_produksi' => 'belum_upload',
-            ],
-             (object)[
-                'id' => 4,
-                'proposal' => (object)['judul' => 'Sound Design untuk Film Horor: "Bisikan Arwah"'],
-                'status_pra_produksi' => 'disetujui',
-                'status_produksi' => 'disetujui',
-                'status_pasca_produksi' => 'disetujui',
-            ],
-        ])->map(function ($produksi) use ($produksiBadges) {
-            // Determine overall status
-            if ($produksi->status_pra_produksi === 'disetujui' && $produksi->status_produksi === 'disetujui' && $produksi->status_pasca_produksi === 'disetujui') {
-                $produksi->overallStatus = 'selesai';
-            } elseif ($produksi->status_pasca_produksi === 'revisi') {
-                $produksi->overallStatus = 'revisi_pasca';
-            } elseif ($produksi->status_pasca_produksi === 'menunggu_review') {
-                $produksi->overallStatus = 'menunggu_review_pasca';
-            } elseif ($produksi->status_produksi === 'revisi') {
-                $produksi->overallStatus = 'revisi_produksi';
-            } elseif ($produksi->status_produksi === 'menunggu_review') {
-                $produksi->overallStatus = 'menunggu_review_produksi';
-            } elseif ($produksi->status_pra_produksi === 'revisi') {
-                $produksi->overallStatus = 'revisi_pra';
-            } elseif ($produksi->status_pra_produksi === 'menunggu_review') {
-                $produksi->overallStatus = 'menunggu_review_pra';
-            } else {
-                $produksi->overallStatus = 'belum_dimulai';
-            }
-            $produksi->overallStatusBadge = $produksiBadges[$produksi->overallStatus];
-            return $produksi;
-        });
-        
+        // Ambil data produksi dari database
+        $produksis = collect();
+        if ($mahasiswa && $user) {
+            // Perbaikan: mahasiswa_id di tim_produksi adalah users.id
+            $produksiList = Produksi::where('mahasiswa_id', $user->id)
+                ->with('proposal')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $produksis = $produksiList->map(function ($produksi) use ($produksiBadges) {
+                // Determine overall status based on production phases
+                if (
+                    ($produksi->status_pra_produksi === 'disetujui' || $produksi->status_pra_produksi === 'selesai') &&
+                    ($produksi->status_produksi === 'disetujui' || $produksi->status_produksi === 'selesai') &&
+                    ($produksi->status_pasca_produksi === 'disetujui' || $produksi->status_pasca_produksi === 'selesai')
+                ) {
+                    $produksi->overallStatus = 'selesai';
+                } elseif ($produksi->status_pasca_produksi === 'revisi') {
+                    $produksi->overallStatus = 'revisi_pasca';
+                } elseif ($produksi->status_pasca_produksi === 'menunggu_review') {
+                    $produksi->overallStatus = 'menunggu_review_pasca';
+                } elseif ($produksi->status_produksi === 'revisi') {
+                    $produksi->overallStatus = 'revisi_produksi';
+                } elseif ($produksi->status_produksi === 'menunggu_review') {
+                    $produksi->overallStatus = 'menunggu_review_produksi';
+                } elseif ($produksi->status_pra_produksi === 'revisi') {
+                    $produksi->overallStatus = 'revisi_pra';
+                } elseif ($produksi->status_pra_produksi === 'menunggu_review') {
+                    $produksi->overallStatus = 'menunggu_review_pra';
+                } else {
+                    $produksi->overallStatus = 'belum_dimulai';
+                }
+                $produksi->overallStatusBadge = $produksiBadges[$produksi->overallStatus] ?? $produksiBadges['belum_dimulai'];
+                return $produksi;
+            });
+        }
+
         return view('mahasiswa.produksi.index', compact('produksis'));
     }
 

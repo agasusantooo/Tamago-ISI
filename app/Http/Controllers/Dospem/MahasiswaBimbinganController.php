@@ -9,15 +9,40 @@ use App\Models\Mahasiswa;
 use App\Models\Bimbingan;
 use App\Models\Proposal;
 use App\Models\Dosen;
+use App\Service\ProgressService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 
 class MahasiswaBimbinganController extends Controller
 {
+    protected $progressService;
+
+    public function __construct(ProgressService $progressService)
+    {
+        $this->progressService = $progressService;
+    }
     /**
      * Menampilkan daftar mahasiswa bimbingan.
      */
     public function index()
+    {
+        $data = $this->getMahasiswaBimbinganData();
+        return view('dospem.mahasiswa-bimbingan', $data);
+    }
+
+    /**
+     * Return mahasiswa bimbingan data as JSON for real-time polling.
+     */
+    public function getMahasiswaBimbinganDataJson()
+    {
+        $data = $this->getMahasiswaBimbinganData();
+        return response()->json($data);
+    }
+
+    /**
+     * Get mahasiswa bimbingan data (used by both view and API).
+     */
+    private function getMahasiswaBimbinganData()
     {
         // Get mahasiswa yang dibimbing oleh dosen ini
         $nidn = Auth::user()->nidn;
@@ -25,23 +50,30 @@ class MahasiswaBimbinganController extends Controller
             ->with('user', 'projekAkhir')
             ->get()
             ->map(function ($m) {
+                // Get real progress using ProgressService
+                $progress = 0;
+                if ($m->user_id) {
+                    $progressData = $this->progressService->getDashboardData($m->user_id);
+                    $progress = $progressData['percentage'] ?? 0;
+                }
+                
                 return (object)[
                     'id' => $m->nim,
                     'nim' => $m->nim,
                     'name' => $m->nama ?? optional($m->user)->name,
                     'email' => optional($m->user)->email ?? $m->email,
-                    'judul_ta' => optional($m->projekAkhir)->judul_proyek ?? 'Belum ada judul',
-                    'progress' => optional($m->projekAkhir)->progress_persentase ?? 0,
+                    'judul_ta' => optional($m->projekAkhir)->judul_ta ?? 'Belum ada judul',
+                    'progress' => $progress,
                     'bimbingan_terakhir' => optional($m->projekAkhir)->updated_at?->format('Y-m-d') ?? '-'
                 ];
-            });
+            })->toArray();
 
-        $mahasiswaAktifCount = $mahasiswaBimbingan->count();
+        $mahasiswaAktifCount = count($mahasiswaBimbingan);
         $tugasReview = Bimbingan::where('dosen_nidn', $nidn)
             ->whereIn('status', ['pending', 'diajukan', 'review'])
             ->count();
 
-        return view('dospem.mahasiswa-bimbingan', compact('mahasiswaBimbingan', 'mahasiswaAktifCount', 'tugasReview'));
+        return compact('mahasiswaBimbingan', 'mahasiswaAktifCount', 'tugasReview');
     }
 
     /**
@@ -77,7 +109,7 @@ class MahasiswaBimbinganController extends Controller
         // Ambil jadwal bimbingan yang diajukan mahasiswa
         $jadwal_bimbingan = Bimbingan::where(function($q) use ($mahasiswa) {
                 $q->where('nim', $mahasiswa->nim)
-                  ->orWhere('mahasiswa_id', $mahasiswa->id);
+                  ->orWhere('mahasiswa_id', $mahasiswa->user_id);
             })
             ->where('dosen_nidn', $nidn)
             ->orderBy('tanggal', 'asc')
@@ -200,6 +232,32 @@ class MahasiswaBimbinganController extends Controller
             $mahasiswa->update(['status' => 'proposal_disetujui']);
         }
 
+        // Jika sudah disetujui, pastikan ada record ProjekAkhir yang terkait
+        try {
+            if ($mahasiswa) {
+                $projek = \App\Models\ProjekAkhir::where('proposal_id', $proposal->id)
+                    ->orWhere('nim', $mahasiswa->nim)
+                    ->first();
+
+                $data = [
+                    'nim' => $mahasiswa->nim,
+                    'mahasiswa_id' => $mahasiswa->user_id, // referensi ke users.id
+                    'judul' => $proposal->judul,
+                    'proposal_id' => $proposal->id,
+                    'status' => $projek?->status ?? 'berjalan',
+                ];
+
+                if ($projek) {
+                    $projek->update($data);
+                } else {
+                    \App\Models\ProjekAkhir::create($data);
+                }
+            }
+        } catch (\Exception $e) {
+            // Jangan gagalkan flow utama jika pembuatan projek gagal, log saja
+            \Log::error('Gagal membuat/menupdate ProjekAkhir setelah approve proposal: ' . $e->getMessage());
+        }
+
         return redirect()->back()->with('success', 'Proposal berhasil disetujui!');
     }
 
@@ -239,9 +297,8 @@ class MahasiswaBimbinganController extends Controller
     {
         try {
             // Find bimbingan by its primary id (id_bimbingan atau id)
-            $bimbingan = Bimbingan::where('id_bimbingan', $id)
-                ->orWhere('id', $id)
-                ->firstOrFail();
+            // Cari berdasarkan primary key tabel `bimbingans` yaitu `id_bimbingan`
+            $bimbingan = Bimbingan::where('id_bimbingan', $id)->firstOrFail();
 
             // Ensure current dosen is owner of this bimbingan
             $nidn = Auth::user()->nidn ?? null;
@@ -278,9 +335,8 @@ class MahasiswaBimbinganController extends Controller
     {
         try {
             // Find bimbingan by its primary id (id_bimbingan atau id)
-            $bimbingan = Bimbingan::where('id_bimbingan', $id)
-                ->orWhere('id', $id)
-                ->firstOrFail();
+            // Cari berdasarkan primary key tabel `bimbingans` yaitu `id_bimbingan`
+            $bimbingan = Bimbingan::where('id_bimbingan', $id)->firstOrFail();
 
             // Ensure current dosen is owner
             $nidn = Auth::user()->nidn ?? null;

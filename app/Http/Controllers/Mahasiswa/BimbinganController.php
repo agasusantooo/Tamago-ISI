@@ -21,10 +21,11 @@ class BimbinganController extends Controller
             return redirect()->route('mahasiswa.proposal')->with('error', 'Profil mahasiswa tidak ditemukan. Hubungi administrator untuk verifikasi data.');
         }
 
-        // Ambil semua riwayat bimbingan mahasiswa (gunakan nim sebagai kunci)
-                $bimbinganList = Bimbingan::where(function($q) use ($mahasiswa) {
-                                $q->where('nim', $mahasiswa->nim)
-                                    ->orWhere('mahasiswa_id', $mahasiswa->id);
+                // Ambil riwayat bimbingan mahasiswa dari database (hanya milik user yang login)
+                // Pertahankan kompatibilitas: beberapa record lama mungkin hanya menyimpan `nim`.
+                $bimbinganList = Bimbingan::where(function ($q) use ($mahasiswa) {
+                                $q->where('mahasiswa_id', $mahasiswa->user_id)
+                                    ->orWhere('nim', $mahasiswa->nim);
                         })
                         ->orderBy('created_at', 'desc')
                         ->get()
@@ -111,9 +112,10 @@ class BimbinganController extends Controller
             }
         }
 
-        // Insert data bimbingan
+        // Insert data bimbingan — simpan juga `mahasiswa_id` (user id) untuk relasi yang konsisten
         Bimbingan::create([
             'id_proyek_akhir' => $projekAkhir?->id_proyek_akhir,
+            'mahasiswa_id' => $user->id,
             'nim' => $mahasiswa->nim,
             'topik' => $request->topik,
             'catatan_mahasiswa' => $request->catatan_mahasiswa,
@@ -131,7 +133,15 @@ class BimbinganController extends Controller
 
     public function download($id)
     {
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+
         $bimbingan = Bimbingan::findOrFail($id);
+
+        // Pastikan file hanya dapat diunduh oleh pemilik bimbingan
+        if ($mahasiswa && $bimbingan->mahasiswa_id !== $mahasiswa->user_id && $bimbingan->nim !== $mahasiswa->nim) {
+            abort(403, 'Akses ditolak.');
+        }
 
         if (!$bimbingan->file_pendukung) {
             return back()->with('error', 'Tidak ada file pendukung untuk diunduh.');
@@ -142,7 +152,16 @@ class BimbinganController extends Controller
 
     public function show($id)
     {
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+
         $bimbingan = Bimbingan::findOrFail($id);
+
+        // Hanya perbolehkan mahasiswa pemilik melihat detail
+        if ($mahasiswa && $bimbingan->mahasiswa_id !== $mahasiswa->user_id && $bimbingan->nim !== $mahasiswa->nim) {
+            abort(403, 'Akses ditolak.');
+        }
+
         return view('mahasiswa.bimbingan-detail', compact('bimbingan'));
     }
 
@@ -160,8 +179,8 @@ class BimbinganController extends Controller
 
         // Get all bimbingan for this mahasiswa with their current status
         $bimbinganList = Bimbingan::where(function($q) use ($mahasiswa) {
-                $q->where('nim', $mahasiswa->nim)
-                  ->orWhere('mahasiswa_id', $mahasiswa->id);
+            $q->where('nim', $mahasiswa->nim)
+              ->orWhere('mahasiswa_id', $mahasiswa->user_id);
             })
             ->orderBy('created_at', 'desc')
             ->get(['id_bimbingan', 'status', 'catatan_dosen', 'catatan_mahasiswa', 'topik', 'tanggal', 'updated_at'])

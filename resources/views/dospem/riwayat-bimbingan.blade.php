@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Riwayat Bimbingan - Tamago ISI</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -21,7 +22,7 @@
                     <div class="bg-white rounded-xl shadow-sm p-6">
                         <div class="mb-6">
                             <h1 class="text-2xl font-bold text-blue-800 mb-1">Riwayat Bimbingan</h1>
-                            <p class="text-sm text-gray-600">Catatan semua sesi bimbingan yang telah dilakukan</p>
+                            <p class="text-sm text-gray-600">Catatan semua sesi bimbingan yang telah dilakukan | Mahasiswa Aktif: <span id="dospemMahasiswaAktif" class="font-semibold text-blue-700">0</span> | Tugas Review: <span id="dospemTugasReview" class="font-semibold text-blue-700">0</span></p>
                         </div>
 
                         <!-- Filter Section -->
@@ -55,7 +56,7 @@
                                         <th class="px-4 py-3 text-center text-xs font-semibold text-blue-700">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-blue-50">
+                                <tbody id="riwayatTableBody" class="divide-y divide-blue-50">
                                     @forelse($bimbingan as $item)
                                     <tr class="hover:bg-blue-50 transition">
                                         <td class="px-4 py-3">
@@ -154,6 +155,105 @@
     </div>
 
     <script>
+        // Real-time polling for riwayat bimbingan
+        function refreshRiwayatData() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch('{{ route("dospem.riwayat-bimbingan.data") }}', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateRiwayatStats(data.data);
+                    updateRiwayatTable(data.data.bimbingan);
+                }
+            })
+            .catch(error => console.error('Error fetching riwayat data:', error));
+        }
+
+        function updateRiwayatStats(data) {
+            if (document.getElementById('dospemMahasiswaAktif')) {
+                document.getElementById('dospemMahasiswaAktif').textContent = data.mahasiswaAktifCount || 0;
+            }
+            if (document.getElementById('dospemTugasReview')) {
+                document.getElementById('dospemTugasReview').textContent = data.tugasReview || 0;
+            }
+        }
+
+        function updateRiwayatTable(bimbinganData) {
+            const tableBody = document.getElementById('riwayatTableBody');
+            
+            if (!bimbinganData || bimbinganData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-4 py-6 text-center text-gray-500">
+                            <i class="fas fa-inbox text-2xl mb-2 block"></i>
+                            Tidak ada riwayat bimbingan.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = bimbinganData.map(item => {
+                const statusBadge = getStatusBadge(item.status);
+                return `
+                    <tr class="hover:bg-blue-50 transition">
+                        <td class="px-4 py-3">
+                            <p class="font-medium text-blue-900">${item.mahasiswa_name || 'Mahasiswa'}</p>
+                        </td>
+                        <td class="px-4 py-3">
+                            <p class="text-sm text-gray-700">${item.topik || 'Bimbingan'}</p>
+                        </td>
+                        <td class="px-4 py-3 text-center text-sm text-gray-600">
+                            ${formatDateRiwayat(item.tanggal) || formatDateRiwayat(item.created_at)}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            ${statusBadge}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <button 
+                                onclick="viewDetail(${item.id}, '${item.mahasiswa_name}', '${item.topik}')"
+                                class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                                <i class="fas fa-eye mr-1"></i>Detail
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getStatusBadge(status) {
+            if (status === 'completed' || status === 'disetujui') {
+                return `<span class="px-3 py-1 inline-block rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i>${status.charAt(0).toUpperCase() + status.slice(1)}
+                </span>`;
+            } else if (status === 'pending') {
+                return `<span class="px-3 py-1 inline-block rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <i class="fas fa-clock mr-1"></i>Pending
+                </span>`;
+            } else {
+                return `<span class="px-3 py-1 inline-block rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    ${status.charAt(0).toUpperCase() + status.slice(1)}
+                </span>`;
+            }
+        }
+
+        function formatDateRiwayat(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
         function viewDetail(id, mahasiswa, topik) {
             document.getElementById('detail-mahasiswa').textContent = mahasiswa;
             document.getElementById('detail-topik').textContent = topik;
@@ -169,7 +269,7 @@
         // Search functionality
         document.getElementById('searchMahasiswa').addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('tbody tr');
+            const rows = document.querySelectorAll('#riwayatTableBody tr');
             
             rows.forEach(row => {
                 const mahasiswa = row.querySelector('td:first-child').textContent.toLowerCase();
@@ -180,7 +280,7 @@
         // Filter functionality
         document.getElementById('filterStatus').addEventListener('change', function(e) {
             const status = e.target.value;
-            const rows = document.querySelectorAll('tbody tr');
+            const rows = document.querySelectorAll('#riwayatTableBody tr');
             
             rows.forEach(row => {
                 if (status === '') {
@@ -197,6 +297,12 @@
             if (e.key === 'Escape' && !document.getElementById('detailModal').classList.contains('hidden')) {
                 closeDetailModal();
             }
+        });
+
+        // Initialize polling on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshRiwayatData();
+            setInterval(refreshRiwayatData, 15000); // Poll every 15 seconds
         });
     </script>
 </body>

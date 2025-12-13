@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DebugController;
 use App\Http\Controllers\Mahasiswa\ProposalController;
 use App\Http\Controllers\Mahasiswa\BimbinganController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -185,13 +186,23 @@ Route::middleware(['auth', 'role:dospem'])
     ->name('dospem.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'dospemDashboard'])->name('dashboard');
+        Route::get('/dashboard/data', [DashboardController::class, 'dospemDashboardData'])->name('dashboard.data');
 
         Route::controller(\App\Http\Controllers\Dospem\DospemController::class)
             ->group(function () {
-                Route::get('/mahasiswa-bimbingan', 'mahasiswaBimbingan')->name('mahasiswa-bimbingan');
                 Route::get('/review-tugas', 'reviewTugas')->name('review-tugas');
+                Route::get('/review-tugas/data', 'reviewTugasData')->name('review-tugas.data');
                 Route::get('/jadwal-bimbingan', 'jadwalBimbingan')->name('jadwal-bimbingan');
+                Route::get('/jadwal-bimbingan/data', 'jadwalBimbinganData')->name('jadwal-bimbingan.data');
                 Route::get('/riwayat-bimbingan', 'riwayatBimbingan')->name('riwayat-bimbingan');
+                Route::get('/riwayat-bimbingan/data', 'riwayatBimbinganData')->name('riwayat-bimbingan.data');
+            });
+
+        // Mahasiswa Bimbingan routes with real-time data
+        Route::controller(\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class)
+            ->group(function () {
+                Route::get('/mahasiswa-bimbingan', 'index')->name('mahasiswa-bimbingan');
+                Route::get('/mahasiswa-bimbingan/data', 'getMahasiswaBimbinganDataJson')->name('mahasiswa-bimbingan.data');
             });
 
         // Jadwal Approval Routes
@@ -238,7 +249,14 @@ Route::middleware(['auth', 'role:dospem'])
             ->name('produksi.')
             ->group(function () {
                 Route::post('/{id}/pra-produksi', 'approvePraProduksi')->name('pra-produksi');
-                Route::post('/{id}/produksi-akhir', 'approveProduksiAkhir')->name('produksi-akhir');
+                Route::post('/{id}/pra-produksi/reject', 'rejectPraProduksi')->name('pra-produksi.reject');
+                Route::post('/{id}/produksi', 'approveProduksi')->name('produksi');
+                Route::post('/{id}/produksi/reject', 'rejectProduksi')->name('produksi.reject');
+                Route::post('/{id}/pasca-produksi', 'approvePascaProduksi')->name('pasca-produksi');
+                Route::post('/{id}/pasca-produksi/reject', 'rejectPascaProduksi')->name('pasca-produksi.reject');
+                // Real-time API endpoints
+                Route::get('/{id}/data', 'getProduksiData')->name('data');
+                Route::get('/mahasiswa/{mahasiswaId}/data', 'getMahasiswaProduksiData')->name('mahasiswa-data');
             });
     });
 
@@ -252,6 +270,7 @@ Route::middleware(['auth', 'role:kaprodi'])
     ->name('kaprodi.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'kaprodiDashboard'])->name('dashboard');
+        Route::get('/dashboard/data', [DashboardController::class, 'kaprodiDashboardData'])->name('dashboard.data');
         // Dashboard khusus Kaprodi untuk Tugas Akhir
         Route::get('/dashboard-ta', [DashboardController::class, 'kaprodiTADashboard'])->name('dashboard.ta');
         Route::view('/verifikasi', 'kaprodi.verifikasi')->name('verifikasi');
@@ -343,7 +362,10 @@ Route::middleware(['auth', 'role:dosen_penguji'])
     ->name('dosen_penguji.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'dosenPengujiDashboard'])->name('dashboard');
-        Route::view('/penilaian', 'dosen_penguji.penilaian')->name('penilaian');
+        Route::get('/dashboard/data', [DashboardController::class, 'dosenPengujiDashboardData'])->name('dashboard.data');
+        Route::get('/penilaian', [DashboardController::class, 'dosenPengujiPenilaian'])->name('penilaian');
+        Route::get('/penilaian/data', [DashboardController::class, 'dosenPengujiPenilaianData'])->name('penilaian.data');
+        Route::post('/penilaian/store', [DashboardController::class, 'storeNilaiUjian'])->name('penilaian.store');
         Route::view('/profile', 'dosen_penguji.profile')->name('profile');
     });
 
@@ -397,3 +419,7 @@ Route::post('/profile/photo', [App\Http\Controllers\ProfileController::class, 'u
 Route::post('/profile/theme', [App\Http\Controllers\ProfileController::class, 'saveTheme'])
     ->middleware('auth')
     ->name('profile.theme');
+
+// Debug routes
+Route::get('/debug/bimbingan', [DebugController::class, 'bimbingan'])->middleware('auth');
+Route::get('/debug/produksi', [DebugController::class, 'produksi'])->middleware('auth');

@@ -98,18 +98,18 @@
                                         <p class="text-xs text-gray-500 mb-4">Upload file karya final (Video/PDF/ZIP). Karya akhir hanya bisa diunggah jika pra produksi disetujui.</p>
 
                                         @if(optional($produksi)->status_pra_produksi === 'disetujui')
-                                            <form method="POST" action="{{ route('mahasiswa.produksi.produksi-akhir') }}" enctype="multipart/form-data">
+                                            <form method="POST" action="{{ route('mahasiswa.produksi.store.produksi') }}" enctype="multipart/form-data">
                                                 @csrf
                                                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition cursor-pointer" onclick="document.getElementById('fileKarya').click()">
                                                     <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
                                                     <p class="text-sm text-gray-600 mb-1">Drop file di sini atau klik untuk upload</p>
                                                     <p class="text-xs text-gray-500 mt-2">Maksimum 500MB - MP4/MOV/PDF/ZIP</p>
-                                                    <input type="file" id="fileKarya" name="file_produksi_akhir" accept=".mp4,.mov,.avi,.mkv,.pdf,.zip" class="hidden" onchange="updateFileName(this, 'karyaFileName')">
+                                                    <input type="file" id="fileKarya" name="file_produksi" accept=".mp4,.mov,.avi,.mkv,.pdf,.zip" class="hidden" onchange="updateFileName(this, 'karyaFileName')">
                                                     <button type="button" onclick="document.getElementById('fileKarya').click()" class="mt-3 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Pilih File</button>
                                                     <p id="karyaFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
                                                 </div>
 
-                                                @if(optional($produksi)->file_produksi_akhir)
+                                                @if(optional($produksi)->file_produksi)
                                                     <div class="mt-3 bg-green-50 border border-green-200 rounded p-3">
                                                         <p class="text-xs text-green-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p>
                                                         <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'akhir']) }}" class="text-sm text-blue-600 hover:underline"><i class="fas fa-download mr-1"></i> Download File</a>

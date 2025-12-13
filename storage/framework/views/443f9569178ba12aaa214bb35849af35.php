@@ -16,7 +16,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600 mb-1">Total Mahasiswa TA</p>
-                        <p class="text-4xl font-bold text-blue-600"><?php echo e($totalMahasiswa); ?></p>
+                        <p id="totalMahasiswa" class="text-4xl font-bold text-blue-600"><?php echo e($totalMahasiswa); ?></p>
                     </div>
                     <i class="fas fa-users text-blue-600 text-3xl"></i>
                 </div>
@@ -26,8 +26,8 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600 mb-1">Lulus</p>
-                        <p class="text-4xl font-bold text-green-600"><?php echo e($mahasiswaLulus); ?></p>
-                        <p class="text-xs text-green-600"><?php echo e($totalMahasiswa ? round(($mahasiswaLulus/$totalMahasiswa)*100, 1) : 0); ?>% dari total</p>
+                        <p id="mahasiswaLulus" class="text-4xl font-bold text-green-600"><?php echo e($mahasiswaLulus); ?></p>
+                        <p id="mahasiswaLulusPct" class="text-xs text-green-600"><?php echo e($totalMahasiswa ? round(($mahasiswaLulus/$totalMahasiswa)*100, 1) : 0); ?>% dari total</p>
                     </div>
                     <i class="fas fa-check-circle text-green-600 text-3xl"></i>
                 </div>
@@ -37,8 +37,8 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600 mb-1">Belum Lulus</p>
-                        <p class="text-4xl font-bold text-orange-600"><?php echo e($belumLulus); ?></p>
-                        <p class="text-xs text-orange-600"><?php echo e($totalMahasiswa ? round(($belumLulus/$totalMahasiswa)*100, 1) : 0); ?>% dari total</p>
+                        <p id="belumLulus" class="text-4xl font-bold text-orange-600"><?php echo e($belumLulus); ?></p>
+                        <p id="belumLulusPct" class="text-xs text-orange-600"><?php echo e($totalMahasiswa ? round(($belumLulus/$totalMahasiswa)*100, 1) : 0); ?>% dari total</p>
                     </div>
                     <i class="fas fa-hourglass-half text-orange-600 text-3xl"></i>
                 </div>
@@ -55,17 +55,19 @@
             <div class="bg-gray-50 rounded-lg p-6">
                 <h4 class="font-semibold text-gray-800 mb-4">Rata-rata Durasi TA</h4>
                 <div class="space-y-4">
-                    <?php $__currentLoopData = $rataDurasiTA; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div>
-                        <div class="flex justify-between text-sm mb-1">
-                            <span class="text-gray-600"><?php echo e($item['semester']); ?></span>
-                            <span class="font-bold text-gray-800"><?php echo e($item['durasi']); ?> bulan</span>
+                    <div id="rataDurasiContainer">
+                        <?php $__currentLoopData = $rataDurasiTA; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600"><?php echo e($item['semester']); ?></span>
+                                <span class="font-bold text-gray-800"><?php echo e($item['durasi']); ?> bulan</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: <?php echo e(($item['durasi']/12)*100); ?>%"></div>
+                            </div>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-blue-600 h-2 rounded-full" style="width: <?php echo e(($item['durasi']/12)*100); ?>%"></div>
-                        </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <div class="pt-4 border-t">
                         <p class="text-center text-sm text-gray-600">Rata-rata Keseluruhan: <span class="font-bold text-blue-600">8.4 bulan</span></p>
                     </div>
@@ -113,14 +115,16 @@
             <div class="bg-white rounded-xl shadow-sm p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Pengumuman Penting</h3>
                 <div class="space-y-3">
-                    <?php $__empty_1 = true; $__currentLoopData = $pengumumanPenting; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <div class="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                        <p class="font-semibold text-gray-800 text-sm"><?php echo e($item->judul); ?></p>
-                        <p class="text-xs text-gray-600 mt-1"><?php echo e($item->tanggal); ?></p>
+                    <div id="pengumumanContainer">
+                        <?php $__empty_1 = true; $__currentLoopData = $pengumumanPenting; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <div class="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                            <p class="font-semibold text-gray-800 text-sm"><?php echo e($item->judul); ?></p>
+                            <p class="text-xs text-gray-600 mt-1"><?php echo e($item->tanggal); ?></p>
+                        </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <p class="text-center text-gray-500 py-4">Tidak ada pengumuman</p>
+                        <?php endif; ?>
                     </div>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <p class="text-center text-gray-500 py-4">Tidak ada pengumuman</p>
-                    <?php endif; ?>
                     <button class="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                         Buat Pengumuman Baru
                     </button>
@@ -135,18 +139,20 @@
     <script>
         // Chart Status per Semester
         const ctx = document.getElementById('semesterChart');
-        if (ctx) {
-            new Chart(ctx, {
+        let semesterChart = null;
+        function initChart(labels, lulusData, belumData) {
+            if (!ctx) return;
+            const config = {
                 type: 'bar',
                 data: {
-                    labels: <?php echo json_encode($chartData['labels']); ?>,
+                    labels: labels,
                     datasets: [{
                         label: 'Lulus',
-                        data: <?php echo json_encode($chartData['lulus']); ?>,
+                        data: lulusData,
                         backgroundColor: '#10b981',
                     }, {
                         label: 'Belum Lulus',
-                        data: <?php echo json_encode($chartData['belum_lulus']); ?>,
+                        data: belumData,
                         backgroundColor: '#f59e0b',
                     }]
                 },
@@ -155,8 +161,93 @@
                     maintainAspectRatio: true,
                     scales: { y: { beginAtZero: true } }
                 }
-            });
+            };
+
+            if (semesterChart) {
+                semesterChart.destroy();
+            }
+            semesterChart = new Chart(ctx, config);
         }
+
+        // Initialize with server-rendered values
+        initChart(<?php echo json_encode($chartData['labels']); ?>, <?php echo json_encode($chartData['lulus']); ?>, <?php echo json_encode($chartData['belum_lulus']); ?>);
+
+        // Polling function to refresh dashboard data
+        async function fetchDashboardData() {
+            try {
+                const res = await fetch("<?php echo e(route('kaprodi.dashboard.data')); ?>", { headers: { 'Accept': 'application/json' } });
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // Update simple stats
+                document.getElementById('totalMahasiswa').textContent = data.totalMahasiswa ?? 0;
+                document.getElementById('mahasiswaLulus').textContent = data.mahasiswaLulus ?? 0;
+                const pctLulus = data.totalMahasiswa ? Math.round((data.mahasiswaLulus/data.totalMahasiswa)*1000)/10 : 0;
+                document.getElementById('mahasiswaLulusPct').textContent = pctLulus + '% dari total';
+                document.getElementById('belumLulus').textContent = data.belumLulus ?? 0;
+                const pctBelum = data.totalMahasiswa ? Math.round((data.belumLulus/data.totalMahasiswa)*1000)/10 : 0;
+                document.getElementById('belumLulusPct').textContent = pctBelum + '% dari total';
+
+                // Update chart
+                if (semesterChart && data.chartData) {
+                    semesterChart.data.labels = data.chartData.labels;
+                    semesterChart.data.datasets[0].data = data.chartData.lulus;
+                    semesterChart.data.datasets[1].data = data.chartData.belum_lulus;
+                    semesterChart.update();
+                }
+
+                // Update rata-rata durasi
+                const rataContainer = document.getElementById('rataDurasiContainer');
+                if (rataContainer && data.rataDurasiTA) {
+                    rataContainer.innerHTML = '';
+                    data.rataDurasiTA.forEach(function(item) {
+                        const div = document.createElement('div');
+                        div.innerHTML = `
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">${item.semester}</span>
+                                <span class="font-bold text-gray-800">${item.durasi} bulan</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${ (item.durasi/12)*100 }%"></div>
+                            </div>
+                        `;
+                        rataContainer.appendChild(div);
+                    });
+                }
+
+                // Update pengumuman
+                const pengContainer = document.getElementById('pengumumanContainer');
+                if (pengContainer && data.pengumumanPenting) {
+                    pengContainer.innerHTML = '';
+                    if (data.pengumumanPenting.length === 0) {
+                        pengContainer.innerHTML = '<p class="text-center text-gray-500 py-4">Tidak ada pengumuman</p>';
+                    } else {
+                        data.pengumumanPenting.forEach(function(item) {
+                            const d = document.createElement('div');
+                            d.className = 'p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg';
+                            d.innerHTML = `<p class="font-semibold text-gray-800 text-sm">${item.judul}</p><p class="text-xs text-gray-600 mt-1">${item.tanggal}</p>`;
+                            pengContainer.appendChild(d);
+                        });
+                    }
+                }
+
+                // Update header counters (if present on the page)
+                try {
+                    const hdrMah = document.getElementById('headerMahasiswaAktif');
+                    if (hdrMah) hdrMah.textContent = (data.mahasiswaAktifCount ?? data.totalMahasiswa ?? 0);
+                    const hdrTugas = document.getElementById('headerTugasReview');
+                    if (hdrTugas) hdrTugas.textContent = (data.tugasReview ?? 0);
+                } catch (e) {
+                    // ignore DOM errors
+                }
+
+            } catch (e) {
+                console.error('Failed to fetch dashboard data', e);
+            }
+        }
+
+        // Poll every 10 seconds
+        setInterval(fetchDashboardData, 10000);
     </script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('kaprodi.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\C\Tamago-ISI\resources\views/dashboards/kaprodi.blade.php ENDPATH**/ ?>

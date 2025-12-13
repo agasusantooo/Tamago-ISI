@@ -14,9 +14,15 @@ class TefaFair extends Model
 
     protected $fillable = [
         'id_proyek_akhir',
+        'proposal_id',
+        'mahasiswa_nim',
         'semester',
-        'file_presentasi',
+        'mata_kuliah',
         'daftar_kebutuhan',
+        'daftar_sumber_daya',
+        'file_presentasi',
+        'file_slide',
+        'slot_id',
         'status',
     ];
 

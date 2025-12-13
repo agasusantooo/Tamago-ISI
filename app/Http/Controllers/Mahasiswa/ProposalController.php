@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Proposal;
 use App\Models\Dosen;
+use App\Models\Bimbingan;
 
 class ProposalController extends Controller
 {
@@ -26,28 +27,20 @@ class ProposalController extends Controller
             'ditolak' => ['class' => 'bg-red-100 text-red-800', 'text' => 'Ditolak'],
         ];
 
-        $dummy1 = (object)[
-            'id' => 1, 'versi' => 3, 'judul' => 'Analisis Semiotika pada Film Penyalin Cahaya',
-            'tanggal_pengajuan' => \Illuminate\Support\Carbon::parse('2024-03-15'),
-            'status' => 'disetujui',
-        ];
-        $dummy1->statusBadge = $badges[$dummy1->status];
-
-        $dummy2 = (object)[
-            'id' => 2, 'versi' => 2, 'judul' => 'Perancangan Tata Artistik Film Pendek "Senja"',
-            'tanggal_pengajuan' => \Illuminate\Support\Carbon::parse('2024-02-20'),
-            'status' => 'revisi',
-        ];
-        $dummy2->statusBadge = $badges[$dummy2->status];
-
-        $dummy3 = (object)[
-            'id' => 3, 'versi' => 1, 'judul' => 'Studi Kasus Penyutradaraan dalam Film Dokumenter',
-            'tanggal_pengajuan' => \Illuminate\Support\Carbon::parse('2024-01-10'),
-            'status' => 'ditolak',
-        ];
-        $dummy3->statusBadge = $badges[$dummy3->status];
-
-        $proposalHistory = collect([$dummy1, $dummy2, $dummy3]);
+        $mahasiswa = Auth::user()->mahasiswa;
+        $proposalHistory = collect();
+        
+        // Ambil semua proposal dari database untuk mahasiswa yang login
+        if ($mahasiswa && $mahasiswa->nim) {
+            $proposals = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            $proposalHistory = $proposals->map(function($proposal) use ($badges) {
+                $proposal->statusBadge = $badges[$proposal->status] ?? $badges['draft'];
+                return $proposal;
+            });
+        }
 
         return view('mahasiswa.proposal.index', [
             'proposalHistory' => $proposalHistory,
@@ -59,8 +52,25 @@ class ProposalController extends Controller
      */
     public function create()
     {
-        $mahasiswa = Auth::user()->mahasiswa;
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
         $mahasiswaNim = $mahasiswa ? $mahasiswa->nim : null;
+
+        // Validasi: mahasiswa harus melakukan bimbingan minimal 6x sebelum mengajukan proposal
+        $bimbinganCount = 0;
+        if ($mahasiswa) {
+            $bimbinganCount = Bimbingan::where(function($q) use ($user, $mahasiswa) {
+                    $q->where('mahasiswa_id', $user->id)
+                      ->orWhere('nim', $mahasiswa->nim);
+                })
+                ->where('status', 'disetujui')
+                ->count();
+        }
+
+        if ($bimbinganCount < 6) {
+            return redirect()->route('mahasiswa.bimbingan.index')
+                ->with('warning', 'Anda harus melakukan bimbingan minimal 6 kali sebelum mengajukan proposal. Saat ini Anda baru melakukan ' . $bimbinganCount . ' bimbingan yang disetujui.');
+        }
 
         $latestProposal = $mahasiswaNim ? Proposal::where('mahasiswa_nim', $mahasiswaNim)
             ->latest()
@@ -73,6 +83,7 @@ class ProposalController extends Controller
         return view('mahasiswa.proposal.create', [
             'proposal' => null, // Set to null for create form
             'dosens' => $dosens,
+            'bimbinganCount' => $bimbinganCount,
         ]);
     }
 
@@ -81,7 +92,6 @@ class ProposalController extends Controller
      */
     public function show($id)
     {
-        // This is a temporary implementation using dummy data to match the index method.
         $badges = [
             'draft' => ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Draft'],
             'diajukan' => ['class' => 'bg-blue-100 text-blue-800', 'text' => 'Diajukan'],
@@ -91,45 +101,23 @@ class ProposalController extends Controller
             'ditolak' => ['class' => 'bg-red-100 text-red-800', 'text' => 'Ditolak'],
         ];
 
-        $dummyData = [
-            1 => (object)[
-                'id' => 1, 'versi' => 3, 'judul' => 'Analisis Semiotika pada Film Penyalin Cahaya',
-                'deskripsi' => 'Penelitian ini berfokus pada analisis semiotika mendalam terhadap elemen-elemen visual dan naratif dalam film "Penyalin Cahaya" untuk mengungkap makna-makna tersembunyi dan kritik sosial yang disampaikan.',
-                'rumpun_ilmu' => 'Pengkajian Seni',
-                'tanggal_pengajuan' => \Illuminate\Support\Carbon::parse('2024-03-15'),
-                'status' => 'disetujui',
-                'feedback' => 'Proposal sangat baik dan relevan. Silakan dilanjutkan ke tahap berikutnya.',
-                'dosen' => (object)['nama' => 'Dr. Anisa Lestari', 'gelar' => 'M.Sn.'],
-                'file_proposal' => '#',
-            ],
-            2 => (object)[
-                'id' => 2, 'versi' => 2, 'judul' => 'Perancangan Tata Artistik Film Pendek "Senja"',
-                'deskripsi' => 'Proposal ini menguraikan konsep perancangan tata artistik untuk sebuah film pendek berjudul "Senja", yang berfokus pada penciptaan atmosfer melankolis melalui warna, set, dan properti.',
-                'rumpun_ilmu' => 'Penciptaan Seni',
-                'tanggal_pengajuan' => \Illuminate\Support\Carbon::parse('2024-02-20'),
-                'status' => 'revisi',
-                'feedback' => 'Konsep sudah bagus, namun perlu detail lebih lanjut pada breakdown budget dan timeline produksi. Mohon direvisi.',
-                'dosen' => (object)['nama' => 'Budi Dharmawan', 'gelar' => 'S.Sn., M.A.'],
-                'file_proposal' => '#',
-            ],
-            3 => (object)[
-                'id' => 3, 'versi' => 1, 'judul' => 'Studi Kasus Penyutradaraan dalam Film Dokumenter',
-                'deskripsi' => 'Mengajukan studi kasus mengenai pendekatan penyutradaraan dalam film dokumenter "The Act of Killing", menganalisis bagaimana sutradara membangun narasi dan memanipulasi emosi penonton.',
-                'rumpun_ilmu' => 'Media Rekam',
-                'tanggal_pengajuan' => \Illuminate\Support\Carbon::parse('2024-01-10'),
-                'status' => 'ditolak',
-                'feedback' => 'Topik yang diajukan sudah terlalu sering dibahas dan kurang memiliki kebaruan. Silakan cari topik lain yang lebih orisinal.',
-                'dosen' => (object)['nama' => 'Dr. Anisa Lestari', 'gelar' => 'M.Sn.'],
-                'file_proposal' => '#',
-            ],
-        ];
-
-        $proposal = $dummyData[$id] ?? null;
+        // Ambil proposal dari database
+        $proposal = Proposal::where('id', $id)
+            ->with('dosen')
+            ->first();
 
         if (!$proposal) {
             abort(404, 'Proposal tidak ditemukan');
         }
-        $proposal->statusBadge = $badges[$proposal->status];
+
+        // Cek authorization - user hanya bisa melihat proposal milik mereka sendiri
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        if (!$mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
+            abort(403, 'Unauthorized');
+        }
+
+        $proposal->statusBadge = $badges[$proposal->status] ?? $badges['draft'];
 
         return view('mahasiswa.proposal.show', [
             'proposal' => $proposal,
@@ -141,6 +129,20 @@ class ProposalController extends Controller
      */
     public function store(Request $request)
     {
+        // Validasi bimbingan minimal 6x
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        $bimbinganCount = Bimbingan::where(function($q) use ($user, $mahasiswa) {
+                $q->where('mahasiswa_id', $user->id)
+                  ->orWhere('nim', $mahasiswa->nim);
+            })
+            ->where('status', 'disetujui')
+            ->count();
+
+        if ($bimbinganCount < 6) {
+            return back()->with('error', 'Anda harus melakukan bimbingan minimal 6 kali sebelum mengajukan proposal. Saat ini Anda baru melakukan ' . $bimbinganCount . ' bimbingan yang disetujui.');
+        }
+
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string|min:100',
@@ -231,30 +233,19 @@ class ProposalController extends Controller
     /**
      * Show the form for editing the specified proposal.
      */
-    public function edit(Proposal $proposal_real) // Route model binding still happens, but we ignore it for the dummy data
+    public function edit(Proposal $proposal)
     {
-        // This is a temporary implementation using dummy data.
-        $id = request()->route('proposal'); // Get the ID from the route
+        $mahasiswa = Auth::user()->mahasiswa;
+        
+        // Cek authorization
+        if (!$mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
+            return redirect()->route('mahasiswa.proposal.index')
+                ->with('error', 'Unauthorized');
+        }
 
-        $dummyData = [
-            1 => (object)['id' => 1, 'judul' => 'Analisis Semiotika...', 'status' => 'disetujui'],
-            2 => (object)[
-                'id' => 2, 'judul' => 'Perancangan Tata Artistik Film Pendek "Senja"', 
-                'deskripsi' => 'Proposal ini menguraikan konsep perancangan...',
-                'rumpun_ilmu' => 'Penciptaan Seni',
-                'dosen_id' => 1, // Assuming a dummy dosen ID
-                'status' => 'revisi',
-                'file_proposal' => 'proposals/dummy/proposal_v2.pdf',
-                'file_pitch_deck' => 'pitch-decks/dummy/pitch_v2.pptx',
-            ],
-            3 => (object)['id' => 3, 'judul' => 'Studi Kasus Penyutradaraan...', 'status' => 'ditolak'],
-        ];
-
-        $proposal = $dummyData[$id] ?? null;
-
-        if (!$proposal || $proposal->status !== 'revisi') {
-            return redirect()
-                ->route('mahasiswa.proposal.index')
+        // Hanya proposal dengan status 'revisi' yang bisa diedit
+        if ($proposal->status !== 'revisi') {
+            return redirect()->route('mahasiswa.proposal.index')
                 ->with('error', 'Proposal ini tidak dapat diedit.');
         }
 

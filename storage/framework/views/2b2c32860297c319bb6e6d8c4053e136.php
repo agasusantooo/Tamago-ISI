@@ -1,4 +1,4 @@
-<!-- Modal Popup untuk ACC/Tolak Bimbingan -->
+jau a<!-- Modal Popup untuk ACC/Tolak Bimbingan -->
 <div id="accBimbinganModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform scale-95 opacity-0 transition-all duration-300">
         <!-- Header -->
@@ -142,15 +142,24 @@ function closeAccBimbinganModal() {
 }
 
 function submitAccBimbingan() {
+    const submitBtn = document.querySelector('#accBimbinganModal button[type="button"]');
+    if (submitBtn.disabled) return;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
     const selectedAction = document.querySelector('input[name="bimbingan-action"]:checked');
-    
+
     if (!selectedAction) {
         alert('⚠️ Pilih aksi terlebih dahulu (Terima atau Tolak)!');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-check"></i> <span>Konfirmasi</span>';
         return;
     }
 
     if (!currentBimbinganId) {
         alert('❌ Error: Bimbingan ID tidak ditemukan!');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-check"></i> <span>Konfirmasi</span>';
         return;
     }
 
@@ -195,6 +204,8 @@ function submitAccBimbingan() {
     .catch(err => {
         console.error(err);
         alert('Gagal mengirim permintaan: ' + (err.message || err));
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-check"></i> <span>Konfirmasi</span>';
     });
 }
 

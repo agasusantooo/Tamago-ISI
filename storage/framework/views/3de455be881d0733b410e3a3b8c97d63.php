@@ -23,7 +23,7 @@
                     <!-- Header Stats -->
                     <div class="mb-6">
                         <h1 class="text-2xl font-bold text-blue-800 mb-1">Jadwal Bimbingan</h1>
-                        <div class="text-sm text-gray-600">Mahasiswa Aktif: <span class="font-semibold text-blue-700"><?php echo e($mahasiswaAktifCount ?? 0); ?></span> | Tugas Review: <span class="font-semibold text-blue-700"><?php echo e($tugasReview ?? 0); ?></span></div>
+                        <div class="text-sm text-gray-600">Mahasiswa Aktif: <span id="dospemMahasiswaAktif" class="font-semibold text-blue-700"><?php echo e($mahasiswaAktifCount ?? 0); ?></span> | Tugas Review: <span id="dospemTugasReview" class="font-semibold text-blue-700"><?php echo e($tugasReview ?? 0); ?></span></div>
                     </div>
 
                     <!-- Tab Navigation -->
@@ -296,7 +296,54 @@
             return date.toLocaleDateString('id-ID', options);
         }
 
+        // Real-time polling for jadwal bimbingan
+        function refreshJadwalData() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch('<?php echo e(route("dospem.jadwal-bimbingan.data")); ?>', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateJadwalStats(data.data);
+                    updateJadwalTable(data.data.bimbingan);
+                }
+            })
+            .catch(error => console.error('Error fetching jadwal data:', error));
+        }
+
+        function updateJadwalStats(data) {
+            if (document.getElementById('dospemMahasiswaAktif')) {
+                document.getElementById('dospemMahasiswaAktif').textContent = data.mahasiswaAktifCount || 0;
+            }
+            if (document.getElementById('dospemTugasReview')) {
+                document.getElementById('dospemTugasReview').textContent = data.tugasReview || 0;
+            }
+        }
+
+        function updateJadwalTable(jadwalData) {
+            window.allJadwalEvents = jadwalData;
+            renderJadwalList();
+            
+            // Refresh calendar if it exists
+            if (window.jadwalCalendar) {
+                window.jadwalCalendar.refetchEvents();
+            }
+        }
+
+        // Start real-time polling on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Initial data load
+            refreshJadwalData();
+            
+            // Set up polling interval (15 seconds)
+            setInterval(refreshJadwalData, 15000);
+
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',

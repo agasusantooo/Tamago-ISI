@@ -24,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
         View::composer('mahasiswa.partials.header-mahasiswa', function ($view) {
             $user = Auth::user();
             $latestProposal = null;
+            $progress = 0;
+            $progressDetails = [];
 
             if ($user) {
                 $mahasiswa = $user->mahasiswa;
@@ -33,9 +35,19 @@ class AppServiceProvider extends ServiceProvider
                         ->latest()
                         ->first();
                 }
+
+                // Compute progress using ProgressService so header matches dashboard
+                try {
+                    $progressData = app(\App\Service\ProgressService::class)->getDashboardData($user->id);
+                    $progress = isset($progressData['percentage']) ? (int) max(0, min(100, $progressData['percentage'])) : 0;
+                    $progressDetails = $progressData['details'] ?? [];
+                } catch (\Throwable $e) {
+                    // Fail silently, header should not break rendering
+                    \Log::warning('ProgressService unavailable for header: ' . $e->getMessage());
+                }
             }
 
-            $view->with('latestProposal', $latestProposal);
+            $view->with(compact('latestProposal', 'progress', 'progressDetails'));
         });
     }
 }

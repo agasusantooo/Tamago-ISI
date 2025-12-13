@@ -23,19 +23,53 @@
                     <i class="fas fa-home w-5"></i><span>Dashboard</span>
                 </a>
             </li>
-            
+            <li>
+                <a href="<?php echo e(route('kaprodi.monitoring')); ?>"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   <?php echo e(request()->routeIs('kaprodi.monitoring') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50'); ?>">
+                    <i class="fas fa-tv w-5"></i><span>Monitoring Mahasiswa</span>
+                </a>
+            </li>
             <li>
                 <a href="<?php echo e(route('kaprodi.setup')); ?>"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                    <?php echo e(request()->routeIs('kaprodi.setup') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50'); ?>">
-                    <i class="fas fa-cogs w-5"></i><span>Setup & Timeline</span>
+                    <i class="fas fa-cogs w-5"></i><span>Setup Semester</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo e(route('kaprodi.timeline')); ?>"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   <?php echo e(request()->routeIs('kaprodi.timeline') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50'); ?>">
+                    <i class="fas fa-tasks w-5"></i><span>Setup Timeline</span>
                 </a>
             </li>
             <li>
                 <a href="<?php echo e(route('kaprodi.pengelolaan')); ?>"
                    class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
                    <?php echo e(request()->routeIs('kaprodi.pengelolaan') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50'); ?>">
-                    <i class="fas fa-sitemap w-5"></i><span>Pengelolaan</span>
+                    <i class="fas fa-users-cog w-5"></i><span>Setup Dosen Pembimbing</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo e(route('kaprodi.rumpun-ilmu')); ?>"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   <?php echo e(request()->routeIs('kaprodi.rumpun-ilmu') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50'); ?>">
+                    <i class="fas fa-sitemap w-5"></i><span>Setup Rumpun Ilmu</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo e(route('kaprodi.dosen-seminar')); ?>"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   <?php echo e(request()->routeIs('kaprodi.dosen-seminar') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50'); ?>">
+                    <i class="fas fa-chalkboard-teacher w-5"></i><span>Setup Dosen Seminar</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?php echo e(route('kaprodi.koordinator-tefa')); ?>"
+                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                   <?php echo e(request()->routeIs('kaprodi.koordinator-tefa') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50'); ?>">
+                    <i class="fas fa-bullhorn w-5"></i><span>Setup Koordinator TEFA</span>
                 </a>
             </li>
 

@@ -6,8 +6,8 @@
                 <h1 class="text-lg font-semibold text-gray-700">Dosen Pembimbing</h1>
                 <div class="mt-2 mb-1">
                     <p class="text-xs text-gray-500">
-                        Mahasiswa Aktif: <span class="font-semibold text-blue-600"><?php echo e($mahasiswaAktifCount); ?></span> | 
-                        Tugas Review: <span class="font-semibold text-sky-600"><?php echo e($tugasReview); ?></span>
+                        Mahasiswa Aktif: <span id="headerMahasiswaAktifDospem" class="font-semibold text-blue-600"><?php echo e($mahasiswaAktifCount); ?></span> | 
+                        Tugas Review: <span id="headerTugasReviewDospem" class="font-semibold text-sky-600"><?php echo e($tugasReview); ?></span>
                     </p>
                 </div>
                 <div class="h-3"></div>

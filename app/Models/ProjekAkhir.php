@@ -41,4 +41,21 @@ class ProjekAkhir extends Model
     {
         return $this->belongsTo(Mahasiswa::class, 'nim', 'nim');
     }
+
+    /**
+     * Accessor: alias untuk 'judul' agar view lama yang mengakses
+     * `judul_proyek` tetap bekerja.
+     */
+    public function getJudulProyekAttribute()
+    {
+        return $this->judul;
+    }
+
+    /**
+     * Accessor: progress_persentase - kembalikan 0 jika tidak ada.
+     */
+    public function getProgressPersentaseAttribute()
+    {
+        return $this->progress_persentase ?? 0;
+    }
 }

@@ -65,22 +65,72 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
-                                        <div class="flex items-center space-x-1">
-                                            <span class="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                                            <span class="text-yellow-600 font-medium">Proposal</span>
-                                        </div>
-                                        <div class="flex items-center space-x-1">
-                                            <span class="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                                            <span class="text-yellow-600 font-medium">Bimbingan</span>
-                                        </div>
-                                        <div class="flex items-center space-x-1">
-                                            <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
-                                            <span class="text-gray-500">Produksi</span>
-                                        </div>
-                                        <div class="flex items-center space-x-1">
-                                            <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
-                                            <span class="text-gray-500">Ujian TA</span>
+                                    <div class="h-3"></div>
+                                    
+                                    <!-- Detail Progress Breakdown -->
+                                    <div id="progressDetail" class="mt-6 pt-6 border-t border-gray-200 hidden">
+                                        <h4 class="text-sm font-semibold text-gray-700 mb-4">Rincian Tahapan Progress</h4>
+                                        <div class="space-y-3">
+                                            @forelse($progressDetails as $detail)
+                                                @php
+                                                    $actionRoute = null;
+                                                    $actionLabel = 'Buka';
+                                                    $code = $detail['code'] ?? null;
+                                                    switch($code) {
+                                                        case 'proposal_submission':
+                                                            $actionRoute = route('mahasiswa.proposal.create');
+                                                            $actionLabel = 'Ajukan Proposal';
+                                                            break;
+                                                        case 'proposal_approved':
+                                                            $actionRoute = route('mahasiswa.proposal.index');
+                                                            $actionLabel = 'Lihat Proposal';
+                                                            break;
+                                                        case 'bimbingan_progress':
+                                                            $actionRoute = route('mahasiswa.bimbingan.index');
+                                                            $actionLabel = 'Bimbingan';
+                                                            break;
+                                                        case 'story_conference':
+                                                            $actionRoute = route('mahasiswa.story-conference.create');
+                                                            $actionLabel = 'Ajukan Story Conference';
+                                                            break;
+                                                        case 'production_upload':
+                                                            $actionRoute = route('mahasiswa.produksi.manage');
+                                                            $actionLabel = 'Upload Produksi';
+                                                            break;
+                                                        case 'exam_registration':
+                                                        case 'exam_completed':
+                                                            $actionRoute = route('mahasiswa.ujian-ta.index');
+                                                            $actionLabel = 'Ujian TA';
+                                                            break;
+                                                        case 'final_submission':
+                                                            $actionRoute = route('mahasiswa.produksi.manage');
+                                                            $actionLabel = 'Selesai & Upload';
+                                                            break;
+                                                        default:
+                                                            $actionRoute = null;
+                                                    }
+                                                @endphp
+
+                                                <div class="flex items-start justify-between">
+                                                    <div class="flex-1">
+                                                        <p class="text-sm font-medium text-gray-800">{{ $detail['name'] }}</p>
+                                                        <div class="mt-1 bg-gray-200 rounded-full h-2 w-full">
+                                                            <div class="bg-yellow-500 h-2 rounded-full transition-all duration-500" 
+                                                                 style="width: {{ min($detail['fraction'] * 100, 100) }}%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ml-3 text-right flex flex-col items-end">
+                                                        <p class="text-xs text-gray-600">Bobot: {{ (int)$detail['weight'] }}%</p>
+                                                        <p class="text-xs font-semibold text-gray-800">{{ (int)($detail['fraction'] * 100) }}%</p>
+                                                        @if($actionRoute)
+                                                            <a href="{{ $actionRoute }}" class="mt-2 inline-block px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">{{ $actionLabel }}</a>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @empty
+                                                <p class="text-xs text-gray-500">Tidak ada data progress</p>
+                                            @endforelse
                                         </div>
                                     </div>
                                 </div>
@@ -89,25 +139,25 @@
                                 <div class="bg-white rounded-xl shadow-sm p-6">
                                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Dosen Pembimbing</h3>
                                     <div class="space-y-3">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-12 h-12 bg-yellow-100 text-yellow-600 flex items-center justify-center rounded-full font-bold">
-                                                SW
+                                        @if($dosenPembimbing)
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-12 h-12 bg-yellow-100 text-yellow-600 flex items-center justify-center rounded-full font-bold">
+                                                    {{ strtoupper(substr($dosenPembimbing->nama, 0, 2)) }}
+                                                </div>
+                                                <div>
+                                                    <p class="font-semibold text-gray-800">{{ $dosenPembimbing->nama }}</p>
+                                                    <p class="text-xs text-gray-500">Pembimbing Utama</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p class="font-semibold text-gray-800">Dr. Sarah Wijaya, S.Kom., M.T.</p>
-                                                <p class="text-xs text-gray-500">Pembimbing Utama</p>
+                                            <div class="space-y-1 text-sm">
+                                                <div class="flex items-center space-x-2 text-gray-600">
+                                                    <i class="fas fa-envelope w-4"></i>
+                                                    <span>{{ optional($dosenPembimbing->user)->email ?? 'N/A' }}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="space-y-1 text-sm">
-                                            <div class="flex items-center space-x-2 text-gray-600">
-                                                <i class="fas fa-envelope w-4"></i>
-                                                <span>sarah.wijaya@isi.ac.id</span>
-                                            </div>
-                                            <div class="flex items-center space-x-2 text-gray-600">
-                                                <i class="fas fa-phone w-4"></i>
-                                                <span>+62 812-3456-7890</span>
-                                            </div>
-                                        </div>
+                                        @else
+                                            <p class="text-sm text-gray-500">Belum ada dosen pembimbing</p>
+                                        @endif
                                         <a href="{{ route('mahasiswa.bimbingan.index') }}" class="w-full mt-3 inline-block text-center px-4 py-2 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 transition">
                                             <i class="fas fa-calendar-alt mr-2"></i>Buat Jadwal Bimbingan
                                         </a>
@@ -119,39 +169,51 @@
                             <div class="bg-white rounded-xl shadow-sm p-6">
                                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Tugas & Deadline Mendatang</h3>
                                 <div class="space-y-3">
-                                    <div class="flex items-center justify-between p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
-                                        <div>
-                                            <p class="font-semibold text-gray-800">Upload Revisi Proposal</p>
-                                            <p class="text-xs text-yellow-700 mt-1">
-                                                <i class="far fa-clock mr-1"></i>Deadline: 25 Mar 2024, 23:59
-                                            </p>
+                                    @forelse($upcomingDeadlines as $deadline)
+                                        <div class="flex items-center justify-between p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+                                            <div>
+                                                <p class="font-semibold text-gray-800">{{ optional($deadline->taProgressStage)->name ?? 'Deadline' }}</p>
+                                                <p class="text-xs text-yellow-700 mt-1">
+                                                    <i class="far fa-clock mr-1"></i>Deadline: {{ $deadline->due_date ? $deadline->due_date->format('d M Y') : 'N/A' }}
+                                                </p>
+                                                @if($deadline->semester)
+                                                    <p class="text-xs text-gray-600 mt-1">{{ $deadline->semester->nama }}</p>
+                                                @endif
+                                            </div>
+                                            @php
+                                                $stage = optional($deadline->taProgressStage);
+                                                $stageCode = $stage->stage_code ?? null;
+                                                $deadlineRoute = route('mahasiswa.proposal.index');
+                                                switch($stageCode) {
+                                                    case 'proposal_submission':
+                                                    case 'proposal_approved':
+                                                        $deadlineRoute = route('mahasiswa.proposal.index');
+                                                        break;
+                                                    case 'bimbingan_progress':
+                                                        $deadlineRoute = route('mahasiswa.bimbingan.index');
+                                                        break;
+                                                    case 'story_conference':
+                                                        $deadlineRoute = route('mahasiswa.story-conference.create');
+                                                        break;
+                                                    case 'production_upload':
+                                                    case 'final_submission':
+                                                        $deadlineRoute = route('mahasiswa.produksi.manage');
+                                                        break;
+                                                    case 'exam_registration':
+                                                    case 'exam_completed':
+                                                        $deadlineRoute = route('mahasiswa.ujian-ta.index');
+                                                        break;
+                                                    default:
+                                                        $deadlineRoute = route('mahasiswa.proposal.index');
+                                                }
+                                            @endphp
+                                            <a href="{{ $deadlineRoute }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
+                                                Lihat
+                                            </a>
                                         </div>
-                                        <a href="{{ route('mahasiswa.proposal.index') }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
-                                            Kerjakan
-                                        </a>
-                                    </div>
-                                    <div class="flex items-center justify-between p-4 bg-yellow-100 border-l-4 border-yellow-600 rounded-lg">
-                                        <div>
-                                            <p class="font-semibold text-gray-800">Pendaftaran Story Conference</p>
-                                            <p class="text-xs text-yellow-700 mt-1">
-                                                <i class="far fa-clock mr-1"></i>Deadline: 30 Mar 2024, 17:00
-                                            </p>
-                                        </div>
-                                        <a href="{{ route('mahasiswa.story-conference.index') }}" class="inline-block px-4 py-2 text-sm font-medium text-gray-800 bg-yellow-400 rounded-lg hover:bg-yellow-500">
-                                            Daftar
-                                        </a>
-                                    </div>
-                                    <div class="flex items-center justify-between p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
-                                        <div>
-                                            <p class="font-semibold text-gray-800">Submit Laporan Bulanan</p>
-                                            <p class="text-xs text-yellow-700 mt-1">
-                                                <i class="far fa-calendar mr-1"></i>Jadwal: 28 Mar 2024, 10:00
-                                            </p>
-                                        </div>
-                                        <a href="{{ route('mahasiswa.bimbingan.index') }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
-                                            Lihat Detail
-                                        </a>
-                                    </div>
+                                    @empty
+                                        <p class="text-sm text-gray-500 py-4 text-center">Tidak ada deadline mendatang</p>
+                                    @endforelse
                                 </div>
                             </div>
                         </div>
@@ -159,43 +221,23 @@
                         <!-- Right Column -->
                         <div class="lg:col-span-1 space-y-6">
                             <div class="bg-white rounded-xl shadow-sm p-6">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Pengumuman Terbaru</h3>
-                                <div class="space-y-3">
-                                    <div class="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
-                                        <p class="font-semibold text-gray-800 text-sm">Jadwal Seminar Proposal</p>
-                                        <p class="text-xs text-gray-600 mt-1">16 September 2024</p>
-                                        <p class="text-xs text-gray-500 mt-1">Dr. Ahmad Rahman</p>
-                                    </div>
-                                    <div class="p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-lg">
-                                        <p class="font-semibold text-gray-800 text-sm">Perpanjangan Deadline</p>
-                                        <p class="text-xs text-gray-600 mt-1">20 September 2024</p>
-                                        <p class="text-xs text-gray-500 mt-1">Prodi Film & TV</p>
-                                    </div>
-                                    <div class="p-4 bg-yellow-200 border-l-4 border-yellow-600 rounded-lg">
-                                        <p class="font-semibold text-gray-800 text-sm">Workshop Produksi</p>
-                                        <p class="text-xs text-gray-600 mt-1">22 September 2024</p>
-                                        <p class="text-xs text-gray-500 mt-1">Studio Production</p>
-                                    </div>
-                                </div>
-                                <button class="mt-4 w-full px-4 py-2 text-sm font-medium text-gray-800 bg-yellow-400 rounded-lg hover:bg-yellow-500 transition">
-                                    Lihat Semua Pengumuman
-                                </button>
-                            </div>
-
-                            <div class="bg-white rounded-xl shadow-sm p-6">
                                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Statistik Cepat</h3>
                                 <div class="space-y-3">
                                     <div class="flex items-center justify-between">
                                         <span class="text-sm text-gray-600">Total Bimbingan</span>
-                                        <span class="text-lg font-bold text-yellow-600">12</span>
+                                        <span class="text-lg font-bold text-yellow-600">{{ $totalBimbingan }}</span>
                                     </div>
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-600">Tugas Selesai</span>
-                                        <span class="text-lg font-bold text-yellow-700">8/10</span>
+                                        <span class="text-sm text-gray-600">Bimbingan Disetujui</span>
+                                        <span class="text-lg font-bold text-green-600">{{ $approvedBimbinganCount ?? 0 }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Bimbingan Menunggu</span>
+                                        <span class="text-lg font-bold text-yellow-600">{{ $pendingBimbinganCount ?? 0 }}</span>
                                     </div>
                                     <div class="flex items-center justify-between">
                                         <span class="text-sm text-gray-600">File Terupload</span>
-                                        <span class="text-lg font-bold text-yellow-500">23</span>
+                                        <span class="text-lg font-bold text-yellow-500">{{ $fileTerupload }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -205,5 +247,12 @@
             </main>
         </div>
     </div>
+    
+    <script>
+        function toggleProgressDetail() {
+            const detail = document.getElementById('progressDetail');
+            detail.classList.toggle('hidden');
+        }
+    </script>
 </body>
 </html>

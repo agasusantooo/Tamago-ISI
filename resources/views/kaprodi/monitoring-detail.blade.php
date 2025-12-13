@@ -22,12 +22,12 @@
                 <p class="text-sm text-gray-500">{{ $mahasiswa->nim }}</p>
                 <p class="text-sm mt-1">Status: 
                     <span class="font-semibold px-2 py-1 text-xs rounded-full 
-                        @if($mahasiswa->status == 'lulus') bg-green-200 text-green-800
-                        @elseif($mahasiswa->status == 'aktif') bg-yellow-200 text-yellow-800
+                        @if(isset($displayStatus) && $displayStatus == 'lulus') bg-green-200 text-green-800
+                        @elseif(isset($displayStatus) && $displayStatus == 'aktif') bg-yellow-200 text-yellow-800
                         @else bg-red-200 text-red-800
                         @endif
                     ">
-                        {{ ucfirst($mahasiswa->status) }}
+                        {{ ucfirst($displayStatus ?? ($mahasiswa->status ?? '')) }}
                     </span>
                 </p>
             </div>

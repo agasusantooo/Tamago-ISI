@@ -5,7 +5,7 @@
             <div>
                 <h1 class="text-lg font-semibold text-gray-700">Koordinator Prodi</h1>
                 <div class="mt-2 mb-1">
-                    <p class="text-xs text-gray-500">Mahasiswa Aktif: <span class="font-semibold text-teal-600"><?php echo e($mahasiswaAktifCount ?? 0); ?></span> | Tugas Review: <span class="font-semibold text-cyan-600"><?php echo e($tugasReview ?? 0); ?></span></p>
+                    <p class="text-xs text-gray-500">Mahasiswa Aktif: <span id="headerMahasiswaAktif" class="font-semibold text-teal-600"><?php echo e($mahasiswaAktifCount ?? 0); ?></span> | Tugas Review: <span id="headerTugasReview" class="font-semibold text-cyan-600"><?php echo e($tugasReview ?? 0); ?></span></p>
                 </div>
                 <div class="h-3"></div>
             </div>

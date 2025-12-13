@@ -19,15 +19,9 @@ class StoryConferenceController extends Controller
      */
     public function index()
     {
-        // $mahasiswa = Auth::user()->mahasiswa;
-        // $history = collect();
-
-        // if ($mahasiswa) {
-        //     $history = StoryConference::where('mahasiswa_nim', $mahasiswa->nim)
-        //         ->orderBy('tanggal_daftar', 'desc')
-        //         ->get();
-        // }
-
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        
         $statusBadges = [
             'menunggu_persetujuan' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Menunggu Persetujuan'],
             'disetujui' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Disetujui'],
@@ -35,48 +29,26 @@ class StoryConferenceController extends Controller
             'selesai' => ['class' => 'bg-blue-100 text-blue-800', 'text' => 'Selesai'],
         ];
 
-        $dummyHistory = collect([
-            (object)[
-                'id' => 1,
-                'judul_karya' => 'Membangun Karakter Melalui Film Animasi Stop Motion',
-                'tanggal_daftar' => \Carbon\Carbon::parse('2024-11-20'),
-                'slot_waktu' => '18 Desember 2024 - 09:00-15:00',
-                'status' => 'disetujui',
-                'statusBadge' => $statusBadges['disetujui'],
-            ],
-            (object)[
-                'id' => 2,
-                'judul_karya' => 'Analisis Visual dalam Video Musik Kontemporer',
-                'tanggal_daftar' => \Carbon\Carbon::parse('2024-11-15'),
-                'slot_waktu' => '18 Desember 2024 - 09:00-15:00',
-                'status' => 'menunggu_persetujuan',
-                'statusBadge' => $statusBadges['menunggu_persetujuan'],
-            ],
-            (object)[
-                'id' => 3,
-                'judul_karya' => 'Penggunaan CGI dalam Film Fiksi Ilmiah Indonesia',
-                'tanggal_daftar' => \Carbon\Carbon::parse('2024-11-10'),
-                'slot_waktu' => '18 Desember 2024 - 09:00-15:00',
-                'status' => 'ditolak',
-                'statusBadge' => $statusBadges['ditolak'],
-            ],
-            (object)[
-                'id' => 4,
-                'judul_karya' => 'Narasi Interaktif dalam Game Edukasi',
-                'tanggal_daftar' => \Carbon\Carbon::parse('2024-11-05'),
-                'slot_waktu' => '18 Desember 2024 - 09:00-15:00',
-                'status' => 'selesai',
-                'statusBadge' => $statusBadges['selesai'],
-            ],
-        ]);
-        $history = $dummyHistory;
+        // Ambil story conference history dari database
+        $history = collect();
+        if ($mahasiswa) {
+            $storyConferences = StoryConference::where('mahasiswa_nim', $mahasiswa->nim)
+                ->orderBy('tanggal_daftar', 'desc')
+                ->get();
+            
+            $history = $storyConferences->map(function($sc) use ($statusBadges) {
+                $sc->statusBadge = $statusBadges[$sc->status] ?? $statusBadges['menunggu_persetujuan'];
+                return $sc;
+            });
+        }
 
         $jadwalStoryConference = [
             [
                 'jenis' => 'Story Conference',
                 'tanggal_mulai' => Carbon::parse('2024-12-18')->format('d M Y'),
                 'tanggal_akhir' => Carbon::parse('2024-12-20')->format('d M Y'),
-                'waktu' => '09:00 - 15:00 WIB', // Keep waktu for potential future use or more detailed display if needed
+                'tanggal' => Carbon::parse('2024-12-18')->format('d M Y'),
+                'waktu' => '09:00 - 15:00 WIB',
                 'tempat' => 'Ruang Diskusi Kreatif',
                 'deskripsi' => 'Sesi diskusi dan review ide cerita, skenario, dan konsep visual untuk proyek tugas akhir. Setiap mahasiswa akan mempresentasikan draf awal karyanya.',
                 'persyaratan' => [
@@ -116,12 +88,32 @@ class StoryConferenceController extends Controller
             ->where('proposal_id', $proposal->id)
             ->first();
         
+        // Data jadwal story conference
+        $jadwalStoryConference = [
+            [
+                'jenis' => 'Story Conference',
+                'tanggal_mulai' => Carbon::parse('2024-12-18')->format('d M Y'),
+                'tanggal_akhir' => Carbon::parse('2024-12-20')->format('d M Y'),
+                'tanggal' => Carbon::parse('2024-12-18')->format('d M Y'),
+                'waktu' => '09:00 - 15:00 WIB',
+                'tempat' => 'Ruang Diskusi Kreatif',
+                'deskripsi' => 'Sesi diskusi dan review ide cerita, skenario, dan konsep visual untuk proyek tugas akhir. Setiap mahasiswa akan mempresentasikan draf awal karyanya.',
+                'persyaratan' => [
+                    'Proposal tugas akhir telah disetujui oleh pembimbing.',
+                    'Menyiapkan draf skenario atau naskah awal.',
+                    'Menyiapkan materi presentasi konsep (moodboard, referensi visual, dll).'
+                ],
+                'bg_color' => 'bg-purple-50',
+                'border_color' => 'border-purple-500'
+            ]
+        ];
+        
         if ($proposal->status !== 'disetujui') {
-            return view('mahasiswa.story-conference.create', compact('proposal', 'storyConference'))
+            return view('mahasiswa.story-conference.create', compact('proposal', 'storyConference', 'jadwalStoryConference'))
                 ->with('error', 'Proposal Anda belum disetujui. Silakan cek status proposal atau hubungi pembimbing.');
         }
 
-        return view('mahasiswa.story-conference.create', compact('proposal', 'storyConference'));
+        return view('mahasiswa.story-conference.create', compact('proposal', 'storyConference', 'jadwalStoryConference'));
     }
 
     /**

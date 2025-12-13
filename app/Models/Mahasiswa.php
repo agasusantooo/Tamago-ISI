@@ -33,7 +33,10 @@ class Mahasiswa extends Model
 
     public function projekAkhir()
     {
-        return $this->hasOne(ProjekAkhir::class, 'mahasiswa_id', 'id');
+        // projek_akhir.mahasiswa_id menyimpan `users.id`, sedangkan model Mahasiswa
+        // menyimpan kolom `user_id` yang mengacu ke users.id. Gunakan user_id
+        // sebagai local key agar relasi bekerja dengan benar.
+        return $this->hasOne(ProjekAkhir::class, 'mahasiswa_id', 'user_id');
     }
 
         // Relasi ke dosen pembimbing

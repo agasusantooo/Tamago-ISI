@@ -12,18 +12,32 @@ class TefaFairController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        
         $statusBadges = [
             'menunggu_review' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Menunggu Review'],
             'disetujui' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Disetujui'],
             'ditolak' => ['class' => 'bg-red-100 text-red-800', 'text' => 'Ditolak'],
         ];
 
-        $dummyHistory = collect([
-            (object)['id_tefa' => 1, 'semester' => 'Genap 2023/2024', 'status' => 'disetujui', 'statusBadge' => $statusBadges['disetujui']],
-            (object)['id_tefa' => 2, 'semester' => 'Gasal 2024/2025', 'status' => 'menunggu_review', 'statusBadge' => $statusBadges['menunggu_review']],
-            (object)['id_tefa' => 3, 'semester' => 'Gasal 2023/2024', 'status' => 'ditolak', 'statusBadge' => $statusBadges['ditolak']],
-        ]);
-        $history = $dummyHistory;
+        // Ambil TEFA Fair history dari database
+        // Query by nim first, then fallback to all tefas if needed
+        $history = collect();
+        
+        if ($mahasiswa && $mahasiswa->nim) {
+            $tefaFairs = TefaFair::where('mahasiswa_nim', $mahasiswa->nim)
+                ->orderBy('created_at', 'desc')
+                ->get();
+            
+            $history = $tefaFairs->map(function($tefa) use ($statusBadges) {
+                $tefa->statusBadge = $statusBadges[$tefa->status] ?? $statusBadges['menunggu_review'];
+                // Add judul_proyek placeholder (since tefa_fair doesn't store it, use semester as display)
+                $tefa->judul_proyek = $tefa->semester ?? 'Tefa Fair';
+                return $tefa;
+            });
+        }
+        
 
         $jadwalTefaFair = [
             [
@@ -47,16 +61,97 @@ class TefaFairController extends Controller
 
     public function create()
     {
-        // Using dummy data for demonstration
-        $projekAkhir = (object)['id_proyek_akhir' => 1]; // Dummy object to pass the check in the view
-        $tefaFair = null; // Assume no current registration for the form
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        
+        if (!$mahasiswa) {
+            return redirect()->route('mahasiswa.proposal.index')
+                ->with('error', 'Profil mahasiswa tidak ditemukan.');
+        }
+
+        // Ambil projek akhir mahasiswa dari database
+        $projekAkhir = ProjekAkhir::where('mahasiswa_id', $mahasiswa->id)
+            ->orWhere('nim', $mahasiswa->nim)
+            ->first();
+
+        if (!$projekAkhir) {
+            return redirect()->route('mahasiswa.tefa-fair.index')
+                ->with('error', 'Anda belum memiliki proyek akhir. Silakan selesaikan tahap produksi terlebih dahulu.');
+        }
+
+        // Cek apakah sudah terdaftar
+        $tefaFair = TefaFair::where('mahasiswa_nim', $mahasiswa->nim)
+            ->where('proposal_id', $projekAkhir->proposal_id)
+            ->first();
 
         return view('mahasiswa.tefa-fair.create', compact('projekAkhir', 'tefaFair'));
     }
 
     public function store(Request $request)
     {
-        // Logic to store Tefa Fair data will be implemented here later.
-        return redirect()->route('mahasiswa.tefa-fair.index')->with('success', 'Data Tefa Fair berhasil disimpan!');
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        
+        if (!$mahasiswa) {
+            return back()->with('error', 'Data mahasiswa tidak ditemukan.');
+        }
+
+        // The TEFA Fair form uses fields: semester, daftar_kebutuhan, file_presentasi
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'semester' => 'required|string|max:255',
+            'daftar_kebutuhan' => 'required|string|min:5',
+            'file_presentasi' => 'nullable|file|mimes:pdf,ppt,pptx|max:20480', // 20 MB
+        ], [
+            'semester.required' => 'Semester wajib diisi',
+            'daftar_kebutuhan.required' => 'Daftar kebutuhan pameran wajib diisi',
+            'file_presentasi.mimes' => 'File presentasi harus berformat PDF atau PPT',
+            'file_presentasi.max' => 'File presentasi maksimal 20 MB',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        try {
+            $projekAkhir = ProjekAkhir::where('mahasiswa_id', $mahasiswa->id)
+                ->orWhere('nim', $mahasiswa->nim)
+                ->first();
+
+            if (!$projekAkhir) {
+                return back()->with('error', 'Proyek akhir tidak ditemukan.');
+            }
+
+            // Handle file presentasi (slides/poster)
+            $filePath = null;
+            if ($request->hasFile('file_presentasi')) {
+                $file = $request->file('file_presentasi');
+                $fileName = 'tefa_presentasi_' . time() . '.' . $file->getClientOriginalExtension();
+                $filePath = $file->storeAs(
+                    'tefa-fair/' . $mahasiswa->nim,
+                    $fileName,
+                    'public'
+                );
+            }
+
+            // Get existing record to preserve file path if no new upload
+            $existing = TefaFair::where('mahasiswa_nim', $mahasiswa->nim)->first();
+
+            // Save or update TEFA Fair (match by mahasiswa_nim only)
+            TefaFair::updateOrCreate(
+                ['mahasiswa_nim' => $mahasiswa->nim],
+                [
+                    'mahasiswa_nim' => $mahasiswa->nim,
+                    'semester' => $request->input('semester'),
+                    'daftar_kebutuhan' => $request->input('daftar_kebutuhan'),
+                    'file_presentasi' => $filePath ?: ($existing->file_presentasi ?? null),
+                    'status' => 'menunggu_review',
+                ]
+            );
+
+            return redirect()->route('mahasiswa.tefa-fair.index')
+                ->with('success', 'Pendaftaran TEFA Fair berhasil disimpan!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+        }
     }
 }

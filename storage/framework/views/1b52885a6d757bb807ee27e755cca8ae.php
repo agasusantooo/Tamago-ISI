@@ -182,6 +182,7 @@
                                         function submitProposalForm() {
                                             const form = document.getElementById('proposalModalForm');
                                             const submitBtn = document.querySelector('#proposalModalForm button[type="button"]');
+                                            if (submitBtn.disabled) return;
                                             submitBtn.disabled = true;
                                             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
 
@@ -302,10 +303,8 @@
                             </div>
 
                             <!-- Tab: Monitoring -->
-                            <div id="monitoring-tab" class="tab-content hidden">
-
-                            <!-- Riwayat Bimbingan table -->
-                            <div class="bg-white rounded-xl shadow-sm p-6">
+                            <div id="monitoring-tab" class="tab-content hidden bg-white rounded-xl shadow-sm p-6 mb-6">
+                                <!-- Riwayat Bimbingan table -->
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-blue-800">Riwayat Bimbingan</h3>
                                     <span class="text-sm text-gray-500"><?php echo e(count($mahasiswa->riwayat_bimbingan ?? [])); ?> Pertemuan</span>
@@ -356,8 +355,6 @@
                                 </div>
                             </div>
 
-                        </div>
-
                             <!-- Tab: Produksi -->
                             <div id="produksi-tab" class="tab-content hidden bg-white rounded-xl shadow-sm p-6 mb-6">
                                 <h3 class="text-lg font-semibold text-blue-800 mb-4">Persetujuan Produksi</h3>
@@ -369,40 +366,40 @@
                                     <div class="space-y-6">
                                         <?php $__currentLoopData = $produksiList; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $prod): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <!-- Pra Produksi Section -->
-                                            <?php if($prod['file_skenario'] || $prod['file_storyboard'] || $prod['file_dokumen_pendukung']): ?>
-                                                <div class="border rounded-lg p-4 bg-gray-50">
+                                            <?php if(data_get($prod, 'file_skenario') || data_get($prod, 'file_storyboard') || data_get($prod, 'file_dokumen_pendukung')): ?>
+                                                <div class="border rounded-lg p-4 bg-gray-50" data-produksi-id="<?php echo e(data_get($prod, 'id')); ?>" data-type="pra">
                                                     <div class="flex items-start justify-between mb-4">
                                                         <div>
                                                             <h4 class="font-semibold text-gray-800 flex items-center">
                                                                 <i class="fas fa-film text-blue-600 mr-2"></i>Pra Produksi
                                                             </h4>
-                                                            <p class="text-xs text-gray-500 mt-1">Tanggal Upload: <?php echo e($prod['tanggal_upload_pra'] ?? '-'); ?></p>
+                                                            <p class="text-xs text-gray-500 mt-1">Tanggal Upload: <?php echo e(data_get($prod, 'tanggal_upload_pra') ?? '-'); ?></p>
                                                         </div>
-                                                        <span class="px-3 py-1 rounded-full text-xs font-semibold 
-                                                            <?php if($prod['status_pra_produksi'] === 'disetujui'): ?> bg-green-100 text-green-800
-                                                            <?php elseif($prod['status_pra_produksi'] === 'revisi'): ?> bg-orange-100 text-orange-800
-                                                            <?php elseif($prod['status_pra_produksi'] === 'ditolak'): ?> bg-red-100 text-red-800
+                                                        <span class="status-badge px-3 py-1 rounded-full text-xs font-semibold 
+                                                            <?php if(data_get($prod, 'status_pra_produksi') === 'disetujui'): ?> bg-green-100 text-green-800
+                                                            <?php elseif(data_get($prod, 'status_pra_produksi') === 'revisi'): ?> bg-orange-100 text-orange-800
+                                                            <?php elseif(data_get($prod, 'status_pra_produksi') === 'ditolak'): ?> bg-red-100 text-red-800
                                                             <?php else: ?> bg-yellow-100 text-yellow-800 <?php endif; ?>">
-                                                            <?php echo e(ucfirst(str_replace('_', ' ', $prod['status_pra_produksi'] ?? 'menunggu_review'))); ?>
+                                                            <?php echo e(ucfirst(str_replace('_', ' ', data_get($prod, 'status_pra_produksi') ?? 'menunggu_review'))); ?>
 
                                                         </span>
                                                     </div>
 
                                                     <!-- Files List -->
                                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                                                        <?php if($prod['file_skenario']): ?>
+                                                        <?php if(data_get($prod, 'file_skenario')): ?>
                                                             <div class="flex items-center p-2 bg-white rounded border border-gray-200">
                                                                 <i class="fas fa-file-pdf text-red-500 mr-2"></i>
                                                                 <span class="text-xs text-gray-700">File Skenario</span>
                                                             </div>
                                                         <?php endif; ?>
-                                                        <?php if($prod['file_storyboard']): ?>
+                                                        <?php if(data_get($prod, 'file_storyboard')): ?>
                                                             <div class="flex items-center p-2 bg-white rounded border border-gray-200">
                                                                 <i class="fas fa-images text-green-500 mr-2"></i>
                                                                 <span class="text-xs text-gray-700">File Storyboard</span>
                                                             </div>
                                                         <?php endif; ?>
-                                                        <?php if($prod['file_dokumen_pendukung']): ?>
+                                                        <?php if(data_get($prod, 'file_dokumen_pendukung')): ?>
                                                             <div class="flex items-center p-2 bg-white rounded border border-gray-200">
                                                                 <i class="fas fa-file text-blue-500 mr-2"></i>
                                                                 <span class="text-xs text-gray-700">Dokumen Pendukung</span>
@@ -411,39 +408,44 @@
                                                     </div>
 
                                                     <!-- Feedback -->
-                                                    <?php if($prod['feedback_pra_produksi']): ?>
-                                                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
-                                                            <p class="text-xs font-semibold text-yellow-900 mb-1">💬 Feedback Dosen:</p>
-                                                            <p class="text-sm text-gray-700"><?php echo e($prod['feedback_pra_produksi']); ?></p>
-                                                        </div>
-                                                    <?php endif; ?>
+                                                    <div class="feedback-container">
+                                                        <?php if(data_get($prod, 'feedback_pra_produksi')): ?>
+                                                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
+                                                                <p class="text-xs font-semibold text-yellow-900 mb-1">💬 Feedback Dosen:</p>
+                                                                <p class="text-sm text-gray-700"><?php echo e(data_get($prod, 'feedback_pra_produksi')); ?></p>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
 
                                                     <!-- Action Button -->
-                                                    <?php if($prod['status_pra_produksi'] === 'menunggu_review'): ?>
-                                                        <button type="button" onclick="openProduksiModal(<?php echo e($prod['id']); ?>, 'pra')"
-                                                            class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                                                    <?php if(data_get($prod, 'status_pra_produksi') === 'menunggu_review'): ?>
+                                                        <button type="button" class="action-btn px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700" onclick="openProduksiModal(<?php echo e(data_get($prod, 'id')); ?>, 'pra')">
+                                                            <i class="fas fa-check mr-1"></i>Review & Feedback
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <button type="button" class="action-btn px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 hidden" onclick="openProduksiModal(<?php echo e(data_get($prod, 'id')); ?>, 'pra')">
                                                             <i class="fas fa-check mr-1"></i>Review & Feedback
                                                         </button>
                                                     <?php endif; ?>
                                                 </div>
                                             <?php endif; ?>
 
-                                            <!-- Produksi Akhir Section -->
-                                            <?php if($prod['file_produksi_akhir']): ?>
-                                                <div class="border rounded-lg p-4 bg-gray-50 mt-4">
+                                            <!-- Produksi Section (Middle Stage) -->
+                                            <?php if(data_get($prod, 'file_produksi')): ?>
+                                                <div class="border rounded-lg p-4 bg-gray-50 mt-4" data-produksi-id="<?php echo e(data_get($prod, 'id')); ?>" data-type="produksi">
                                                     <div class="flex items-start justify-between mb-4">
                                                         <div>
                                                             <h4 class="font-semibold text-gray-800 flex items-center">
-                                                                <i class="fas fa-video text-purple-600 mr-2"></i>Produksi Akhir
+                                                                <i class="fas fa-video text-purple-600 mr-2"></i>Produksi
                                                             </h4>
-                                                            <p class="text-xs text-gray-500 mt-1">Tanggal Upload: <?php echo e($prod['tanggal_upload_akhir'] ?? '-'); ?></p>
+                                                            <p class="text-xs text-gray-500 mt-1">Tanggal Upload: <?php echo e(data_get($prod, 'tanggal_upload_produksi') ?? '-'); ?></p>
                                                         </div>
-                                                        <span class="px-3 py-1 rounded-full text-xs font-semibold 
-                                                            <?php if($prod['status_produksi_akhir'] === 'disetujui'): ?> bg-green-100 text-green-800
-                                                            <?php elseif($prod['status_produksi_akhir'] === 'revisi'): ?> bg-orange-100 text-orange-800
-                                                            <?php elseif($prod['status_produksi_akhir'] === 'ditolak'): ?> bg-red-100 text-red-800
+                                                        <span class="status-badge px-3 py-1 rounded-full text-xs font-semibold 
+                                                            <?php if(data_get($prod, 'status_produksi') === 'disetujui'): ?> bg-green-100 text-green-800
+                                                            <?php elseif(data_get($prod, 'status_produksi') === 'revisi'): ?> bg-orange-100 text-orange-800
+                                                            <?php elseif(data_get($prod, 'status_produksi') === 'ditolak'): ?> bg-red-100 text-red-800
                                                             <?php else: ?> bg-yellow-100 text-yellow-800 <?php endif; ?>">
-                                                            <?php echo e(ucfirst(str_replace('_', ' ', $prod['status_produksi_akhir'] ?? 'menunggu_review'))); ?>
+                                                            <?php echo e(ucfirst(str_replace('_', ' ', data_get($prod, 'status_produksi') ?? 'menunggu_review'))); ?>
 
                                                         </span>
                                                     </div>
@@ -451,21 +453,75 @@
                                                     <!-- File -->
                                                     <div class="flex items-center p-3 bg-white rounded border border-gray-200 mb-4">
                                                         <i class="fas fa-file-video text-purple-500 mr-2"></i>
-                                                        <span class="text-sm text-gray-700">File Karya Final</span>
+                                                        <span class="text-sm text-gray-700">File Karya Produksi</span>
                                                     </div>
 
                                                     <!-- Feedback -->
-                                                    <?php if($prod['feedback_produksi_akhir']): ?>
-                                                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
-                                                            <p class="text-xs font-semibold text-yellow-900 mb-1">💬 Feedback Dosen:</p>
-                                                            <p class="text-sm text-gray-700"><?php echo e($prod['feedback_produksi_akhir']); ?></p>
-                                                        </div>
-                                                    <?php endif; ?>
+                                                    <div class="feedback-container">
+                                                        <?php if(data_get($prod, 'feedback_produksi')): ?>
+                                                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
+                                                                <p class="text-xs font-semibold text-yellow-900 mb-1">💬 Feedback Dosen:</p>
+                                                                <p class="text-sm text-gray-700"><?php echo e(data_get($prod, 'feedback_produksi')); ?></p>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
 
                                                     <!-- Action Button -->
-                                                    <?php if($prod['status_produksi_akhir'] === 'menunggu_review'): ?>
-                                                        <button type="button" onclick="openProduksiModal(<?php echo e($prod['id']); ?>, 'akhir')"
-                                                            class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                                                    <?php if(data_get($prod, 'status_produksi') === 'menunggu_review'): ?>
+                                                        <button type="button" class="action-btn px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700" onclick="openProduksiModal(<?php echo e(data_get($prod, 'id')); ?>, 'produksi')">
+                                                            <i class="fas fa-check mr-1"></i>Review & Feedback
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <button type="button" class="action-btn px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 hidden" onclick="openProduksiModal(<?php echo e(data_get($prod, 'id')); ?>, 'produksi')">
+                                                            <i class="fas fa-check mr-1"></i>Review & Feedback
+                                                        </button>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <!-- Pasca Produksi Section (Final Stage) -->
+                                            <?php if(data_get($prod, 'file_pasca_produksi') || data_get($prod, 'status_pasca_produksi') !== 'belum_upload'): ?>
+                                                <div class="border rounded-lg p-4 bg-gray-50 mt-4" data-produksi-id="<?php echo e(data_get($prod, 'id')); ?>" data-type="pasca">
+                                                    <div class="flex items-start justify-between mb-4">
+                                                        <div>
+                                                            <h4 class="font-semibold text-gray-800 flex items-center">
+                                                                <i class="fas fa-check-circle text-green-600 mr-2"></i>Pasca Produksi
+                                                            </h4>
+                                                            <p class="text-xs text-gray-500 mt-1">Tanggal Upload: <?php echo e(data_get($prod, 'tanggal_upload_pasca') ?? '-'); ?></p>
+                                                        </div>
+                                                        <span class="status-badge px-3 py-1 rounded-full text-xs font-semibold 
+                                                            <?php if(data_get($prod, 'status_pasca_produksi') === 'disetujui'): ?> bg-green-100 text-green-800
+                                                            <?php elseif(data_get($prod, 'status_pasca_produksi') === 'revisi'): ?> bg-orange-100 text-orange-800
+                                                            <?php elseif(data_get($prod, 'status_pasca_produksi') === 'ditolak'): ?> bg-red-100 text-red-800
+                                                            <?php else: ?> bg-yellow-100 text-yellow-800 <?php endif; ?>">
+                                                            <?php echo e(ucfirst(str_replace('_', ' ', data_get($prod, 'status_pasca_produksi') ?? 'belum_upload'))); ?>
+
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- File -->
+                                                    <div class="flex items-center p-3 bg-white rounded border border-gray-200 mb-4">
+                                                        <i class="fas fa-file-video text-green-500 mr-2"></i>
+                                                        <span class="text-sm text-gray-700">File Pasca Produksi</span>
+                                                    </div>
+
+                                                    <!-- Feedback -->
+                                                    <div class="feedback-container">
+                                                        <?php if(data_get($prod, 'feedback_pasca_produksi')): ?>
+                                                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-4">
+                                                                <p class="text-xs font-semibold text-yellow-900 mb-1">💬 Feedback Dosen:</p>
+                                                                <p class="text-sm text-gray-700"><?php echo e(data_get($prod, 'feedback_pasca_produksi')); ?></p>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+
+                                                    <!-- Action Button -->
+                                                    <?php if(data_get($prod, 'status_pasca_produksi') === 'menunggu_review'): ?>
+                                                        <button type="button" class="action-btn px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700" onclick="openProduksiModal(<?php echo e(data_get($prod, 'id')); ?>, 'pasca')">
+                                                            <i class="fas fa-check mr-1"></i>Review & Feedback
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <button type="button" class="action-btn px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 hidden" onclick="openProduksiModal(<?php echo e(data_get($prod, 'id')); ?>, 'pasca')">
                                                             <i class="fas fa-check mr-1"></i>Review & Feedback
                                                         </button>
                                                     <?php endif; ?>
@@ -488,7 +544,6 @@
             </main>
         </div>
     </div>
-</body>
 <script>
     let currentProduksiId = null;
     let currentProduksiType = null; // 'pra' atau 'akhir'
@@ -500,9 +555,14 @@
         const title = document.getElementById('produksiModalTitle');
         const form = document.getElementById('produksiModalForm');
         
-        title.textContent = type === 'pra' 
-            ? 'Review Pra Produksi' 
-            : 'Review Produksi Akhir';
+        // Determine title based on stage type
+        const titles = {
+            'pra': 'Review Pra Produksi',
+            'produksi': 'Review Produksi',
+            'pasca': 'Review Pasca Produksi'
+        };
+        
+        title.textContent = titles[type] || 'Review Produksi';
         
         form.reset();
         modal.classList.remove('hidden');
@@ -527,9 +587,9 @@
             return;
         }
 
-        // Feedback adalah opsional untuk status approved, tapi wajib untuk revisi dan ditolak
+        // Feedback wajib hanya untuk status revisi/ditolak — opsional untuk 'disetujui'
         if (status !== 'disetujui' && (!feedback.trim() || feedback.length < 5)) {
-            alert('⚠️ Feedback minimal 5 karakter untuk status revisi/ditolak!');
+            alert('⚠️ Feedback wajib diisi minimal 5 karakter untuk status revisi/ditolak!');
             return;
         }
 
@@ -538,10 +598,18 @@
             return;
         }
 
-        // Tentukan URL berdasarkan type
-        const baseUrl = currentProduksiType === 'pra'
-            ? '<?php echo e(route("dospem.produksi.pra-produksi", ["id" => "PLACEHOLDER"])); ?>'
-            : '<?php echo e(route("dospem.produksi.produksi-akhir", ["id" => "PLACEHOLDER"])); ?>';
+        // Tentukan URL berdasarkan stage type
+        const routeMap = {
+            'pra': '<?php echo e(route("dospem.produksi.pra-produksi", ["id" => "PLACEHOLDER"])); ?>',
+            'produksi': '<?php echo e(route("dospem.produksi.produksi", ["id" => "PLACEHOLDER"])); ?>',
+            'pasca': '<?php echo e(route("dospem.produksi.pasca-produksi", ["id" => "PLACEHOLDER"])); ?>'
+        };
+        
+        const baseUrl = routeMap[currentProduksiType];
+        if (!baseUrl) {
+            alert('❌ Error: Tipe produksi tidak valid.');
+            return;
+        }
         
         const url = baseUrl.replace('PLACEHOLDER', currentProduksiId);
         const submitBtn = this.querySelector('button[type="submit"]');
@@ -563,9 +631,10 @@
         .then(res => res.json())
         .then(data => {
             if (data && (data.status === 'success' || data.success)) {
-                alert('✅ ' + (data.message || 'Feedback berhasil dikirim!'));
+                alert(data.message);
                 closeProduksiModal();
-                setTimeout(() => location.reload(), 1000);
+                // Real-time update: fetch latest data dari server
+                refreshProduksiData();
             } else {
                 alert('❌ ' + (data.message || 'Terjadi kesalahan.'));
                 submitBtn.disabled = false;
@@ -579,6 +648,155 @@
             submitBtn.innerHTML = '<i class="fas fa-check"></i> Kirim Feedback';
         });
     });
+
+    /**
+     * Real-time update produksi data
+     */
+    function refreshProduksiData() {
+        const mahasiswaId = '<?php echo e($mahasiswa->user_id ?? 0); ?>';
+        const url = '<?php echo e(route("dospem.produksi.mahasiswa-data", ["mahasiswaId" => "PLACEHOLDER"])); ?>'.replace('PLACEHOLDER', mahasiswaId);
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.status === 'success' && data.data) {
+                updateProduksiUI(data.data);
+                console.log('✅ Produksi data refreshed');
+            }
+        })
+        .catch(err => console.error('Error refreshing data:', err));
+    }
+
+    /**
+     * Update UI dengan data produksi terbaru (3 stages)
+     */
+    function updateProduksiUI(produksiList) {
+        if (!Array.isArray(produksiList)) return;
+
+        produksiList.forEach(prod => {
+            // ====== PRA PRODUKSI ======
+            const praBadge = document.querySelector(`[data-produksi-id="${prod.id}"][data-type="pra"] .status-badge`);
+            if (praBadge) {
+                praBadge.textContent = ucWords(prod.status_pra_produksi.replace(/_/g, ' '));
+                praBadge.className = `status-badge px-3 py-1 rounded-full text-xs font-semibold 
+                    ${prod.status_pra_produksi === 'disetujui' ? 'bg-green-100 text-green-800' : 
+                      prod.status_pra_produksi === 'revisi' ? 'bg-orange-100 text-orange-800' : 
+                      prod.status_pra_produksi === 'ditolak' ? 'bg-red-100 text-red-800' : 
+                      'bg-yellow-100 text-yellow-800'}`;
+            }
+
+            // Update feedback pra produksi
+            const praFeedbackContainer = document.querySelector(`[data-produksi-id="${prod.id}"][data-type="pra"] .feedback-container`);
+            if (praFeedbackContainer) {
+                if (prod.feedback_pra_produksi) {
+                    praFeedbackContainer.innerHTML = `
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                            <p class="text-xs font-semibold text-yellow-900 mb-1">💬 Feedback Dosen:</p>
+                            <p class="text-sm text-gray-700">${prod.feedback_pra_produksi}</p>
+                        </div>
+                    `;
+                } else {
+                    praFeedbackContainer.innerHTML = '';
+                }
+            }
+
+            // Update button pra produksi
+            const praBtn = document.querySelector(`[data-produksi-id="${prod.id}"][data-type="pra"] .action-btn`);
+            if (praBtn) {
+                if (prod.status_pra_produksi === 'menunggu_review') {
+                    praBtn.style.display = 'inline-block';
+                } else {
+                    praBtn.style.display = 'none';
+                }
+            }
+
+            // ====== PRODUKSI (Middle Stage) ======
+            const produksiBadge = document.querySelector(`[data-produksi-id="${prod.id}"][data-type="produksi"] .status-badge`);
+            if (produksiBadge) {
+                produksiBadge.textContent = ucWords(prod.status_produksi.replace(/_/g, ' '));
+                produksiBadge.className = `status-badge px-3 py-1 rounded-full text-xs font-semibold 
+                    ${prod.status_produksi === 'disetujui' ? 'bg-green-100 text-green-800' : 
+                      prod.status_produksi === 'revisi' ? 'bg-orange-100 text-orange-800' : 
+                      prod.status_produksi === 'ditolak' ? 'bg-red-100 text-red-800' : 
+                      'bg-yellow-100 text-yellow-800'}`;
+            }
+
+            // Update feedback produksi
+            const produksiFeedbackContainer = document.querySelector(`[data-produksi-id="${prod.id}"][data-type="produksi"] .feedback-container`);
+            if (produksiFeedbackContainer) {
+                if (prod.feedback_produksi) {
+                    produksiFeedbackContainer.innerHTML = `
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                            <p class="text-xs font-semibold text-yellow-900 mb-1">💬 Feedback Dosen:</p>
+                            <p class="text-sm text-gray-700">${prod.feedback_produksi}</p>
+                        </div>
+                    `;
+                } else {
+                    produksiFeedbackContainer.innerHTML = '';
+                }
+            }
+
+            // Update button produksi
+            const produksiBtn = document.querySelector(`[data-produksi-id="${prod.id}"][data-type="produksi"] .action-btn`);
+            if (produksiBtn) {
+                if (prod.status_produksi === 'menunggu_review') {
+                    produksiBtn.style.display = 'inline-block';
+                } else {
+                    produksiBtn.style.display = 'none';
+                }
+            }
+
+            // ====== PASCA PRODUKSI (Final Stage) ======
+            const pascaBadge = document.querySelector(`[data-produksi-id="${prod.id}"][data-type="pasca"] .status-badge`);
+            if (pascaBadge) {
+                pascaBadge.textContent = ucWords(prod.status_pasca_produksi.replace(/_/g, ' '));
+                pascaBadge.className = `status-badge px-3 py-1 rounded-full text-xs font-semibold 
+                    ${prod.status_pasca_produksi === 'disetujui' ? 'bg-green-100 text-green-800' : 
+                      prod.status_pasca_produksi === 'revisi' ? 'bg-orange-100 text-orange-800' : 
+                      prod.status_pasca_produksi === 'ditolak' ? 'bg-red-100 text-red-800' : 
+                      'bg-yellow-100 text-yellow-800'}`;
+            }
+
+            // Update feedback pasca produksi
+            const pascaFeedbackContainer = document.querySelector(`[data-produksi-id="${prod.id}"][data-type="pasca"] .feedback-container`);
+            if (pascaFeedbackContainer) {
+                if (prod.feedback_pasca_produksi) {
+                    pascaFeedbackContainer.innerHTML = `
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                            <p class="text-xs font-semibold text-yellow-900 mb-1">💬 Feedback Dosen:</p>
+                            <p class="text-sm text-gray-700">${prod.feedback_pasca_produksi}</p>
+                        </div>
+                    `;
+                } else {
+                    pascaFeedbackContainer.innerHTML = '';
+                }
+            }
+
+            // Update button pasca produksi
+            const pascaBtn = document.querySelector(`[data-produksi-id="${prod.id}"][data-type="pasca"] .action-btn`);
+            if (pascaBtn) {
+                if (prod.status_pasca_produksi === 'menunggu_review') {
+                    pascaBtn.style.display = 'inline-block';
+                } else {
+                    pascaBtn.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    /**
+     * Helper: capitalize words
+     */
+    function ucWords(str) {
+        return str.replace(/\b\w/g, function(char) {
+            return char.toUpperCase();
+        });
+    }
 
     // Close modal when clicking outside
     document.getElementById('produksiModal')?.addEventListener('click', function(e) {
@@ -709,7 +927,7 @@
 
             <!-- Feedback -->
             <div class="mb-6">
-                <label class="text-sm font-bold text-gray-700 mb-2 block">Feedback & Catatan <span class="text-red-500">(Opsional untuk approve)</span></label>
+                <label class="text-sm font-bold text-gray-700 mb-2 block">Feedback & Catatan <span class="text-red-500">(Wajib)</span></label>
                 <textarea 
                     name="produksi_feedback" 
                     rows="4" 
@@ -740,5 +958,6 @@
 <!-- Include Modal Component -->
 <?php echo $__env->make('dospem.modals.acc-bimbingan-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
+</body>
 </html>
 <?php /**PATH D:\C\Tamago-ISI\resources\views/dospem/detail-mahasiswa.blade.php ENDPATH**/ ?>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Review Progress - Tamago ISI</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- Alpine.js --}}
@@ -19,8 +20,18 @@
 
             <main class="flex-1 overflow-y-auto p-6" x-data="reviewModal()">
                 <div class="max-w-7xl mx-auto">
+                    <!-- Header Info -->
+                    <div class="mb-6 bg-white rounded-xl shadow-sm p-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold text-blue-800">Review Tugas Mahasiswa</h2>
+                                <p class="text-sm text-gray-600 mt-1">Mahasiswa Aktif: <span id="dospemMahasiswaAktif" class="font-semibold">{{ $mahasiswaAktifCount ?? 0 }}</span> | Tugas Review: <span id="dospemTugasReview" class="font-semibold">{{ $tugasReview ?? 0 }}</span></p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="bg-white rounded-xl shadow-sm p-6">
-                        <h3 class="text-lg font-semibold text-blue-800 mb-4">Tugas Mahasiswa untuk Direview</h3>
+                        <h3 class="text-lg font-semibold text-blue-800 mb-4">Tugas untuk Direview</h3>
                         
                         <div class="overflow-x-auto">
                             <table class="w-full">
@@ -33,7 +44,7 @@
                                         <th class="px-4 py-3 text-center text-xs font-semibold text-blue-700">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-blue-50">
+                                <tbody id="reviewTableBody" class="divide-y divide-blue-50">
                                     @forelse($bimbingan as $item)
                                     @php
                                         $taskData = [
@@ -130,7 +141,8 @@
                             // Remove row from table or mark as reviewed
                             const row = document.querySelector(`[data-review-id="${id}"]`);
                             if (row) row.remove();
-                            // Simple feedback
+                            // Refresh data
+                            refreshReviewData();
                             alert(data.message || 'Aksi berhasil.');
                         } else {
                             alert(data.message || 'Terjadi kesalahan saat memproses.');
@@ -141,6 +153,64 @@
                 }
             }
         }
+
+        // Real-time polling
+        function refreshReviewData() {
+            fetch('{{ route("dospem.review-tugas.data") }}', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateReviewStats(data.data);
+                    updateReviewTable(data.data.bimbingan);
+                }
+            })
+            .catch(err => console.error('Error refreshing data:', err));
+        }
+
+        function updateReviewStats(data) {
+            document.getElementById('dospemMahasiswaAktif').textContent = data.mahasiswaAktifCount || 0;
+            document.getElementById('dospemTugasReview').textContent = data.tugasReview || 0;
+        }
+
+        function updateReviewTable(bimbingan) {
+            const tbody = document.getElementById('reviewTableBody');
+            if (!tbody) return;
+
+            if (!bimbingan || bimbingan.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Tidak ada tugas yang perlu direview.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = bimbingan.map(item => `
+                <tr class="hover:bg-blue-50 transition" data-review-id="${item.id}">
+                    <td class="px-4 py-3"><p class="font-medium text-blue-900">${item.mahasiswa_nim}</p></td>
+                    <td class="px-4 py-3"><p class="font-medium text-blue-900">${item.mahasiswa_name}</p></td>
+                    <td class="px-4 py-3"><p class="text-sm text-gray-700">${item.topik}</p></td>
+                    <td class="px-4 py-3 text-center text-sm text-gray-600">${item.created_at}</td>
+                    <td class="px-4 py-3 text-center">
+                        <button onclick='openReviewModal(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
+                            <i class="fas fa-pen-to-square mr-1"></i>Review
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openReviewModal(item) {
+            // This function works with Alpine.js data
+            const alpine = document.querySelector('[x-data="reviewModal()"]').__x;
+            alpine.selectedTask = item;
+            alpine.showModal = true;
+        }
+
+        // Poll every 15 seconds
+        setInterval(refreshReviewData, 15000);
     </script>
 </body>
 </html>

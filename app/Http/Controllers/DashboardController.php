@@ -13,6 +13,10 @@ use App\Models\Mahasiswa;
 use App\Models\Bimbingan;
 use App\Models\UjianTA;
 use App\Models\ProjekAkhir;
+use App\Models\ActivitySemester;
+use App\Models\Timeline;
+use App\Models\File;
+use App\Models\TAProgressStage;
 
 class DashboardController extends Controller
 {
@@ -57,8 +61,75 @@ class DashboardController extends Controller
         // Ambil data progress dari service
         $progressData = $this->progressService->getDashboardData($userId);
 
-        // Placeholder contoh data
-        $totalBimbingan = 12;
+        // Ambil data real dari database
+        $mahasiswa = $user->mahasiswa;
+        
+        // Total bimbingan dari database (cari berdasarkan nim atau mahasiswa_id)
+        $totalBimbingan = 0;
+        if ($mahasiswa && $mahasiswa->nim) {
+            $totalBimbingan = Bimbingan::where(function($q) use ($mahasiswa, $user) {
+                    $q->where('nim', $mahasiswa->nim)
+                      ->orWhere('mahasiswa_id', $user->id);
+                })->count();
+        }
+
+        // Hitung berapa yang sudah disetujui dan yang masih menunggu
+        $approvedBimbinganCount = 0;
+        $pendingBimbinganCount = 0;
+        if ($mahasiswa && $mahasiswa->nim) {
+            $approvedBimbinganCount = Bimbingan::where(function($q) use ($mahasiswa, $user) {
+                $q->where('nim', $mahasiswa->nim)
+                  ->orWhere('mahasiswa_id', $user->id);
+            })->where('status', 'disetujui')->count();
+
+            $pendingBimbinganCount = Bimbingan::where(function($q) use ($mahasiswa, $user) {
+                $q->where('nim', $mahasiswa->nim)
+                  ->orWhere('mahasiswa_id', $user->id);
+            })->where('status', 'pending')->count();
+        }
+        
+        // File yang terupload dari database
+        $fileTerupload = 0;
+        if ($user) {
+            $fileTerupload = File::where('uploaded_by', $user->id)->count();
+        }
+
+        // Ambil dosen pembimbing
+        $dosenPembimbing = null;
+        if ($mahasiswa && $mahasiswa->dosen_pembimbing_id) {
+            $dosenPembimbing = \App\Models\Dosen::where('nidn', $mahasiswa->dosen_pembimbing_id)->first();
+        }
+
+        // Ambil bimbingan terbaru (cari berdasarkan nim atau mahasiswa_id)
+        $bimbinganTerbaru = [];
+        if ($mahasiswa && $mahasiswa->nim) {
+            $bimbinganTerbaru = Bimbingan::where(function($q) use ($mahasiswa, $user) {
+                $q->where('nim', $mahasiswa->nim)
+                  ->orWhere('mahasiswa_id', $user->id);
+            })
+            ->orderBy('tanggal', 'desc')
+            ->take(5)
+            ->get();
+        }
+
+        // Ambil upcoming deadlines dari timeline dengan relasi
+        $upcomingDeadlines = Timeline::with(['taProgressStage', 'semester'])
+            ->where('due_date', '>=', Carbon::now())
+            ->orderBy('due_date')
+            ->take(5)
+            ->get();
+
+        // Jika tidak ada timeline yang terdefinisi, fallback: tampilkan tahap-tahap progress aktif sebagai placeholder
+        if ($upcomingDeadlines->isEmpty()) {
+            $stages = TAProgressStage::getActiveStages()->take(5);
+            $upcomingDeadlines = $stages->map(function($s){
+                return (object)[
+                    'taProgressStage' => $s,
+                    'due_date' => null,
+                    'semester' => null,
+                ];
+            })->values();
+        }
 
         $data = [
             'progress' => $progressData['percentage'],
@@ -66,19 +137,16 @@ class DashboardController extends Controller
             'completedStages' => $progressData['completed_count'],
             'totalStages' => $progressData['total_stages'],
             'totalBimbingan' => $totalBimbingan,
-            'tugasSelesai' => 8,
-            'totalTugas' => 10,
-            'fileTerupload' => 24,
-            'aktivitasTerakhir' => collect([
-                (object)['description' => 'Mengunggah proposal tugas akhir', 'created_at' => now()->subDays(1)],
-                (object)['description' => 'Mendapat revisi dari dosen pembimbing', 'created_at' => now()->subDays(2)],
-            ]),
-            'hideProgressBar' => true, // 👈 Tambahkan ini
+            'approvedBimbinganCount' => $approvedBimbinganCount,
+            'pendingBimbinganCount' => $pendingBimbinganCount,
+            'fileTerupload' => $fileTerupload,
+            'dosenPembimbing' => $dosenPembimbing,
+            'bimbinganTerbaru' => $bimbinganTerbaru,
+            'upcomingDeadlines' => $upcomingDeadlines,
+            'hideProgressBar' => true,
         ];
 
         // Ambil proposal terakhir mahasiswa
-        $user = Auth::user();
-        $mahasiswa = $user->mahasiswa;
         $latestProposal = null;
         if ($mahasiswa && $mahasiswa->nim) {
             $latestProposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
@@ -92,6 +160,24 @@ class DashboardController extends Controller
      * DASHBOARD DOSEN PEMBIMBING
      */
     public function dospemDashboard()
+    {
+        $data = $this->buildDospemData();
+        return view('dospem.dashboard', $data);
+    }
+
+    /**
+     * Return Dosen Pembimbing dashboard data as JSON for real-time polling.
+     */
+    public function dospemDashboardData()
+    {
+        $data = $this->buildDospemData();
+        return response()->json($data);
+    }
+
+    /**
+     * Build Dosen Pembimbing dashboard data array used by view and API.
+     */
+    private function buildDospemData()
     {
         $user = Auth::user();
         $nidn = $user->nidn ?? null;
@@ -119,19 +205,30 @@ class DashboardController extends Controller
             ->where('status', 'selesai')
             ->count();
 
-        // Mahasiswa bimbingan aktif untuk tabel
+        // Mahasiswa bimbingan aktif dengan progress real dari DB
         $mahasiswaBimbingan = Mahasiswa::where('dosen_pembimbing_id', $nidn)
             ->with('user')
             ->get()
-            ->map(function($m){
+            ->map(function($m) use ($nidn){
+                // Get project to find judul_ta
+                $projek = ProjekAkhir::where('nim', $m->nim)->first();
+                $judul_ta = $projek ? ($projek->judul_ta ?? 'Belum ada judul') : 'Belum ada judul';
+                
+                // Compute real progress using ProgressService
+                $progress = 0;
+                if ($m->user_id) {
+                    $progressData = $this->progressService->getDashboardData($m->user_id);
+                    $progress = $progressData['percentage'] ?? 0;
+                }
+                
                 return (object)[
                     'nim' => $m->nim,
                     'name' => $m->nama ?? optional($m->user)->name,
                     'email' => $m->email ?? optional($m->user)->email,
-                    'judul_ta' => 'Belum ada judul',
-                    'progress' => 25,
+                    'judul_ta' => $judul_ta,
+                    'progress' => $progress,
                 ];
-            });
+            })->values()->toArray();
 
         // Jadwal bimbingan mendatang
         $jadwalBimbingan = Bimbingan::where('dosen_nidn', $nidn)
@@ -151,7 +248,7 @@ class DashboardController extends Controller
                     'tanggal' => isset($b->tanggal) ? (is_string($b->tanggal) ? $b->tanggal : $b->tanggal->format('d M Y')) : null,
                     'topik' => $b->topik ?? ($b->catatan_bimbingan ?? 'Bimbingan'),
                 ];
-            });
+            })->values()->toArray();
 
         // Tugas menunggu review (proposal yang diajukan)
         $tugasMenungguReview = Proposal::where('dosen_id', $nidn)
@@ -171,19 +268,39 @@ class DashboardController extends Controller
                     'mahasiswa_name' => $mahasiswaName,
                     'created_at' => isset($p->created_at) ? $p->created_at->format('d M Y H:i') : now()->format('d M Y H:i'),
                 ];
-            });
+            })->values()->toArray();
 
         $jumlahMahasiswaAktif = $mahasiswaAktifCount;
         $jumlahTugasReview = $tugasReview;
-        $data = compact('mahasiswaAktifCount', 'tugasReview', 'bimbinganMingguIni', 'taSelesai', 'mahasiswaBimbingan', 'jadwalBimbingan', 'tugasMenungguReview', 'jumlahMahasiswaAktif', 'jumlahTugasReview');
 
-        return view('dospem.dashboard', $data);
+        return compact('mahasiswaAktifCount', 'tugasReview', 'bimbinganMingguIni', 'taSelesai', 'mahasiswaBimbingan', 'jadwalBimbingan', 'tugasMenungguReview', 'jumlahMahasiswaAktif', 'jumlahTugasReview');
     }
 
     /**
      * DASHBOARD KAPRODI
      */
     public function kaprodiDashboard()
+    {
+        // Build data and render view
+        $data = $this->buildKaprodiData();
+
+        // existing view file is in resources/views/dashboards/kaprodi.blade.php
+        return view('dashboards.kaprodi', $data);
+    }
+
+    /**
+     * Return Kaprodi dashboard data as JSON for real-time polling.
+     */
+    public function kaprodiDashboardData()
+    {
+        $data = $this->buildKaprodiData();
+        return response()->json($data);
+    }
+
+    /**
+     * Build Kaprodi dashboard data array used by view and API.
+     */
+    private function buildKaprodiData()
     {
         // Real data from DB
         $totalMahasiswa = Mahasiswa::count();
@@ -224,8 +341,8 @@ class DashboardController extends Controller
             $label = $dt->format('M Y');
             $labels[] = $label;
 
-            $start = $dt->startOfMonth()->toDateString();
-            $end = $dt->endOfMonth()->toDateString();
+            $start = $dt->copy()->startOfMonth()->toDateString();
+            $end = $dt->copy()->endOfMonth()->toDateString();
 
             $lulusCounts[] = ProjekAkhir::whereBetween('created_at', [$start, $end])->where('status', 'selesai')->count();
             $belumCounts[] = ProjekAkhir::whereBetween('created_at', [$start, $end])->where('status', '!=', 'selesai')->count();
@@ -246,10 +363,11 @@ class DashboardController extends Controller
             'belum_lulus' => $belumCounts,
         ];
 
-        $data = compact('totalMahasiswa', 'mahasiswaLulus', 'belumLulus', 'aktivitasTerakhir', 'rataDurasiTA', 'pengumumanPenting', 'chartData');
+        // Header counts for Kaprodi
+        $mahasiswaAktifCount = $totalMahasiswa;
+        $tugasReview = Proposal::whereIn('status', ['diajukan', 'review'])->count();
 
-        // existing view file is in resources/views/dashboards/kaprodi.blade.php
-        return view('dashboards.kaprodi', $data);
+        return compact('totalMahasiswa', 'mahasiswaLulus', 'belumLulus', 'aktivitasTerakhir', 'rataDurasiTA', 'pengumumanPenting', 'chartData', 'mahasiswaAktifCount', 'tugasReview');
     }
 
     /**
@@ -487,17 +605,157 @@ class DashboardController extends Controller
      */
     public function dosenPengujiDashboard()
     {
-        $data = [
-            'jadwalUjian' => [
-                (object)['mahasiswa' => 'Budi Santoso', 'tanggal' => now()->addDays(2)],
-                (object)['mahasiswa' => 'Siti Lestari', 'tanggal' => now()->addDays(4)],
-            ],
-            'aktivitasTerakhir' => collect([
-                (object)['description' => 'Menilai ujian TA mahasiswa A', 'created_at' => now()->subHours(5)],
-            ]),
-        ];
-
+        $user = Auth::user();
+        $data = $this->buildDosenPengujiData($user);
         return view('dosen_penguji.dashboard', $data);
+    }
+
+    /**
+     * Build dosen penguji dashboard data
+     */
+    private function buildDosenPengujiData($user)
+    {
+        // Ambil ujian TA yang dosen ini menjadi penguji
+        $ujianTA = UjianTA::where('ketua_penguji_id', $user->id)
+            ->orWhere('penguji_ahli_id', $user->id)
+            ->orderBy('tanggal_ujian', 'asc')
+            ->get();
+
+        // Hitung ujian berdasarkan status
+        $ujianSelesai = $ujianTA->where('status_ujian', 'selesai_ujian')->count();
+        $ujianMenungguNilai = $ujianTA->where('status_ujian', 'belum_ujian')->count();
+        $ujianMendatang = $ujianTA->where('tanggal_ujian', '>', now())->count();
+
+        // Hitung rata-rata nilai
+        $rataRataNilai = $ujianTA->avg('nilai_akhir') ?? 0;
+
+        return [
+            'ujianTotal' => $ujianTA->count(),
+            'ujianMenungguNilai' => $ujianMenungguNilai,
+            'ujianMendatang' => $ujianMendatang,
+            'ujianSelesai' => $ujianSelesai,
+            'rataRataNilai' => round($rataRataNilai, 2),
+            'ujianList' => $ujianTA->map(function($u) {
+                return [
+                    'id' => $u->id_ujian,
+                    'mahasiswa' => $u->mahasiswa?->name ?? 'Unknown',
+                    'nim' => $u->mahasiswa?->nim ?? '-',
+                    'judul' => $u->judul_ta ?? '-',
+                    'status' => $u->status_ujian,
+                    'jadwal' => $u->tanggal_ujian?->format('Y-m-d H:i') ?? '-',
+                    'nilai' => $u->nilai_akhir,
+                ];
+            })->toArray(),
+            'chartData' => [
+                'labels' => ['Menunggu Nilai', 'Selesai', 'Mendatang'],
+                'data' => [$ujianMenungguNilai, $ujianSelesai, $ujianMendatang],
+            ],
+        ];
+    }
+
+    /**
+     * Get dosen penguji dashboard data as JSON (for real-time updates)
+     */
+    public function dosenPengujiDashboardData()
+    {
+        $user = Auth::user();
+        $data = $this->buildDosenPengujiData($user);
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * PENILAIAN PAGE (Dosen Penguji)
+     */
+    public function dosenPengujiPenilaian()
+    {
+        $user = Auth::user();
+        $ujianTA = UjianTA::where('ketua_penguji_id', $user->id)
+            ->orWhere('penguji_ahli_id', $user->id)
+            ->orderBy('tanggal_ujian', 'asc')
+            ->get()
+            ->map(function($u) {
+                return [
+                    'id' => $u->id_ujian,
+                    'nim' => $u->mahasiswa?->nim ?? '-',
+                    'nama' => $u->mahasiswa?->name ?? 'Unknown',
+                    'judul' => $u->judul_ta ?? '-',
+                    'tanggal' => $u->tanggal_ujian?->format('Y-m-d H:i') ?? '-',
+                    'status' => $u->nilai_akhir ? 'Sudah Dinilai' : 'Belum Dinilai',
+                    'nilai' => $u->nilai_akhir,
+                ];
+            });
+
+        return view('dosen_penguji.penilaian', ['ujianList' => $ujianTA]);
+    }
+
+    /**
+     * Get penilaian data as JSON (for real-time updates)
+     */
+    public function dosenPengujiPenilaianData()
+    {
+        $user = Auth::user();
+        $ujianTA = UjianTA::where('ketua_penguji_id', $user->id)
+            ->orWhere('penguji_ahli_id', $user->id)
+            ->orderBy('tanggal_ujian', 'asc')
+            ->get()
+            ->map(function($u) {
+                return [
+                    'id' => $u->id_ujian,
+                    'nim' => $u->mahasiswa?->nim ?? '-',
+                    'nama' => $u->mahasiswa?->name ?? 'Unknown',
+                    'judul' => $u->judul_ta ?? '-',
+                    'tanggal' => $u->tanggal_ujian?->format('Y-m-d H:i') ?? '-',
+                    'status' => $u->nilai_akhir ? 'Sudah Dinilai' : 'Belum Dinilai',
+                    'nilai' => $u->nilai_akhir,
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => ['ujianList' => $ujianTA],
+        ]);
+    }
+
+    /**
+     * Store nilai (grade) for ujian
+     */
+    public function storeNilaiUjian(Request $request)
+    {
+        $request->validate([
+            'ujian_id' => 'required|exists:ujian_tugas_akhir,id_ujian',
+            'nilai' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $ujian = UjianTA::findOrFail($request->ujian_id);
+
+        // Authorization check: user must be ketua_penguji or penguji_ahli
+        $user = Auth::user();
+        if ($ujian->ketua_penguji_id != $user->id && $ujian->penguji_ahli_id != $user->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized: Anda bukan penguji ujian ini',
+            ], 403);
+        }
+
+        // Update ujian with nilai
+        $ujian->update([
+            'nilai_akhir' => $request->nilai,
+            'status_ujian' => 'selesai_ujian',
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Nilai berhasil disimpan',
+            'data' => [
+                'id' => $ujian->id_ujian,
+                'nilai' => $ujian->nilai_akhir,
+                'status' => 'Sudah Dinilai',
+            ],
+        ]);
     }
 
     /**

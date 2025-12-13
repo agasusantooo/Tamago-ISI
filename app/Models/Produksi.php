@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class Produksi extends Model
 {
@@ -18,16 +19,17 @@ class Produksi extends Model
         'file_skenario',
         'file_storyboard',
         'file_dokumen_pendukung',
+        'file_produksi',
+        'file_luaran_tambahan',
         'catatan_produksi',
         'status_pra_produksi',
         'tanggal_upload_pra',
         'tanggal_review_pra',
         'feedback_pra_produksi',
         'status_produksi',
-        'file_produksi',
-        'feedback_produksi',
         'tanggal_upload_produksi',
         'tanggal_review_produksi',
+        'feedback_produksi',
         'status_pasca_produksi',
         'file_pasca_produksi',
         'feedback_pasca_produksi',
@@ -43,6 +45,104 @@ class Produksi extends Model
         'tanggal_upload_pasca' => 'datetime',
         'tanggal_review_pasca' => 'datetime',
     ];
+
+    /**
+     * Column mapping to support legacy/new column names (e.g. *_akhir vs no suffix)
+     * Populated in booted() to avoid calling Schema too early.
+     */
+    protected static $columnMap = [];
+
+    protected static function booted()
+    {
+        parent::booted();
+
+        try {
+            $instance = new static();
+            $table = $instance->getTable();
+
+            $pairs = [
+                // canonical => legacy alternative
+                'file_produksi' => 'file_produksi_akhir',
+                'status_produksi' => 'status_produksi_akhir',
+                'feedback_produksi' => 'feedback_produksi_akhir',
+                'tanggal_upload_produksi' => 'tanggal_upload_akhir',
+                'tanggal_review_produksi' => 'tanggal_review_akhir',
+            ];
+
+            foreach ($pairs as $canonical => $legacy) {
+                if (Schema::hasColumn($table, $canonical)) {
+                    self::$columnMap[$canonical] = $canonical;
+                } elseif (Schema::hasColumn($table, $legacy)) {
+                    self::$columnMap[$canonical] = $legacy;
+                } else {
+                    // fallback to canonical (will be null if not present)
+                    self::$columnMap[$canonical] = $canonical;
+                }
+            }
+        } catch (\Exception $e) {
+            // In case Schema is not available (e.g., during certain artisan commands), ignore.
+        }
+    }
+
+    /**
+     * Helper to get mapped column name for a canonical attribute
+     */
+    protected function mappedColumn(string $canonical): string
+    {
+        return self::$columnMap[$canonical] ?? $canonical;
+    }
+
+    // Accessors / mutators for compatibility names
+    public function getFileProduksiAkhirAttribute()
+    {
+        return $this->{ $this->mappedColumn('file_produksi') } ?? null;
+    }
+
+    public function setFileProduksiAkhirAttribute($value)
+    {
+        $this->{ $this->mappedColumn('file_produksi') } = $value;
+    }
+
+    public function getFeedbackProduksiAkhirAttribute()
+    {
+        return $this->{ $this->mappedColumn('feedback_produksi') } ?? null;
+    }
+
+    public function setFeedbackProduksiAkhirAttribute($value)
+    {
+        $this->{ $this->mappedColumn('feedback_produksi') } = $value;
+    }
+
+    public function getStatusProduksiAkhirAttribute()
+    {
+        return $this->{ $this->mappedColumn('status_produksi') } ?? null;
+    }
+
+    public function setStatusProduksiAkhirAttribute($value)
+    {
+        $this->{ $this->mappedColumn('status_produksi') } = $value;
+    }
+
+    public function getTanggalUploadAkhirAttribute()
+    {
+        return $this->{ $this->mappedColumn('tanggal_upload_produksi') } ?? null;
+    }
+
+    public function setTanggalUploadAkhirAttribute($value)
+    {
+        $this->{ $this->mappedColumn('tanggal_upload_produksi') } = $value;
+    }
+
+    public function getTanggalReviewAkhirAttribute()
+    {
+        return $this->{ $this->mappedColumn('tanggal_review_produksi') } ?? null;
+    }
+
+    public function setTanggalReviewAkhirAttribute($value)
+    {
+        $this->{ $this->mappedColumn('tanggal_review_produksi') } = $value;
+    }
+
 
     /**
      * Get the mahasiswa

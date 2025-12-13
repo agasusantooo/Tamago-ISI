@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Tugas - Tamago ISI</title>
+    <title>Review Progress - Tamago ISI</title>
     <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     
     <script src="//unpkg.com/alpinejs" defer></script>
@@ -26,6 +26,7 @@
                             <table class="w-full">
                                 <thead class="bg-blue-50 border-b border-blue-100">
                                     <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">NIM</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">Nama Mahasiswa</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">Jenis Tugas</th>
                                         <th class="px-4 py-3 text-center text-xs font-semibold text-blue-700">Tanggal Submit</th>
@@ -44,6 +45,7 @@
                                         ];
                                     ?>
                                     <tr class="hover:bg-blue-50 transition" data-review-id="<?php echo e($item->id); ?>">
+                                        <td class="px-4 py-3"><p class="font-medium text-blue-900"><?php echo e($item->mahasiswa_nim); ?></p></td>
                                         <td class="px-4 py-3"><p class="font-medium text-blue-900"><?php echo e($item->mahasiswa_name); ?></p></td>
                                         <td class="px-4 py-3"><p class="text-sm text-gray-700"><?php echo e($item->topik); ?></p></td>
                                         <td class="px-4 py-3 text-center text-sm text-gray-600"><?php echo e($item->created_at?->format('Y-m-d') ?? '-'); ?></td>
@@ -54,7 +56,7 @@
                                         </td>
                                     </tr>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                    <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">Tidak ada tugas yang perlu direview.</td></tr>
+                                    <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Tidak ada tugas yang perlu direview.</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -68,7 +70,7 @@
                         <div @click="showModal = false" x-show="showModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
 
                         <div x-show="showModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-lg p-8 my-20 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
-                            <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">Review Tugas: <span x-text="selectedTask ? selectedTask.topik : ''"></span></h3>
+                            <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-title">Review Progress: <span x-text="selectedTask ? selectedTask.topik : ''"></span></h3>
                             <p class="text-sm text-gray-600">Mahasiswa: <span x-text="selectedTask ? selectedTask.mahasiswa : ''"></span></p>
                             <p class="text-xs text-gray-400">Tanggal: <span x-text="selectedTask ? selectedTask.tanggal : ''"></span></p>
                             

@@ -77,9 +77,14 @@ class ProgressService
                     break;
 
                 case 'bimbingan_progress':
-                    $doneCount = Bimbingan::where('mahasiswa_id', $userId)
-                        ->where('status', 'disetujui')
+                    // Count both submitted (pending) and approved sessions so student's submissions reflect progress
+                    $doneCount = Bimbingan::where(function($q) use ($userId, $nim) {
+                            $q->where('mahasiswa_id', $userId)
+                              ->orWhere('nim', $nim);
+                        })
+                        ->whereIn('status', ['pending', 'disetujui'])
                         ->count();
+
                     $required = 8; // minimum sessions
                     $fraction = min($doneCount / $required, 1.0);
                     break;

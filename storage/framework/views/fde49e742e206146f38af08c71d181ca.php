@@ -28,6 +28,7 @@
                             <table class="w-full">
                                 <thead class="bg-green-50 border-b border-green-100">
                                     <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-green-700">NIM</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold text-green-700">Nama Mahasiswa</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold text-green-700">Judul TA</th>
                                         <th class="px-4 py-3 text-left text-xs font-semibold text-green-700">Tahapan Saat Ini</th>
@@ -38,15 +39,16 @@
                                 <tbody class="divide-y divide-green-50">
                                     <?php
                                     $mahasiswa = [
-                                        ['nama' => 'Budi Santoso', 'judul' => 'Sistem Rekomendasi Film', 'tahapan' => 'Proposal Bab 1-3', 'status' => 'Menunggu Persetujuan'],
-                                        ['nama' => 'Siti Lestari', 'judul' => 'Analisis Sentimen Media Sosial', 'tahapan' => 'Pra-Produksi', 'status' => 'Disetujui'],
-                                        ['nama' => 'Ahmad Fauzi', 'judul' => 'Aplikasi Mobile untuk Petani', 'tahapan' => 'Produksi', 'status' => 'Disetujui'],
-                                        ['nama' => 'Dewi Anggraini', 'judul' => 'Game Edukasi Sejarah', 'tahapan' => 'Proposal Bab 1-3', 'status' => 'Revisi'],
+                                        ['nim' => '19.11.2740', 'nama' => 'Budi Santoso', 'judul' => 'Sistem Rekomendasi Film', 'tahapan' => 'Proposal Bab 1-3', 'status' => 'Menunggu Persetujuan'],
+                                        ['nim' => '19.11.2741', 'nama' => 'Siti Lestari', 'judul' => 'Analisis Sentimen Media Sosial', 'tahapan' => 'Pra-Produksi', 'status' => 'Disetujui'],
+                                        ['nim' => '19.11.2742', 'nama' => 'Ahmad Fauzi', 'judul' => 'Aplikasi Mobile untuk Petani', 'tahapan' => 'Produksi', 'status' => 'Disetujui'],
+                                        ['nim' => '19.11.2743', 'nama' => 'Dewi Anggraini', 'judul' => 'Game Edukasi Sejarah', 'tahapan' => 'Proposal Bab 1-3', 'status' => 'Revisi'],
                                     ];
                                     ?>
 
                                     <?php $__currentLoopData = $mahasiswa; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $mhs): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <tr class="hover:bg-green-50 transition">
+                                        <td class="px-4 py-3 font-medium text-gray-900"><?php echo e($mhs['nim']); ?></td>
                                         <td class="px-4 py-3 font-medium text-gray-900"><?php echo e($mhs['nama']); ?></td>
                                         <td class="px-4 py-3 text-sm text-gray-700"><?php echo e($mhs['judul']); ?></td>
                                         <td class="px-4 py-3 text-sm text-gray-600"><?php echo e($mhs['tahapan']); ?></td>
