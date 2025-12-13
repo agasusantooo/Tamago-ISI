@@ -75,25 +75,6 @@
                             <span>Naskah & Karya</span>
                         </a>
                     </li>
-
-                    <li>
-                        <a href="{{ route('profile.edit') }}"
-                        class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                        {{ request()->routeIs('profile.edit') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
-                            <i class="fas fa-user w-5"></i>
-                            <span>Akun Saya</span>
-                        </a>
-                    </li>
                 </ul>
             </nav>
-
-    <!-- Logout -->
-    <div class="p-4 border-t">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                <i class="fas fa-sign-out-alt mr-1"></i> Logout
-            </button>
-        </form>
-    </div>
 </aside>

@@ -1,6 +1,7 @@
 @extends('mahasiswa.layouts.app')
 
-@section('title', 'Tefa Fair')
+@section('page-title', 'Progress Tugas Akhir')
+@section('title', 'Progress Tugas Akhir')
 
 @section('content')
     @livewire('mahasiswa.tefa-fair')

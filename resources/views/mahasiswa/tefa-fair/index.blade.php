@@ -7,8 +7,8 @@
 
     <!-- Alerts -->
     @if(session('success'))
-        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded-md shadow-sm">
-            <p class="text-green-700">{{ session('success') }}</p>
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-md shadow-sm">
+            <p class="text-yellow-700">{{ session('success') }}</p>
         </div>
     @endif
     @if(session('error'))
@@ -24,10 +24,10 @@
             <h2 class="text-xl font-bold text-gray-800 mb-4">Jadwal Tefa Fair</h2>
             @foreach($jadwalTefaFair as $jadwal)
                 <div class="space-y-3 text-sm">
-                    <p class="flex items-center text-gray-700"><i class="fas fa-calendar-alt fa-fw mr-2 text-green-600"></i><span class="font-semibold mr-1">Periode:</span> {{ $jadwal['tanggal'] }}</p>
-                    <p class="flex items-center text-gray-700"><i class="fas fa-clock fa-fw mr-2 text-green-600"></i><span class="font-semibold mr-1">Waktu:</span> {{ $jadwal['waktu'] }}</p>
-                    <p class="flex items-center text-gray-700"><i class="fas fa-map-marker-alt fa-fw mr-2 text-green-600"></i><span class="font-semibold mr-1">Tempat:</span> {{ $jadwal['tempat'] }}</p>
-                    <p class="flex items-start text-gray-700"><i class="fas fa-info-circle fa-fw mr-2 mt-1 text-green-600"></i><span class="font-semibold mr-1">Deskripsi:</span> <span class="flex-1">{{ $jadwal['deskripsi'] }}</span></p>
+                    <p class="flex items-center text-gray-700"><i class="fas fa-calendar-alt fa-fw mr-2 text-yellow-600"></i><span class="font-semibold mr-1">Periode:</span> {{ $jadwal['tanggal'] }}</p>
+                    <p class="flex items-center text-gray-700"><i class="fas fa-clock fa-fw mr-2 text-yellow-600"></i><span class="font-semibold mr-1">Waktu:</span> {{ $jadwal['waktu'] }}</p>
+                    <p class="flex items-center text-gray-700"><i class="fas fa-map-marker-alt fa-fw mr-2 text-yellow-600"></i><span class="font-semibold mr-1">Tempat:</span> {{ $jadwal['tempat'] }}</p>
+                    <p class="flex items-start text-gray-700"><i class="fas fa-info-circle fa-fw mr-2 mt-1 text-yellow-600"></i><span class="font-semibold mr-1">Deskripsi:</span> <span class="flex-1">{{ $jadwal['deskripsi'] }}</span></p>
                 </div>
             @endforeach
         </div>
@@ -35,14 +35,14 @@
         <!-- Persyaratan Card -->
         <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
             <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <i class="fas fa-clipboard-list fa-fw mr-2 text-green-600"></i>
+                <i class="fas fa-clipboard-list fa-fw mr-2 text-yellow-600"></i>
                 Persyaratan
             </h3>
             <ul class="space-y-2 text-sm">
                 @if(!empty($jadwalTefaFair[0]['persyaratan']))
                     @foreach($jadwalTefaFair[0]['persyaratan'] as $req)
                         <li class="flex items-start">
-                            <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                            <i class="fas fa-check-circle text-yellow-500 mr-2 mt-1"></i>
                             <span>{{ $req }}</span>
                         </li>
                     @endforeach
@@ -58,7 +58,7 @@
                 <h3 class="text-2xl font-bold text-gray-800">Daftar Tefa Fair</h3>
                 <p class="text-sm text-gray-600 mt-1">Daftar semua pendaftaran Tefa Fair yang pernah Anda ikuti.</p>
             </div>
-            <a href="{{ route('mahasiswa.tefa-fair.create') }}" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+            <a href="{{ route('mahasiswa.tefa-fair.create') }}" class="bg-yellow-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-700 transition">
                 <i class="fas fa-plus mr-2"></i>Daftar Tefa Fair
             </a>
         </div>
@@ -84,7 +84,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-green-600 hover:text-green-900">Detail</a>
+                                <a href="#" class="text-yellow-600 hover:text-yellow-900">Detail</a>
                             </td>
                         </tr>
                     @empty

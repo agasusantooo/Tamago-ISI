@@ -16,8 +16,8 @@
             
             @include('dospem.partials.header-dospem')
 
-            <main class="flex-1 overflow-y-auto p-6">
-                <div class="max-w-7xl mx-auto">
+            <main class="flex-1 overflow-y-auto">
+                <div class="">
                     <div class="bg-white rounded-xl shadow-sm p-6">
                         <!-- Header Section -->
                         <div class="mb-6">

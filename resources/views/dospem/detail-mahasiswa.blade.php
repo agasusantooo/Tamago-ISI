@@ -36,7 +36,7 @@
 
                     <div class="grid grid-cols-12 gap-6">
                         <!-- Left column: profile + tabs -->
-                        <div class="col-span-8">
+                        <div class="col-span-12">
                             <!-- Profil Mahasiswa -->
                             <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
                                 <div class="flex items-center space-x-4">

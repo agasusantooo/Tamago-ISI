@@ -17,7 +17,7 @@
         <div class="flex-1 flex flex-col overflow-hidden">
 
             <!-- Header Partial -->
-            @include('mahasiswa.partials.header-mahasiswa')
+            @include('mahasiswa.partials.header-mahasiswa', ['pageTitle' => 'Dashboard'])
 
             <!-- Main Dashboard Content -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">

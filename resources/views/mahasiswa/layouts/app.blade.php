@@ -17,14 +17,25 @@
         <div class="flex-1 flex flex-col overflow-hidden">
 
             {{-- Header --}}
-            @include('mahasiswa.partials.header-mahasiswa')
+                @php
+                    $currentPageTitle = null;
+                    if (View::hasSection('page-title')) {
+                        $currentPageTitle = View::yieldContent('page-title');
+                    }
+
+                    // Special override for Tefa Fair pages due to persistent issues
+                    if (Request::routeIs('mahasiswa.tefa-fair.*')) { // covers both index and create
+                        $currentPageTitle = 'Progress Tugas Akhir';
+                    }
+                @endphp
+                @include('mahasiswa.partials.header-mahasiswa', ['pageTitle' => $currentPageTitle ?? 'Progress Tugas Akhir'])
 
             {{-- Konten halaman --}}
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
                 {{-- Flash messages --}}
                 @if(session('success'))
-                    <div class="max-w-7xl mx-auto mb-4 p-4 bg-green-50 border-l-4 border-green-400 rounded">
-                        <p class="text-green-800 font-semibold">{{ session('success') }}</p>
+                    <div class="max-w-7xl mx-auto mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                        <p class="text-yellow-800 font-semibold">{{ session('success') }}</p>
                     </div>
                 @endif
 

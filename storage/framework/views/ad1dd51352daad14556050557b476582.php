@@ -1,3 +1,5 @@
+<?php $__env->startSection('page-title', 'Progress Tugas Akhir'); ?>
+
 <?php $__env->startSection('title', 'Ujian TA'); ?>
 
 <?php $__env->startSection('content'); ?>

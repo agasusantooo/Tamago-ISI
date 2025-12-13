@@ -30,23 +30,6 @@
                     <i class="fas fa-clipboard-check w-5"></i><span>Penilaian Ujian</span>
                 </a>
             </li>
-            <li>
-                <a href="#"
-                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                   {{ request()->routeIs('dosen_penguji.profile') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700 hover:bg-purple-50' }}">
-                    <i class="fas fa-user w-5"></i><span>Akun Saya</span>
-                </a>
-            </li>
         </ul>
     </nav>
-
-    <!-- Logout -->
-    <div class="p-4 border-t">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                <i class="fas fa-sign-out-alt mr-1"></i> Logout
-            </button>
-        </form>
-    </div>
 </aside>

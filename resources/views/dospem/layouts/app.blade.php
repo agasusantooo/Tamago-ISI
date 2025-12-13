@@ -18,8 +18,8 @@
         <div class="flex-1 flex flex-col overflow-hidden">
             @include('dospem.partials.header-dospem')
 
-            <main class="flex-1 overflow-y-auto p-6">
-                <div class="max-w-7xl mx-auto">
+            <main class="flex-1 overflow-y-auto">
+                <div>
                     @yield('content')
                 </div>
             </main>

@@ -72,24 +72,6 @@
                     <i class="fas fa-bullhorn w-5"></i><span>Setup Koordinator TEFA</span>
                 </a>
             </li>
-
-            <li>
-                <a href="#"
-                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                   {{ request()->routeIs('kaprodi.profile') ? 'bg-teal-100 text-teal-700 font-semibold' : 'text-gray-700 hover:bg-teal-50' }}">
-                    <i class="fas fa-user w-5"></i><span>Akun Saya</span>
-                </a>
-            </li>
         </ul>
     </nav>
-
-    <!-- Logout -->
-    <div class="p-4">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                <i class="fas fa-sign-out-alt mr-1"></i> Logout
-            </button>
-        </form>
-    </div>
 </aside>

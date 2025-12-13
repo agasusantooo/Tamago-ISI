@@ -18,7 +18,7 @@
             <li>
                 <a href="<?php echo e(route('dashboard')); ?>"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                <?php echo e(request()->routeIs('dashboard') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
+                <?php echo e(request()->routeIs('dashboard') ? 'text-yellow-900 bg-yellow-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
                     <i class="fas fa-home w-5"></i>
                     <span>Dashboard</span>
                 </a>
@@ -27,7 +27,7 @@
             <li>
                 <a href="<?php echo e(route('mahasiswa.proposal.index')); ?>"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                <?php echo e(request()->routeIs('mahasiswa.proposal.*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
+                <?php echo e(request()->routeIs('mahasiswa.proposal.*') ? 'text-yellow-900 bg-yellow-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
                     <i class="fas fa-file-alt w-5"></i>
                     <span>Pengajuan Proposal</span>
                 </a>
@@ -36,7 +36,7 @@
             <li>
                 <a href="<?php echo e(route('mahasiswa.bimbingan.index')); ?>"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                <?php echo e(request()->routeIs('mahasiswa.bimbingan.index') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
+                <?php echo e(request()->routeIs('mahasiswa.bimbingan.index') ? 'text-yellow-900 bg-yellow-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
                     <i class="fas fa-chalkboard-teacher w-5"></i>
                     <span>Bimbingan</span>
                 </a>
@@ -45,7 +45,7 @@
             <li>
                 <a href="<?php echo e(route('mahasiswa.story-conference.index')); ?>"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                <?php echo e(request()->routeIs('mahasiswa.story-conference.*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
+                <?php echo e(request()->routeIs('mahasiswa.story-conference.*') ? 'text-yellow-900 bg-yellow-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
                     <i class="fas fa-comments w-5"></i>
                     <span>Story Conference</span>
                 </a>
@@ -54,7 +54,7 @@
             <li>
                 <a href="<?php echo e(route('mahasiswa.tefa-fair.index')); ?>"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                <?php echo e(request()->routeIs('mahasiswa.tefa-fair.index') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
+                <?php echo e(request()->routeIs('mahasiswa.tefa-fair.index') ? 'text-yellow-900 bg-yellow-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
                     <i class="fas fa-store w-5"></i>
                     <span>Tefa Fair</span>
                 </a>
@@ -63,7 +63,7 @@
             <li>
                 <a href="<?php echo e(route('mahasiswa.produksi.index')); ?>"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                <?php echo e(request()->routeIs('mahasiswa.produksi.index') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
+                <?php echo e(request()->routeIs('mahasiswa.produksi.index') ? 'text-yellow-900 bg-yellow-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
                     <i class="fas fa-film w-5"></i>
                     <span>Produksi</span>
                 </a>
@@ -72,7 +72,7 @@
             <li>
                 <a href="<?php echo e(route('mahasiswa.ujian-ta.index')); ?>"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                <?php echo e(request()->routeIs('mahasiswa.ujian-ta.*') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
+                <?php echo e(request()->routeIs('mahasiswa.ujian-ta.*') ? 'text-yellow-900 bg-yellow-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
                     <i class="fas fa-graduation-cap w-5"></i>
                     <span>Ujian TA</span>
                 </a>
@@ -80,32 +80,12 @@
 
             <li>
                 <a href="<?php echo e(route('mahasiswa.naskah-karya')); ?>"
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                <?php echo e(request()->routeIs('mahasiswa.naskah-karya') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
-                    <i class="fas fa-folder-open w-5"></i>
-                    <span>Naskah & Karya</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="<?php echo e(route('profile.edit')); ?>"
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-                <?php echo e(request()->routeIs('profile.edit') ? 'text-blue-900 bg-blue-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
-                    <i class="fas fa-user w-5"></i>
-                    <span>Akun Saya</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- Logout -->
-    <div class="p-4">
-        <form method="POST" action="<?php echo e(route('logout')); ?>">
-            <?php echo csrf_field(); ?>
-            <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                <i class="fas fa-sign-out-alt mr-1"></i> Logout
-            </button>
-        </form>
-    </div>
-</aside>
-<?php /**PATH D:\Tamago-ISI\resources\views/mahasiswa/partials/sidebar-mahasiswa.blade.php ENDPATH**/ ?>
+                                   class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+                                <?php echo e(request()->routeIs('mahasiswa.naskah-karya') ? 'text-yellow-900 bg-yellow-50 font-medium' : 'text-gray-700 hover:bg-gray-100'); ?>">
+                                    <i class="fas fa-folder-open w-5"></i>
+                                    <span>Naskah & Karya</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </aside><?php /**PATH D:\Tamago-ISI\resources\views/mahasiswa/partials/sidebar-mahasiswa.blade.php ENDPATH**/ ?>

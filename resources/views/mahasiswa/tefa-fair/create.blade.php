@@ -7,8 +7,8 @@
 <div class="max-w-4xl mx-auto">
     <!-- Alerts -->
     @if(session('success'))
-        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded-md shadow-sm">
-            <p class="text-green-700">{{ session('success') }}</p>
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-md shadow-sm">
+            <p class="text-yellow-700">{{ session('success') }}</p>
         </div>
     @endif
     @if(session('error'))
@@ -52,30 +52,30 @@
                     <label for="semester" class="block text-sm font-semibold text-gray-700 mb-2">Semester</label>
                     <input type="text" id="semester" name="semester" 
                         value="{{ old('semester', $tefaFair->semester ?? '') }}"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-600 focus:border-transparent"
                         placeholder="Contoh: Gasal 2024/2025" required>
                 </div>
                 <div class="mb-6">
                     <label for="daftar_kebutuhan" class="block text-sm font-semibold text-gray-700 mb-2">Daftar Kebutuhan Pameran</label>
                     <textarea id="daftar_kebutuhan" name="daftar_kebutuhan" rows="5"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-600 focus:border-transparent"
                         placeholder="Tuliskan daftar kebutuhan untuk pameran (misal: meja, kursi, listrik, dll)" required>{{ old('daftar_kebutuhan', $tefaFair->daftar_kebutuhan ?? '') }}</textarea>
                 </div>
                 <div class="mb-6">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">File Presentasi/Poster</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-500 transition cursor-pointer"
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-yellow-500 transition cursor-pointer"
                         onclick="document.getElementById('filePresentasi').click()">
-                        <i class="fas fa-file-powerpoint text-4xl text-green-500 mb-3"></i>
+                        <i class="fas fa-file-powerpoint text-4xl text-yellow-500 mb-3"></i>
                         <p class="text-sm text-gray-600 mb-1">Klik untuk browse</p>
                         <p class="text-xs text-gray-500">PDF/PPT, maksimal 20 MB</p>
                         <input type="file" id="filePresentasi" name="file_presentasi" accept=".pdf,.ppt,.pptx" class="hidden">
                     </div>
                     @if(isset($tefaFair) && $tefaFair->file_presentasi)
-                        <p class="text-xs text-gray-600 mt-2">File saat ini: <a href="{{ Storage::url($tefaFair->file_presentasi) }}" target="_blank" class="text-blue-600 hover:underline">{{ basename($tefaFair->file_presentasi) }}</a></p>
+                        <p class="text-xs text-gray-600 mt-2">File saat ini: <a href="{{ Storage::url($tefaFair->file_presentasi) }}" target="_blank" class="text-yellow-600 hover:underline">{{ basename($tefaFair->file_presentasi) }}</a></p>
                     @endif
                 </div>
                 <div class="flex justify-end">
-                    <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                    <button type="submit" class="bg-yellow-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-yellow-700 transition">
                         <i class="fas fa-save mr-2"></i> Simpan Pendaftaran
                     </button>
                 </div>
