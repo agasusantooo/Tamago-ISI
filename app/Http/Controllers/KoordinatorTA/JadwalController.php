@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\KoordinatorTA;
 
 use App\Http\Controllers\Controller;
+use App\Models\JadwalAcara;
+use Carbon\Carbon; // Assuming a model named JadwalAcara exists
 use Illuminate\Http\Request;
-use App\Models\JadwalAcara; // Assuming a model named JadwalAcara exists
-use Carbon\Carbon;
 
 class JadwalController extends Controller
 {
@@ -16,14 +16,14 @@ class JadwalController extends Controller
                 'nama' => 'Story Conference',
                 'tanggal_mulai' => Carbon::parse('2024-12-18')->format('d M Y'),
                 'tanggal_akhir' => Carbon::parse('2024-12-20')->format('d M Y'),
-                'deskripsi' => 'Sesi diskusi dan review ide cerita, skenario, dan konsep visual untuk proyek tugas akhir.'
+                'deskripsi' => 'Sesi diskusi dan review ide cerita, skenario, dan konsep visual untuk proyek tugas akhir.',
             ],
             [
                 'nama' => 'Tefa Fair',
                 'tanggal_mulai' => Carbon::parse('2025-01-15')->format('d M Y'),
                 'tanggal_akhir' => Carbon::parse('2025-01-17')->format('d M Y'),
-                'deskripsi' => 'Pameran karya akhir mahasiswa dari berbagai program studi. Terbuka untuk umum.'
-            ]
+                'deskripsi' => 'Pameran karya akhir mahasiswa dari berbagai program studi. Terbuka untuk umum.',
+            ],
         ];
 
         return view('koordinator_ta.jadwal', compact('jadwal'));
@@ -41,6 +41,7 @@ class JadwalController extends Controller
                 'color' => $item->color,
             ];
         });
+
         return response()->json($events);
     }
 
@@ -61,7 +62,7 @@ class JadwalController extends Controller
     public function update(Request $request, $id)
     {
         $event = JadwalAcara::find($id);
-        if (!$event) {
+        if (! $event) {
             return response()->json(['error' => 'Event not found'], 404);
         }
 
@@ -71,7 +72,7 @@ class JadwalController extends Controller
             'end' => 'required|date|after_or_equal:start',
             'color' => 'nullable|string',
         ]);
-        
+
         $event->update($request->all());
 
         return response()->json($event);
@@ -80,7 +81,7 @@ class JadwalController extends Controller
     public function destroy($id)
     {
         $event = JadwalAcara::find($id);
-        if (!$event) {
+        if (! $event) {
             return response()->json(['error' => 'Event not found'], 404);
         }
 

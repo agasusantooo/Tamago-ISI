@@ -2,26 +2,28 @@
 
 namespace App\Livewire\Dospem;
 
-use Livewire\Component;
 use App\Models\Jadwal;
+use Livewire\Component;
 
 /**
  * ALTERNATIF SIMPLE: Dialog Konfirmasi untuk ACC/Tolak Jadwal
- * 
+ *
  * Jika ingin lebih simple tanpa Livewire modal, bisa gunakan native dialog
  * atau simple confirm dialog ini.
- * 
+ *
  * Usage:
  * <button wire:click="confirmApprove({{ $jadwal->id }})">
  *     Approve
  * </button>
  */
-
 class JadwalBimbinganSimpleAction extends Component
 {
     public $jadwalId = null;
+
     public $rejectReason = '';
+
     public $showConfirm = false;
+
     public $confirmAction = null;
 
     protected $listeners = [
@@ -45,11 +47,14 @@ class JadwalBimbinganSimpleAction extends Component
 
     public function proceed()
     {
-        if (!$this->jadwalId) return;
+        if (! $this->jadwalId) {
+            return;
+        }
 
         $jadwal = Jadwal::find($this->jadwalId);
-        if (!$jadwal) {
+        if (! $jadwal) {
             $this->showConfirm = false;
+
             return;
         }
 
@@ -74,7 +79,7 @@ class JadwalBimbinganSimpleAction extends Component
             $this->dispatch('jadwalUpdated');
             $this->reset(['jadwalId', 'rejectReason', 'showConfirm', 'confirmAction']);
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal memperbarui jadwal: ' . $e->getMessage());
+            session()->flash('error', 'Gagal memperbarui jadwal: '.$e->getMessage());
         }
     }
 

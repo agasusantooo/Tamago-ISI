@@ -25,7 +25,7 @@ class MonitoringController extends Controller
     public function approve(Request $request, $id)
     {
         $projekAkhir = ProjekAkhir::findOrFail($id);
-        
+
         // Logic to approve the project, e.g., update status
         // This is a placeholder for the actual approval logic.
         $projekAkhir->status = 'approved_by_koordinator'; // Example status

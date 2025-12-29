@@ -1,6 +1,7 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
@@ -12,7 +13,7 @@ if ($user) {
     echo "FOUND: user id={$user->id} name={$user->name} email={$user->email}\n";
     $m = DB::table('mahasiswa')->where('user_id', $user->id)->orWhere('nim', $user->name)->first();
     if ($m) {
-        echo "Mahasiswa record found: ";
+        echo 'Mahasiswa record found: ';
         print_r($m);
     } else {
         echo "No mahasiswa record linked to this user.\n";

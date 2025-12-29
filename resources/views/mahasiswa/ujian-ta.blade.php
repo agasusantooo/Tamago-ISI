@@ -143,7 +143,36 @@
     <!-- Right column -->
     <div class="lg:col-span-4">
             <div class="bg-white rounded-lg shadow p-4 mb-6">
-                @livewire('mahasiswa.ujian-timeline', ['projekId' => optional($projek)->id_proyek_akhir ?? null, 'ujianId' => optional($ujianTA)->id_ujian ?? optional($ujianTA)->getKey() ?? null])
+                @php
+                    $initialStatus = null;
+                    if (!empty($ujianTA)) {
+                        $stat = strtolower(str_replace([' ', '-', '_'], '', $ujianTA->status_pendaftaran ?? ''));
+                        $variant = strpos($stat, 'pengajuan') !== false ? 'yellow' : 'green';
+                        $initialStatus = ['text' => 'Status: '.str_replace('_',' ', ucfirst($ujianTA->status_pendaftaran ?? 'Tidak ada status')), 'variant' => $variant];
+                        $initialTanggal = $ujianTA->tanggal_daftar ? $ujianTA->tanggal_daftar->format('d M Y') : '—';
+                    } else {
+                        $initialTanggal = '—';
+                    }
+                @endphp
+
+                @livewire('mahasiswa.ujian-timeline', [
+                    'projekId' => optional($projek)->id_proyek_akhir ?? null,
+                    'ujianId' => optional($ujianTA)->id_ujian ?? optional($ujianTA)->getKey() ?? null,
+                    'status' => $initialStatus,
+                    'ujianStatusPendaftaran' => optional($ujianTA)->status_pendaftaran ?? null,
+                    'ujianStatus' => optional($ujianTA)->status_ujian ?? null,
+                    'ujianTanggalDaftar' => $initialTanggal,
+                ])
+
+                @if(session('ujian_registered'))
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            if (window.Livewire) {
+                                Livewire.emit('ujianRegistered');
+                            }
+                        });
+                    </script>
+                @endif
             </div>
 
             {{-- status and action moved into livewire component for realtime updates --}}

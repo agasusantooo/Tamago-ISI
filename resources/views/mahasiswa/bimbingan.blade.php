@@ -140,7 +140,7 @@
                                 <div class="p-6 border-b">
                                     <h2 class="text-xl font-bold text-gray-800">Riwayat Bimbingan</h2>
                                 </div>
-                                <div class="divide-y flex-grow overflow-y-auto">
+                                <div id="bimbinganListContainer" class="divide-y flex-grow overflow-y-auto">
                                     @forelse($bimbinganList as $bimbingan)
                                         <div class="p-4 hover:bg-gray-50 transition" data-bimbingan-id="{{ $bimbingan->id_bimbingan }}" data-current-status="{{ $bimbingan->status }}">
                                             <div class="flex items-start justify-between">
@@ -198,6 +198,46 @@
                 detail.classList.add('hidden');
             }
         }
+    </script>
+    <script>
+        async function fetchBimbinganUpdates() {
+            try {
+                const res = await fetch("{{ route('mahasiswa.bimbingan.check-updates') }}", { headers: { 'Accept': 'application/json' } });
+                if (!res.ok) return;
+                const json = await res.json();
+                if (!json.bimbingan) return;
+                const container = document.getElementById('bimbinganListContainer');
+                if (!container) return;
+                container.innerHTML = '';
+                json.bimbingan.forEach(function(b) {
+                    const el = document.createElement('div');
+                    el.className = 'p-4 hover:bg-gray-50 transition';
+                    el.innerHTML = `
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-800">${b.topik}</h3>
+                                <div class="flex items-center space-x-3 text-xs text-gray-600 mt-1">
+                                    <span><i class="fas fa-calendar mr-1"></i>${b.tanggal ?? '-'}</span>
+                                    <span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">${b.status}</span>
+                                </div>
+                            </div>
+                            <button onclick="toggleDetail(${b.id})" class="text-yellow-600 hover:text-yellow-800 font-medium text-xs">Detail</button>
+                        </div>
+                        <div id="detail-${b.id}" class="hidden mt-3 pt-3 border-t text-sm space-y-2">
+                            <div>
+                                <p class="font-semibold text-gray-700">Catatan:</p>
+                                <p class="text-gray-600">${b.catatan_mahasiswa || '-'}</p>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(el);
+                });
+            } catch (e) { console.error('Failed to fetch bimbingan updates', e); }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchBimbinganUpdates();
+            setInterval(fetchBimbinganUpdates, 15000);
+        });
     </script>
 </body>
 </html>

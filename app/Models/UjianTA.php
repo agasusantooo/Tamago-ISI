@@ -31,6 +31,7 @@ class UjianTA extends Model
     protected $fillable = [
         'id_proyek_akhir',
         'mahasiswa_id',
+        'mahasiswa_id',
         'proposal_id',
         'dosen_pembimbing_id',
         'ketua_penguji_id',
@@ -66,6 +67,7 @@ class UjianTA extends Model
 
     /**
      * Cache of enum values per column to avoid repeated DB queries.
+     *
      * @var array
      */
     protected static $enumCache = [];
@@ -87,11 +89,11 @@ class UjianTA extends Model
         $desiredNorm = $this->normalizeString($desired);
 
         // load allowed values from cache or DB
-        if (!isset(self::$enumCache[$column])) {
+        if (! isset(self::$enumCache[$column])) {
             try {
-                $col = \Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM " . $this->getTable() . " LIKE ?", [$column]);
+                $col = \Illuminate\Support\Facades\DB::select('SHOW COLUMNS FROM '.$this->getTable().' LIKE ?', [$column]);
                 $allowed = [];
-                if (!empty($col) && isset($col[0]->Type)) {
+                if (! empty($col) && isset($col[0]->Type)) {
                     preg_match_all("/'([^']+)'/", $col[0]->Type, $m);
                     $allowed = $m[1] ?? [];
                 }
@@ -141,11 +143,14 @@ class UjianTA extends Model
 
     protected function normalizeString($s)
     {
-        if (is_null($s)) return '';
+        if (is_null($s)) {
+            return '';
+        }
         // lowercase, remove non-alphanumeric
-        $s = mb_strtolower((string)$s);
+        $s = mb_strtolower((string) $s);
         $s = str_replace([' ', '_', '-'], '', $s);
         $s = preg_replace('/[^a-z0-9]/u', '', $s);
+
         return $s;
     }
 
@@ -154,7 +159,62 @@ class UjianTA extends Model
      */
     public function mahasiswa()
     {
-        return $this->belongsTo(User::class, 'mahasiswa_id');
+        return $this->belongsTo(Mahasiswa::class, 'mahasiswa_id', 'user_id');
+    }
+
+    /**
+     * Project relation: connect `id_proyek_akhir` back to ProjekAkhir model.
+     */
+    public function projekAkhir()
+    {
+        return $this->belongsTo(ProjekAkhir::class, 'id_proyek_akhir', 'id_proyek_akhir');
+    }
+
+    /**
+     * Accessor helper to get mahasiswa via projekAkhir
+     */
+    public function getMahasiswaProjekAttribute()
+    {
+        return $this->projekAkhir ? $this->projekAkhir->mahasiswa : null;
+    }
+
+    /**
+     * Backward-compatible accessor so `$ujian->mahasiswa` returns a Mahasiswa model.
+     * Prefer `mahasiswa_id` if present, otherwise fall back to projekAkhir->mahasiswa.
+     */
+    public function getMahasiswaAttribute()
+    {
+        if ($this->mahasiswa_id) {
+            return $this->belongsTo(Mahasiswa::class, 'mahasiswa_id', 'user_id')->first();
+        }
+
+        return $this->getMahasiswaProjekAttribute();
+    }
+
+    /**
+     * User relation (direct mapping to users table)
+     */
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'mahasiswa_id');
+    }
+
+    /**
+     * Scope to filter by mahasiswa user id
+     */
+    public function scopeForMahasiswaUser($query, $userId)
+    {
+        return $query->where('mahasiswa_id', $userId);
+    }
+
+    /**
+     * Scope to filter by mahasiswa nim via projekAkhir
+     */
+    public function scopeForMahasiswaNim($query, $nim)
+    {
+        return $query->whereHas('projekAkhir', function ($q) use ($nim) {
+            $q->where('nim', $nim);
+        });
     }
 
     /**
@@ -178,7 +238,9 @@ class UjianTA extends Model
      */
     public function ketuaPenguji()
     {
-        return $this->belongsTo(Dosen::class, 'ketua_penguji_id');
+        // `ketua_penguji_id` currently references `users.id` (unsignedBigInteger),
+        // not the Dosen.nidn primary key. Map to Dosen by matching Dosen.user_id.
+        return $this->belongsTo(Dosen::class, 'ketua_penguji_id', 'user_id');
     }
 
     /**
@@ -186,7 +248,8 @@ class UjianTA extends Model
      */
     public function pengujiAhli()
     {
-        return $this->belongsTo(Dosen::class, 'penguji_ahli_id');
+        // Map penguji_ahli_id to Dosen by Dosen.user_id key, since the column stores users.id
+        return $this->belongsTo(Dosen::class, 'penguji_ahli_id', 'user_id');
     }
 
     /**
@@ -257,15 +320,17 @@ class UjianTA extends Model
             if (now()->greaterThanOrEqualTo($examDateTime)) {
                 $this->status_ujian = 'selesai_ujian';
                 $this->save();
+
                 return true;
             }
         }
 
         // If results are entered (nilai_akhir or catatan_penguji), mark as completed
         if ($this->status_ujian === 'belum_ujian' &&
-            (!is_null($this->nilai_akhir) || !empty($this->catatan_penguji))) {
+            (! is_null($this->nilai_akhir) || ! empty($this->catatan_penguji))) {
             $this->status_ujian = 'selesai_ujian';
             $this->save();
+
             return true;
         }
 

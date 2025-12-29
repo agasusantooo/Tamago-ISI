@@ -42,7 +42,7 @@ class ProfileController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'nim' => ['nullable', 'string', 'max:50'],
             'phone' => ['nullable', 'string', 'max:30'],
             'birthdate' => ['nullable', 'date'],
@@ -83,8 +83,8 @@ class ProfileController extends Controller
         }
 
         // Update password if provided: require current password to match
-        if (!empty($data['new_password'])) {
-            if (empty($data['current_password']) || !Hash::check($data['current_password'], $user->password)) {
+        if (! empty($data['new_password'])) {
+            if (empty($data['current_password']) || ! Hash::check($data['current_password'], $user->password)) {
                 return Redirect::back()
                     ->withErrors(['current_password' => 'Password lama tidak cocok.'])
                     ->withInput();

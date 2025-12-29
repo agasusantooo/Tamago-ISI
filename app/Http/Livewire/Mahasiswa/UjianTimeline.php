@@ -2,35 +2,51 @@
 
 namespace App\Http\Livewire\Mahasiswa;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use App\Models\Produksi;
 use App\Models\ProjekAkhir;
 use App\Models\UjianTA;
-use App\Models\Produksi;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Livewire\Component;
 
 class UjianTimeline extends Component
 {
     public $timeline = [];
+
     public $status = null;
+
     public $dates = [];
+
     public $hasUjian = false;
+
     public $ujianStatus = null;
+
     public $selectedStatus = null;
+
     public $ujianStatusPendaftaran = null;
+
     public $ujianTanggalDaftar = null;
+
     // statuses that can be set by authorised users
     public $allowedStatuses = [
         'belum_upload', 'menunggu_review', 'disetujui', 'revisi', 'ditolak',
         // existing workflow statuses
-        'pengajuan_ujian', 'jadwal_ditetapkan', 'ujian_berlangsung', 'selesai_ujian'
+        'pengajuan_ujian', 'jadwal_ditetapkan', 'ujian_berlangsung', 'selesai_ujian',
     ];
+
     // accept ids from parent to avoid model serialization issues
     public $projekId = null;
+
     public $ujianId = null;
-    
+
+    // Event listeners for external triggers (e.g., controller redirects)
+    protected $listeners = [
+        'ujianRegistered' => 'refreshData',
+    ];
+
     // Private properties (not tracked by Livewire) for storing models
     private $ujianTA = null;
+
     private $projek = null;
 
     public function mount()
@@ -64,9 +80,9 @@ class UjianTimeline extends Component
 
         // Debug: log current state
         Log::debug('UjianTimeline refreshData', [
-            'has_projek' => (bool)$this->projek,
+            'has_projek' => (bool) $this->projek,
             'projek_id' => $this->projek?->id_proyek_akhir,
-            'has_ujian' => (bool)$this->ujianTA,
+            'has_ujian' => (bool) $this->ujianTA,
             'ujian_id' => $this->ujianTA?->id_ujian,
             'status_pendaftaran' => $this->ujianTA?->status_pendaftaran,
             'status_ujian' => $this->ujianTA?->status_ujian,
@@ -99,7 +115,7 @@ class UjianTimeline extends Component
                 'date' => $this->ujianTanggalDaftar,
                 'color' => 'green',
             ];
-            
+
             // Get raw DB values for comparison - normalize the strings
             $statusPendaftaran = strtolower(str_replace([' ', '-', '_'], '', $this->ujianTA->status_pendaftaran ?? ''));
             $statusUjian = strtolower(str_replace([' ', '-', '_'], '', $this->ujianTA->status_ujian ?? ''));
@@ -128,16 +144,16 @@ class UjianTimeline extends Component
                     'color' => strpos($statusUjian, 'selesai') !== false ? 'green' : 'blue',
                 ];
             }
-            
+
             // Revisi status
             $timelineItems[] = [
                 'title' => 'Revisi Selesai',
                 'date' => (strpos(strtolower($this->ujianTA->status_revisi ?? ''), 'selesai') !== false) ? $this->ujianTA->tanggal_approve_revisi?->format('d M Y') ?? '—' : 'Pending',
                 'color' => (strpos(strtolower($this->ujianTA->status_revisi ?? ''), 'selesai') !== false) ? 'green' : 'gray',
             ];
-            
+
             $this->status = [
-                'text' => 'Status: ' . str_replace(['_'], ' ', ucfirst($this->ujianTA->status_pendaftaran ?? 'Tidak ada status')),
+                'text' => 'Status: '.str_replace(['_'], ' ', ucfirst($this->ujianTA->status_pendaftaran ?? 'Tidak ada status')),
                 'variant' => strpos($statusPendaftaran, 'pengajuan') !== false ? 'yellow' : 'green',
             ];
         } else {
@@ -174,16 +190,19 @@ class UjianTimeline extends Component
 
             if (! $allowed) {
                 $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Anda tidak memiliki izin untuk mengubah status.']);
+
                 return;
             }
 
             if (! $this->ujianTA) {
                 $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Tidak ada pendaftaran ujian yang dipilih.']);
+
                 return;
             }
 
             if (! in_array($this->selectedStatus, $this->allowedStatuses)) {
                 $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Status yang dipilih tidak valid.']);
+
                 return;
             }
 
@@ -200,7 +219,7 @@ class UjianTimeline extends Component
     {
         // refresh each render to pick up DB changes (also wire:poll will call render periodically)
         $this->refreshData();
-        
+
         // Build data for view - use ONLY scalar values, NOT Eloquent models
         $viewData = [
             'timeline' => $this->timeline,
@@ -212,7 +231,7 @@ class UjianTimeline extends Component
             'allowedStatuses' => $this->allowedStatuses,
             'selectedStatus' => $this->selectedStatus,
         ];
-        
+
         return view('livewire.mahasiswa.ujian-timeline', $viewData);
     }
 }

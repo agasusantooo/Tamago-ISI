@@ -32,20 +32,21 @@
                 <tbody class="divide-y divide-green-50">
                     @forelse($registrations as $registration)
                     <tr class="hover:bg-blue-50 transition">
-                        <td class="px-4 py-3 font-medium text-gray-900">{{ $registration->mahasiswa->nim ?? 'N/A' }}</td>
-                        <td class="px-4 py-3 font-medium text-gray-900">{{ $registration->mahasiswa->user->name ?? 'N/A' }}</td>
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ optional($registration->resolved_mahasiswa)->nim ?? 'N/A' }}</td>
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ optional(optional($registration->resolved_mahasiswa)->user)->name ?? optional($registration->resolved_mahasiswa)->nama ?? 'N/A' }}</td>
                         <td class="px-4 py-3 text-sm text-gray-700">{{ $registration->proposal->judul ?? 'N/A' }}</td>
                         <td class="px-4 py-3 text-center">
                             <span class="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-200 rounded-full">{{ Str::title(str_replace('_', ' ', $registration->status ?? 'Belum ada status')) }}</span>
                         </td>
                         <td class="px-4 py-3 text-center space-x-2">
-                            <form action="{{ route('koordinator_story_conference.monitoring.approve', $registration->id) }}" method="POST" class="inline">
+                            <form action="{{ route('koordinator_story_conference.monitoring.approve', $registration->getKey()) }}" method="POST" class="inline">
                                 @csrf
                                 <button type="submit" class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Setujui</button>
                             </form>
-                            <form action="{{ route('koordinator_story_conference.monitoring.reject', $registration->id) }}" method="POST" class="inline">
+                            <form action="{{ route('koordinator_story_conference.monitoring.reject', $registration->getKey()) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Tolak</button>
+                                <input type="hidden" name="reason" class="reject-reason-input">
+                                <button type="submit" class="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 reject-btn">Tolak</button>
                             </form>
                         </td>
                     </tr>
@@ -60,4 +61,19 @@
 
     </div>
 </div>
+    @push('scripts')
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.reject-btn').forEach(function(btn) {
+            btn.addEventListener('click', function (e) {
+                var reason = prompt('Alasan penolakan (opsional, minimal 5 karakter jika diisi):');
+                if (reason === null) { e.preventDefault(); return; }
+                if (reason && reason.length < 5) { alert('Alasan penolakan harus minimal 5 karakter jika diisi.'); e.preventDefault(); return; }
+                var input = btn.closest('form').querySelector('.reject-reason-input');
+                if (input) input.value = reason;
+            });
+        });
+    });
+    </script>
+    @endpush
 @endsection

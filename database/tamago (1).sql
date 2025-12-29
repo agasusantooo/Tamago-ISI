@@ -620,7 +620,7 @@ CREATE TABLE `ta_progress_stages` (
 INSERT INTO `ta_progress_stages` (`id`, `stage_code`, `stage_name`, `description`, `weight`, `sequence`, `is_active`, `created_at`, `updated_at`) VALUES
 (1, 'proposal_submission', 'Pengajuan Proposal', 'Mahasiswa mengajukan proposal TA', 15.00, 1, 1, '2025-11-25 09:21:15', '2025-11-25 09:21:15'),
 (2, 'proposal_approved', 'Proposal Disetujui', 'Proposal telah disetujui oleh pembimbing/kaprodi', 10.00, 2, 1, '2025-11-25 09:21:15', '2025-11-25 09:21:15'),
-(3, 'bimbingan_progress', 'Bimbingan (Min. 8x)', 'Melakukan bimbingan minimal 8 kali', 25.00, 3, 1, '2025-11-25 09:21:15', '2025-11-25 09:21:15'),
+(3, 'bimbingan_progress', 'Bimbingan (Min. 6x)', 'Melakukan bimbingan minimal 6 kali', 25.00, 3, 1, '2025-11-25 09:21:15', '2025-11-25 09:21:15'),
 (4, 'story_conference', 'Story Conference', 'Mengikuti story conference', 10.00, 4, 1, '2025-11-25 09:21:15', '2025-11-25 09:21:15'),
 (5, 'production_upload', 'Upload Produksi', 'Mengunggah hasil produksi/karya', 15.00, 5, 1, '2025-11-25 09:21:15', '2025-11-25 09:21:15'),
 (6, 'exam_registration', 'Pendaftaran Ujian TA', 'Mendaftar ujian tugas akhir', 10.00, 6, 1, '2025-11-25 09:21:15', '2025-11-25 09:21:15'),

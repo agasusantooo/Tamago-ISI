@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use App\Models\Mahasiswa;
 use App\Models\Dosen;
+use App\Models\Mahasiswa;
 use App\Models\ProjekAkhir;
+use Illuminate\Database\Seeder;
 
 class BimbinganSeeder extends Seeder
 {

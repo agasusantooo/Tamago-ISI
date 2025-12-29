@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Koordinator;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\JadwalAcara;
+use Illuminate\Http\Request;
 
 class JadwalAcaraController extends Controller
 {

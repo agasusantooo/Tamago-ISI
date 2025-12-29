@@ -168,47 +168,61 @@
                             <!-- Tugas & Deadline -->
                             <div class="bg-white rounded-xl shadow-sm p-6">
                                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Tugas & Deadline Mendatang</h3>
-                                <div class="space-y-3">
+                                <div class="space-y-4">
                                     @forelse($upcomingDeadlines as $deadline)
-                                        <div class="flex items-center justify-between p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
-                                            <div>
-                                                <p class="font-semibold text-gray-800">{{ optional($deadline->taProgressStage)->name ?? 'Deadline' }}</p>
-                                                <p class="text-xs text-yellow-700 mt-1">
-                                                    <i class="far fa-clock mr-1"></i>Deadline: {{ $deadline->due_date ? $deadline->due_date->format('d M Y') : 'N/A' }}
-                                                </p>
+                                        @php
+                                            $stage = optional($deadline->taProgressStage);
+                                            $stageCode = $stage->stage_code ?? null;
+                                            $deadlineRoute = route('mahasiswa.proposal.index');
+                                            $actionLabel = 'Lihat';
+                                            switch($stageCode) {
+                                                case 'proposal_submission':
+                                                    $deadlineRoute = route('mahasiswa.proposal.create');
+                                                    $actionLabel = 'Kerjakan';
+                                                    break;
+                                                case 'proposal_approved':
+                                                    $deadlineRoute = route('mahasiswa.proposal.index');
+                                                    $actionLabel = 'Lihat';
+                                                    break;
+                                                case 'bimbingan_progress':
+                                                    $deadlineRoute = route('mahasiswa.bimbingan.index');
+                                                    $actionLabel = 'Kerjakan';
+                                                    break;
+                                                case 'story_conference':
+                                                    $deadlineRoute = route('mahasiswa.story-conference.create');
+                                                    $actionLabel = 'Daftar';
+                                                    break;
+                                                case 'production_upload':
+                                                    $deadlineRoute = route('mahasiswa.produksi.manage');
+                                                    $actionLabel = 'Upload';
+                                                    break;
+                                                case 'final_submission':
+                                                    $deadlineRoute = route('mahasiswa.produksi.manage');
+                                                    $actionLabel = 'Lihat Detail';
+                                                    break;
+                                                case 'exam_registration':
+                                                case 'exam_completed':
+                                                    $deadlineRoute = route('mahasiswa.ujian-ta.index');
+                                                    $actionLabel = 'Daftar';
+                                                    break;
+                                                default:
+                                                    $deadlineRoute = route('mahasiswa.proposal.index');
+                                                    $actionLabel = 'Lihat';
+                                            }
+                                            $dueLabel = $deadline->due_date ? $deadline->due_date->format('d M Y' . ($deadline->due_date->format('H:i') != '00:00' ? ', H:i' : '')) : 'N/A';
+                                        @endphp
+
+                                        <div class="bg-yellow-50 rounded-lg p-4 flex items-center justify-between border-l-4 border-yellow-500 shadow-sm">
+                                            <div class="flex-1 pr-4">
+                                                <p class="font-semibold text-gray-800 text-lg">{{ optional($deadline->taProgressStage)->name ?? 'Deadline' }}</p>
+                                                <p class="text-xs text-yellow-700 mt-1"><i class="far fa-clock mr-1"></i> Deadline: {{ $dueLabel }}</p>
                                                 @if($deadline->semester)
                                                     <p class="text-xs text-gray-600 mt-1">{{ $deadline->semester->nama }}</p>
                                                 @endif
                                             </div>
-                                            @php
-                                                $stage = optional($deadline->taProgressStage);
-                                                $stageCode = $stage->stage_code ?? null;
-                                                $deadlineRoute = route('mahasiswa.proposal.index');
-                                                switch($stageCode) {
-                                                    case 'proposal_submission':
-                                                    case 'proposal_approved':
-                                                        $deadlineRoute = route('mahasiswa.proposal.index');
-                                                        break;
-                                                    case 'bimbingan_progress':
-                                                        $deadlineRoute = route('mahasiswa.bimbingan.index');
-                                                        break;
-                                                    case 'story_conference':
-                                                        $deadlineRoute = route('mahasiswa.story-conference.create');
-                                                        break;
-                                                    case 'production_upload':
-                                                    case 'final_submission':
-                                                        $deadlineRoute = route('mahasiswa.produksi.manage');
-                                                        break;
-                                                    case 'exam_registration':
-                                                    case 'exam_completed':
-                                                        $deadlineRoute = route('mahasiswa.ujian-ta.index');
-                                                        break;
-                                                    default:
-                                                        $deadlineRoute = route('mahasiswa.proposal.index');
-                                                }
-                                            @endphp
-                                            <a href="{{ $deadlineRoute }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
-                                                Lihat
+
+                                            <a href="{{ $deadlineRoute }}" class="inline-block px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md shadow hover:bg-yellow-600">
+                                                {{ $actionLabel }}
                                             </a>
                                         </div>
                                     @empty

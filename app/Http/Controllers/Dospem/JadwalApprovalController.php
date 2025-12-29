@@ -17,22 +17,22 @@ class JadwalApprovalController extends Controller
     {
         try {
             $jadwal = Jadwal::with(['mahasiswa', 'dosen'])->find($id);
-            
-            if (!$jadwal) {
+
+            if (! $jadwal) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Jadwal tidak ditemukan'
+                    'message' => 'Jadwal tidak ditemukan',
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'data' => $jadwal
+                'data' => $jadwal,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -44,18 +44,18 @@ class JadwalApprovalController extends Controller
     {
         try {
             $jadwal = Jadwal::find($id);
-            
-            if (!$jadwal) {
+
+            if (! $jadwal) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Jadwal tidak ditemukan'
+                    'message' => 'Jadwal tidak ditemukan',
                 ], 404);
             }
 
             if ($jadwal->status !== 'menunggu') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Jadwal sudah diproses sebelumnya'
+                    'message' => 'Jadwal sudah diproses sebelumnya',
                 ], 400);
             }
 
@@ -68,12 +68,12 @@ class JadwalApprovalController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Jadwal bimbingan berhasil disetujui'
+                'message' => 'Jadwal bimbingan berhasil disetujui',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -85,18 +85,18 @@ class JadwalApprovalController extends Controller
     {
         try {
             $jadwal = Jadwal::find($id);
-            
-            if (!$jadwal) {
+
+            if (! $jadwal) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Jadwal tidak ditemukan'
+                    'message' => 'Jadwal tidak ditemukan',
                 ], 404);
             }
 
             if ($jadwal->status !== 'menunggu') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Jadwal sudah diproses sebelumnya'
+                    'message' => 'Jadwal sudah diproses sebelumnya',
                 ], 400);
             }
 
@@ -118,12 +118,12 @@ class JadwalApprovalController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Jadwal bimbingan berhasil ditolak'
+                'message' => 'Jadwal bimbingan berhasil ditolak',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -135,7 +135,7 @@ class JadwalApprovalController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             // Get jadwal for authenticated dosen (by nidn from user username)
             $jadwals = Jadwal::where('nidn', $user->username)
                 ->with(['mahasiswa', 'dosen'])
@@ -148,7 +148,7 @@ class JadwalApprovalController extends Controller
         } catch (\Exception $e) {
             return view('dospem.jadwal-bimbingan-new', [
                 'jadwals' => [],
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }

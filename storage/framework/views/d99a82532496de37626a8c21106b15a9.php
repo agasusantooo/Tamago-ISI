@@ -24,6 +24,12 @@
                     </div>
 
                     <div class="bg-white rounded-lg shadow-sm p-6">
+                                        <div id="migrationWarning" class="mb-4 p-3 bg-red-100 text-red-800 rounded <?php echo e(isset($schemaChecks) && $schemaChecks['dosen_penguji_ready'] ? 'hidden' : ''); ?>">
+                                            Skema database untuk penguji belum diperbarui. Jalankan migrasi (`php artisan migrate`).
+                                            <?php if(!isset($schemaChecks) || !$schemaChecks['dosen_penguji_ready']): ?>
+                                                <div class="text-sm mt-1">Tip: Jalankan <code>php artisan migrate</code> untuk memperbarui DB schema.</div>
+                                            <?php endif; ?>
+                                        </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead>
@@ -155,10 +161,12 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    alert('Nilai berhasil disimpan!');
-                    closeNilaiModal();
-                    refreshPenilaianData();
-                } else {
+                        alert('Nilai berhasil disimpan!');
+                        closeNilaiModal();
+                        refreshPenilaianData();
+                        // Also attempt to refresh dashboard data in case viewer is open
+                        fetch('<?php echo e(route("dosen_penguji.dashboard.data")); ?>', { method: 'GET', headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken } }).catch(e => console.warn('dashboard refresh failed', e));
+                    } else {
                     alert('Error: ' + (data.message || 'Terjadi kesalahan'));
                 }
             })
@@ -179,7 +187,13 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    updatePenilaianTable(data.data.ujianList);
+                        updatePenilaianTable(data.data.ujianList);
+                        const migrationWarning = document.getElementById('migrationWarning');
+                        if (data.data.needsMigration) {
+                            migrationWarning.classList.remove('hidden');
+                        } else {
+                            migrationWarning.classList.add('hidden');
+                        }
                 }
             })
             .catch(err => console.error('Error refreshing data:', err));
@@ -229,8 +243,8 @@
             `).join('');
         }
 
-        // Auto-refresh every 15 seconds
-        setInterval(refreshPenilaianData, 15000);
+        // Auto-refresh every 5 seconds for near-real-time updates
+        setInterval(refreshPenilaianData, 5000);
     </script>
 </body>
 </html><?php /**PATH D:\C\Tamago-ISI\resources\views/dosen_penguji/penilaian.blade.php ENDPATH**/ ?>

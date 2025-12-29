@@ -16,15 +16,7 @@
             </a>
         </div>
 
-        <!-- Alerts -->
-        @if(session('success'))
-            <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-md shadow-sm">
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle text-green-600 mr-3"></i>
-                    <p class="text-green-800">{{ session('success') }}</p>
-                </div>
-            </div>
-        @endif
+        {{-- Flash messages are handled in the layout; avoid duplicating here. --}}
 
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -37,7 +29,7 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody id="proposalHistoryBody" class="bg-white divide-y divide-gray-200">
                     @forelse ($proposalHistory as $proposal)
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $loop->iteration }}</td>
@@ -67,4 +59,44 @@
             </table>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+    async function fetchProposalUpdates() {
+        try {
+            const res = await fetch("{{ route('mahasiswa.proposal.check-updates') }}", { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            const json = await res.json();
+            if (!json.success) return;
+            const tbody = document.getElementById('proposalHistoryBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const proposals = json.proposals || [];
+            if (proposals.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Anda belum pernah mengajukan proposal.</td></tr>`;
+                return;
+            }
+            proposals.forEach(function(p, idx){
+                const tanggal = p.tanggal_pengajuan ? new Date(p.tanggal_pengajuan).toLocaleDateString() : '-';
+                const status = p.status || 'N/A';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${idx + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${p.judul ?? 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${tanggal}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm"> <span class="px-3 py-1 text-xs font-semibold rounded-full">${status}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"><a href="#" class="text-yellow-600 hover:text-yellow-900">Detail</a></td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (e) {
+            console.error('Failed to fetch proposals updates', e);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function(){
+        fetchProposalUpdates();
+        setInterval(fetchProposalUpdates, 15000);
+    });
+</script>
 @endsection

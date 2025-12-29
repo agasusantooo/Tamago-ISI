@@ -16,20 +16,20 @@ return new class extends Migration
 
             // Relasi ke mahasiswa (users)
             $table->foreignId('mahasiswa_id')
-                  ->constrained('users')
-                  ->onDelete('cascade');
+                ->constrained('users')
+                ->onDelete('cascade');
 
             // Relasi ke proposal
             $table->foreignId('proposal_id')
-                  ->constrained('proposals')
-                  ->onDelete('cascade');
+                ->constrained('proposals')
+                ->onDelete('cascade');
 
             // Relasi ke dosen (nidn, string)
             $table->string('dosen_id')->nullable();
             $table->foreign('dosen_id')
-                  ->references('nidn')
-                  ->on('dosen')
-                  ->onDelete('set null');
+                ->references('nidn')
+                ->on('dosen')
+                ->onDelete('set null');
 
             // Pra Produksi Files
             $table->string('file_skenario')->nullable();
@@ -47,7 +47,7 @@ return new class extends Migration
                 'menunggu_review',
                 'disetujui',
                 'revisi',
-                'ditolak'
+                'ditolak',
             ])->default('belum_upload');
 
             $table->enum('status_produksi_akhir', [
@@ -55,7 +55,7 @@ return new class extends Migration
                 'menunggu_review',
                 'disetujui',
                 'revisi',
-                'ditolak'
+                'ditolak',
             ])->default('belum_upload');
 
             // Timestamps dan feedback

@@ -2,16 +2,29 @@
     <div class="flex items-center px-6 py-4">
         <div class="flex-1 mr-8">
             <h1 class="text-lg font-semibold text-gray-700">Dosen Penguji</h1>
-            <div class="mt-2 mb-1">
-                <p class="text-xs text-gray-500">Mahasiswa Aktif: <span class="font-semibold text-purple-600"><?php echo e($mahasiswaAktifCount ?? 0); ?></span> | Tugas Review: <span class="font-semibold text-indigo-600"><?php echo e($tugasReview ?? 0); ?></span></p>
-            </div>
             <div class="h-3"></div>
         </div>
     
-        <div class="flex flex-col items-center">
-            <img src="<?php echo e(asset('images/user.png')); ?>" alt="User Icon" class="w-9 h-9 rounded-full">
-            <span class="text-gray-600 text-xs mt-1"><?php echo e(Auth::user()->name); ?></span>
-        </div>
+        <?php if (isset($component)) { $__componentOriginald26e54664725015b4d5304353f34e090 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginald26e54664725015b4d5304353f34e090 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.user-dropdown','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('user-dropdown'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginald26e54664725015b4d5304353f34e090)): ?>
+<?php $attributes = $__attributesOriginald26e54664725015b4d5304353f34e090; ?>
+<?php unset($__attributesOriginald26e54664725015b4d5304353f34e090); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginald26e54664725015b4d5304353f34e090)): ?>
+<?php $component = $__componentOriginald26e54664725015b4d5304353f34e090; ?>
+<?php unset($__componentOriginald26e54664725015b4d5304353f34e090); ?>
+<?php endif; ?>
     </div>
 </header>
 <?php /**PATH D:\C\Tamago-ISI\resources\views/dosen_penguji/partials/header-dosen_penguji.blade.php ENDPATH**/ ?>

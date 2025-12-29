@@ -3,14 +3,7 @@
 
 <?php $__env->startSection('content'); ?>
     <div class="max-w-7xl mx-auto">
-        <?php if(session('success')): ?>
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle text-yellow-600 mr-3"></i>
-                    <p class="text-yellow-700"><?php echo e(session('success')); ?></p>
-                </div>
-            </div>
-        <?php endif; ?>
+        
         <?php if($errors->any()): ?>
             <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
                 <div class="flex items-start">
@@ -61,7 +54,7 @@
                                             </div>
 
                                             <?php if(optional($projek)->file_naskah_publikasi): ?>
-                                                <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
+                                                <div id="naskahPublishedBox" class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
                                                     <p class="text-sm text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> Naskah sudah diunggah</p>
                                                     <a href="<?php echo e(route('mahasiswa.naskah-karya.download', [$projek->id_proyek_akhir ?? $projek->id, 'naskah'])); ?>" class="text-sm text-yellow-600 hover:underline"><i class="fas fa-download mr-1"></i> Download Naskah</a>
                                                 </div>
@@ -79,19 +72,30 @@
                                         <p class="text-xs text-gray-500 mb-4">Upload file karya final (Video/PDF/ZIP). Karya akhir hanya bisa diunggah jika pra produksi disetujui.</p>
 
                                         <?php if(optional($produksi)->status_pra_produksi === 'disetujui'): ?>
-                                            <form method="POST" action="<?php echo e(route('mahasiswa.produksi.produksi-akhir')); ?>" enctype="multipart/form-data">
+                                            <form method="POST" action="<?php echo e(route('mahasiswa.produksi.store.produksi')); ?>" enctype="multipart/form-data">
                                                 <?php echo csrf_field(); ?>
                                                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer" onclick="document.getElementById('fileKarya').click()">
                                                     <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
                                                     <p class="text-sm text-gray-600 mb-1">Drop file di sini atau klik untuk upload</p>
+                                                    <p class="text-xs text-gray-500 mt-2">Maksimum 500MB - MP4/MOV/PDF/ZIP</p>
+                                                    <input type="file" id="fileKarya" name="file_produksi" accept=".mp4,.mov,.avi,.mkv,.pdf,.zip" class="hidden" onchange="updateFileName(this, 'karyaFileName')">
+                                                    <button type="button" onclick="document.getElementById('fileKarya').click()" class="mt-3 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Pilih File</button>
+                                                    <p id="karyaFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
+                                                </div>
+
+                                                <?php if(optional($produksi)->file_produksi): ?>
+                                                    <div id="produksiFileBox" class="mt-3 bg-green-50 border border-green-200 rounded p-3">
+                                                        <p class="text-xs text-green-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p>
+                                                        <a href="<?php echo e(route('mahasiswa.produksi.download', [$produksi->id, 'akhir'])); ?>" class="text-sm text-blue-600 hover:underline"><i class="fas fa-download mr-1"></i> Download File</a>
                                                     <p class="text-xs text-gray-500 mt-2">Maksimum 500MB - MP4/MOV/AVI/MKV/PDF/ZIP</p>
                                                     <input type="file" id="fileKarya" name="file_produksi_akhir" accept=".mp4,.mov,.avi,.mkv,.pdf,.zip" class="hidden" onchange="updateFileName(this, 'karyaFileName')">
                                                     <button type="button" onclick="document.getElementById('fileKarya').click()" class="mt-3 px-6 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">Pilih File</button>
                                                     <p id="karyaFileName" class="text-sm text-yellow-600 font-medium mt-2"></p>
                                                 </div>
+                                                <?php endif; ?>
 
-                                                <?php if(optional($produksi)->file_produksi_akhir): ?>
-                                                    <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
+                                                    <?php if(optional($produksi)->file_produksi_akhir): ?>
+                                                    <div id="produksiFileAkhirBox" class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
                                                         <p class="text-xs text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p>
                                                         <a href="<?php echo e(route('mahasiswa.produksi.download', [$produksi->id, 'akhir'])); ?>" class="text-sm text-yellow-600 hover:underline"><i class="fas fa-download mr-1"></i> Download File</a>
                                                     </div>
@@ -297,4 +301,47 @@
         </div>
     </div>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('mahasiswa.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Tamago-ISI\resources\views/mahasiswa/naskah-karya.blade.php ENDPATH**/ ?>
+
+<?php $__env->startSection('scripts'); ?>
+<script>
+    async function fetchNaskahUpdates(){
+        try {
+            const res = await fetch("<?php echo e(route('mahasiswa.naskah-karya.check-updates')); ?>", { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            const json = await res.json();
+            if (!json.success) return;
+
+            const projek = json.projek;
+            const produksi = json.produksi;
+
+            const naskahBox = document.getElementById('naskahPublishedBox');
+            if (naskahBox) {
+                if (projek && projek.file_naskah_publikasi) {
+                    naskahBox.innerHTML = `<p class="text-sm text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> Naskah sudah diunggah</p><a href="/mahasiswa/naskah-karya/${projek.id}/naskah" class="text-sm text-yellow-600 hover:underline"><i class='fas fa-download mr-1'></i> Download Naskah</a>`;
+                } else {
+                    naskahBox.innerHTML = '';
+                }
+            }
+
+            const produksiBox = document.getElementById('produksiFileBox');
+            const produksiAkhirBox = document.getElementById('produksiFileAkhirBox');
+            if (produksiBox) {
+                if (produksi && produksi.file_produksi) {
+                    produksiBox.innerHTML = `<p class="text-xs text-green-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p><a href="/mahasiswa/produksi/${produksi.id}/akhir" class="text-sm text-blue-600 hover:underline"><i class='fas fa-download mr-1'></i> Download File</a>`;
+                } else {
+                    produksiBox.innerHTML = '';
+                }
+            }
+            if (produksiAkhirBox) {
+                if (produksi && produksi.file_produksi_akhir) {
+                    produksiAkhirBox.innerHTML = `<p class="text-xs text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File akhir sudah diunggah</p><a href="/mahasiswa/produksi/${produksi.id}/akhir" class="text-sm text-yellow-600 hover:underline"><i class='fas fa-download mr-1'></i> Download File</a>`;
+                } else {
+                    produksiAkhirBox.innerHTML = '';
+                }
+            }
+        } catch (e) { console.error('Failed to fetch naskah updates', e); }
+    }
+    document.addEventListener('DOMContentLoaded', function(){ fetchNaskahUpdates(); setInterval(fetchNaskahUpdates, 15000); });
+</script>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('mahasiswa.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\C\Tamago-ISI\resources\views/mahasiswa/naskah-karya.blade.php ENDPATH**/ ?>

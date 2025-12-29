@@ -5,24 +5,7 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto">
-    <!-- Alert Messages -->
-    @if(session('success'))
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-            <div class="flex items-center">
-                <i class="fas fa-check-circle text-yellow-600 mr-3"></i>
-                <p class="text-yellow-700">{{ session('success') }}</p>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-            <div class="flex items-center">
-                <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-                <p class="text-red-700">{{ session('error') }}</p>
-            </div>
-        </div>
-    @endif
+    {{-- Flash messages are handled in the layout; avoid duplicating here. --}}
 
     @if($errors->any())
         <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">

@@ -13,7 +13,9 @@ class ProjekAkhir extends Model
 
     // migration uses id_proyek_akhir as primary key
     protected $primaryKey = 'id_proyek_akhir';
+
     public $incrementing = true;
+
     protected $keyType = 'int';
 
     protected $fillable = [

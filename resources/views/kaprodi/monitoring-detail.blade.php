@@ -36,7 +36,7 @@
             <h4 class="text-md font-semibold text-gray-700">Progress Keseluruhan</h4>
             <div class="flex items-center mt-2">
                 <div class="w-full bg-gray-200 rounded-full h-4">
-                    <div class="bg-teal-500 h-4 rounded-full" style="width: {{ $progressData['percentage'] }}%"></div>
+                    <div class="bg-teal-600 h-4 rounded-full" style="width: {{ (int) $progressData['percentage'] }}%"></div>
                 </div>
                 <span class="ml-4 text-lg font-bold text-teal-600">{{ $progressData['percentage'] }}%</span>
             </div>

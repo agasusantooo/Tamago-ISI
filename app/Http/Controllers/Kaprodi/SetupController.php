@@ -3,18 +3,18 @@
 namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Semester;
-use App\Models\TAProgressStage; // Still needed if TA stages are displayed elsewhere
-use App\Models\Timeline; // Still needed if timeline due dates are set by others
 use App\Models\ActivitySemester;
-use Carbon\Carbon;
+use App\Models\Semester;
+// Still needed if TA stages are displayed elsewhere
+use App\Models\Timeline; // Still needed if timeline due dates are set by others
+use Illuminate\Http\Request;
 
 class SetupController extends Controller
 {
     public function index()
     {
         $semesters = Semester::orderBy('tanggal_mulai', 'desc')->get();
+
         return view('kaprodi.setup', compact('semesters'));
     }
 

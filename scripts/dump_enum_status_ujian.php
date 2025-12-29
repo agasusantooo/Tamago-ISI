@@ -1,8 +1,9 @@
 <?php
+
 // scripts/dump_enum_status_ujian.php
 // Usage: php scripts/dump_enum_status_ujian.php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
@@ -15,7 +16,7 @@ try {
         exit(1);
     }
     $type = $col[0]->Type ?? ($col[0]['Type'] ?? null);
-    echo "Raw Type: ". $type . "\n";
+    echo 'Raw Type: '.$type."\n";
 
     // extract values from enum('a','b',...)
     if (preg_match_all("/'([^']+)'/", $type, $m)) {
@@ -28,6 +29,6 @@ try {
         echo "No enum values parsed\n";
     }
 } catch (\Throwable $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
     exit(1);
 }

@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Bimbingan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Storage;
 
 class BimbinganController extends Controller
 {
@@ -16,19 +15,20 @@ class BimbinganController extends Controller
     {
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        if (!$mahasiswa) {
+        if (! $mahasiswa) {
             Log::error("Mahasiswa profile not found for user: {$user->id} ({$user->email}) - {$user->name}");
+
             return redirect()->route('mahasiswa.proposal')->with('error', 'Profil mahasiswa tidak ditemukan. Hubungi administrator untuk verifikasi data.');
         }
 
-                // Ambil riwayat bimbingan mahasiswa dari database (hanya milik user yang login)
-                // Pertahankan kompatibilitas: beberapa record lama mungkin hanya menyimpan `nim`.
-                $bimbinganList = Bimbingan::where(function ($q) use ($mahasiswa) {
-                                $q->where('mahasiswa_id', $mahasiswa->user_id)
-                                    ->orWhere('nim', $mahasiswa->nim);
-                        })
-                        ->orderBy('created_at', 'desc')
-                        ->get()
+        // Ambil riwayat bimbingan mahasiswa dari database (hanya milik user yang login)
+        // Pertahankan kompatibilitas: beberapa record lama mungkin hanya menyimpan `nim`.
+        $bimbinganList = Bimbingan::where(function ($q) use ($mahasiswa) {
+            $q->where('mahasiswa_id', $mahasiswa->user_id)
+                ->orWhere('nim', $mahasiswa->nim);
+        })
+            ->orderBy('created_at', 'desc')
+            ->get()
             ->map(function ($item) {
                 // Tambahkan warna dan teks status untuk tampilan
                 $statusMap = [
@@ -74,22 +74,22 @@ class BimbinganController extends Controller
             'waktu_mulai' => 'nullable|date_format:H:i',
         ]);
 
-    $user = Auth::user();
+        $user = Auth::user();
 
-    // Cek relasi mahasiswa
-    $mahasiswa = $user->mahasiswa;
-    if (!$mahasiswa) {
-        return redirect()->back()->with('error', 'Data mahasiswa tidak ditemukan.');
-    }
+        // Cek relasi mahasiswa
+        $mahasiswa = $user->mahasiswa;
+        if (! $mahasiswa) {
+            return redirect()->back()->with('error', 'Data mahasiswa tidak ditemukan.');
+        }
 
-    // Proyek akhir opsional - bimbingan bisa dilakukan kapan saja
-    $projekAkhir = $mahasiswa->projek_akhir ?? null;
+        // Proyek akhir opsional - bimbingan bisa dilakukan kapan saja
+        $projekAkhir = $mahasiswa->projek_akhir ?? null;
 
-    // Handle file pendukung
-    $filePath = null;
-    if ($request->hasFile('file_pendukung')) {
-        $filePath = $request->file('file_pendukung')->store('bimbingan_files', 'public');
-    }
+        // Handle file pendukung
+        $filePath = null;
+        if ($request->hasFile('file_pendukung')) {
+            $filePath = $request->file('file_pendukung')->store('bimbingan_files', 'public');
+        }
 
         // Determine tanggal (use submitted tanggal if provided, otherwise default to now)
         $submittedTanggal = $request->input('tanggal');
@@ -125,11 +125,10 @@ class BimbinganController extends Controller
             'waktu_mulai' => $waktuMulai,
         ]);
 
-    return redirect()
-        ->route('mahasiswa.bimbingan.index')
-        ->with('success', 'Pengajuan bimbingan berhasil dikirim!');
-}
-
+        return redirect()
+            ->route('mahasiswa.bimbingan.index')
+            ->with('success', 'Pengajuan bimbingan berhasil dikirim!');
+    }
 
     public function download($id)
     {
@@ -143,7 +142,7 @@ class BimbinganController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        if (!$bimbingan->file_pendukung) {
+        if (! $bimbingan->file_pendukung) {
             return back()->with('error', 'Tidak ada file pendukung untuk diunduh.');
         }
 
@@ -172,16 +171,16 @@ class BimbinganController extends Controller
     {
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        
-        if (!$mahasiswa) {
+
+        if (! $mahasiswa) {
             return response()->json(['error' => 'Mahasiswa not found'], 404);
         }
 
         // Get all bimbingan for this mahasiswa with their current status
-        $bimbinganList = Bimbingan::where(function($q) use ($mahasiswa) {
+        $bimbinganList = Bimbingan::where(function ($q) use ($mahasiswa) {
             $q->where('nim', $mahasiswa->nim)
-              ->orWhere('mahasiswa_id', $mahasiswa->user_id);
-            })
+                ->orWhere('mahasiswa_id', $mahasiswa->user_id);
+        })
             ->orderBy('created_at', 'desc')
             ->get(['id_bimbingan', 'status', 'catatan_dosen', 'catatan_mahasiswa', 'topik', 'tanggal', 'updated_at'])
             ->map(function ($item) {
@@ -191,13 +190,13 @@ class BimbinganController extends Controller
                     'topik' => $item->topik,
                     'tanggal' => $item->tanggal?->format('Y-m-d'),
                     'catatan_dosen' => $item->catatan_dosen,
-                    'updated_at' => $item->updated_at?->timestamp
+                    'updated_at' => $item->updated_at?->timestamp,
                 ];
             });
 
         return response()->json([
             'success' => true,
-            'bimbingan' => $bimbinganList
+            'bimbingan' => $bimbinganList,
         ]);
     }
 }

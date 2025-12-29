@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\Proposal;
+use App\Models\StoryConference;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Schema;
-use App\Models\StoryConference;
-use App\Models\Proposal;
-use Carbon\Carbon;
 
 class StoryConferenceController extends Controller
 {
@@ -21,7 +20,7 @@ class StoryConferenceController extends Controller
     {
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        
+
         $statusBadges = [
             'menunggu_persetujuan' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Menunggu Persetujuan'],
             'disetujui' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Disetujui'],
@@ -35,9 +34,10 @@ class StoryConferenceController extends Controller
             $storyConferences = StoryConference::where('mahasiswa_nim', $mahasiswa->nim)
                 ->orderBy('tanggal_daftar', 'desc')
                 ->get();
-            
-            $history = $storyConferences->map(function($sc) use ($statusBadges) {
+
+            $history = $storyConferences->map(function ($sc) use ($statusBadges) {
                 $sc->statusBadge = $statusBadges[$sc->status] ?? $statusBadges['menunggu_persetujuan'];
+
                 return $sc;
             });
         }
@@ -54,13 +54,13 @@ class StoryConferenceController extends Controller
                 'persyaratan' => [
                     'Proposal tugas akhir telah disetujui oleh pembimbing.',
                     'Menyiapkan draf skenario atau naskah awal.',
-                    'Menyiapkan materi presentasi konsep (moodboard, referensi visual, dll).'
+                    'Menyiapkan materi presentasi konsep (moodboard, referensi visual, dll).',
                 ],
                 'bg_color' => 'bg-purple-50',
-                'border_color' => 'border-purple-500'
-            ]
+                'border_color' => 'border-purple-500',
+            ],
         ];
-        
+
         return view('mahasiswa.story-conference.index', compact('history', 'jadwalStoryConference'));
     }
 
@@ -70,7 +70,7 @@ class StoryConferenceController extends Controller
     public function create()
     {
         $mahasiswa = Auth::user()->mahasiswa;
-        if (!$mahasiswa) {
+        if (! $mahasiswa) {
             return redirect()->route('mahasiswa.proposal.index')
                 ->with('error', 'Profil mahasiswa tidak ditemukan.');
         }
@@ -79,7 +79,7 @@ class StoryConferenceController extends Controller
             ->latest()
             ->first();
 
-        if (!$proposal) {
+        if (! $proposal) {
             return redirect()->route('mahasiswa.proposal.index')
                 ->with('error', 'Anda belum memiliki proposal. Silakan ajukan proposal terlebih dahulu.');
         }
@@ -87,7 +87,7 @@ class StoryConferenceController extends Controller
         $storyConference = StoryConference::where('mahasiswa_nim', $mahasiswa->nim)
             ->where('proposal_id', $proposal->id)
             ->first();
-        
+
         // Data jadwal story conference
         $jadwalStoryConference = [
             [
@@ -101,13 +101,13 @@ class StoryConferenceController extends Controller
                 'persyaratan' => [
                     'Proposal tugas akhir telah disetujui oleh pembimbing.',
                     'Menyiapkan draf skenario atau naskah awal.',
-                    'Menyiapkan materi presentasi konsep (moodboard, referensi visual, dll).'
+                    'Menyiapkan materi presentasi konsep (moodboard, referensi visual, dll).',
                 ],
                 'bg_color' => 'bg-purple-50',
-                'border_color' => 'border-purple-500'
-            ]
+                'border_color' => 'border-purple-500',
+            ],
         ];
-        
+
         if ($proposal->status !== 'disetujui') {
             return view('mahasiswa.story-conference.create', compact('proposal', 'storyConference', 'jadwalStoryConference'))
                 ->with('error', 'Proposal Anda belum disetujui. Silakan cek status proposal atau hubungi pembimbing.');
@@ -139,17 +139,17 @@ class StoryConferenceController extends Controller
 
         try {
             $mahasiswa = Auth::user()->mahasiswa;
-            if (!$mahasiswa) {
+            if (! $mahasiswa) {
                 return back()->with('error', 'Profil mahasiswa tidak ditemukan.')->withInput();
             }
-            
+
             // Get proposal
             $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
                 ->where('status', 'disetujui')
                 ->latest()
                 ->first();
-            
-            if (!$proposal) {
+
+            if (! $proposal) {
                 return back()->with('error', 'Proposal belum disetujui');
             }
 
@@ -166,9 +166,9 @@ class StoryConferenceController extends Controller
             $filePath = null;
             if ($request->hasFile('file_presentasi')) {
                 $file = $request->file('file_presentasi');
-                $fileName = 'storyconf_' . time() . '.' . $file->getClientOriginalExtension();
+                $fileName = 'storyconf_'.time().'.'.$file->getClientOriginalExtension();
                 $filePath = $file->storeAs(
-                    'story-conference/' . $mahasiswa->nim,
+                    'story-conference/'.$mahasiswa->nim,
                     $fileName,
                     'public'
                 );
@@ -197,7 +197,7 @@ class StoryConferenceController extends Controller
 
         } catch (\Exception $e) {
             return back()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->with('error', 'Terjadi kesalahan: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -208,14 +208,14 @@ class StoryConferenceController extends Controller
     public function download($id)
     {
         $storyConference = StoryConference::findOrFail($id);
-        
+
         // Check authorization
         $mahasiswa = Auth::user()->mahasiswa;
-        if (!$mahasiswa || $storyConference->mahasiswa_nim !== $mahasiswa->nim) {
+        if (! $mahasiswa || $storyConference->mahasiswa_nim !== $mahasiswa->nim) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (!$storyConference->file_presentasi || !Storage::disk('public')->exists($storyConference->file_presentasi)) {
+        if (! $storyConference->file_presentasi || ! Storage::disk('public')->exists($storyConference->file_presentasi)) {
             abort(404, 'File tidak ditemukan');
         }
 
@@ -228,10 +228,10 @@ class StoryConferenceController extends Controller
     public function cancel($id)
     {
         $storyConference = StoryConference::findOrFail($id);
-        
+
         // Check authorization
         $mahasiswa = Auth::user()->mahasiswa;
-        if (!$mahasiswa || $storyConference->mahasiswa_nim !== $mahasiswa->nim) {
+        if (! $mahasiswa || $storyConference->mahasiswa_nim !== $mahasiswa->nim) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -245,5 +245,32 @@ class StoryConferenceController extends Controller
         return redirect()
             ->route('mahasiswa.story-conference.index')
             ->with('success', 'Pendaftaran Story Conference berhasil dibatalkan.');
+    }
+
+    /**
+     * Return story-conference updates as JSON for AJAX polling
+     */
+    public function checkUpdates(Request $request)
+    {
+        $mahasiswa = Auth::user()->mahasiswa;
+        if (! $mahasiswa) {
+            return response()->json(['error' => 'Mahasiswa not found'], 404);
+        }
+
+        $history = StoryConference::where('mahasiswa_nim', $mahasiswa->nim)
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'judul_karya', 'slot_waktu', 'status', 'tanggal_daftar', 'updated_at'])
+            ->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'judul_karya' => $s->judul_karya,
+                    'slot_waktu' => $s->slot_waktu,
+                    'status' => $s->status,
+                    'tanggal_daftar' => $s->tanggal_daftar ? $s->tanggal_daftar->toIsoString() : null,
+                    'updated_at' => $s->updated_at ? $s->updated_at->timestamp : null,
+                ];
+            });
+
+        return response()->json(['success' => true, 'history' => $history]);
     }
 }

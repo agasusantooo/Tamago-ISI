@@ -2,19 +2,20 @@
 
 namespace App\Http\Livewire\Mahasiswa;
 
-use Livewire\Component;
 use App\Service\ProgressService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class HeaderProgress extends Component
 {
     public $percentage = 0;
+
     public $details = [];
 
     public function mount($initialProgress = null)
     {
         if ($initialProgress !== null) {
-            $this->percentage = (int)round($initialProgress);
+            $this->percentage = (int) round($initialProgress);
         } else {
             $this->refreshProgress();
         }
@@ -23,9 +24,9 @@ class HeaderProgress extends Component
     public function refreshProgress()
     {
         try {
-            $svc = new ProgressService();
+            $svc = new ProgressService;
             $data = $svc->getDashboardData(Auth::id());
-            $this->percentage = isset($data['percentage']) ? (int)$data['percentage'] : 0;
+            $this->percentage = isset($data['percentage']) ? (int) $data['percentage'] : 0;
             $this->details = $data['details'] ?? [];
         } catch (\Exception $e) {
             // keep previous value on error

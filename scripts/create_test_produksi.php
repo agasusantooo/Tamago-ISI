@@ -1,13 +1,14 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
+use App\Models\Mahasiswa;
 use App\Models\Produksi;
 use App\Models\Proposal;
 use App\Models\User;
-use App\Models\Mahasiswa;
 
 // Usage: php scripts/create_test_produksi.php <user_id> [proposal_id]
 // Example: php scripts/create_test_produksi.php 84 2
@@ -22,28 +23,30 @@ $userId = intval($argv0[1]);
 $proposalId = isset($argv0[2]) ? intval($argv0[2]) : null;
 
 $user = User::find($userId);
-if (!$user) {
+if (! $user) {
     echo "User with id={$userId} not found.\n";
     exit(1);
 }
 
 // try to find a proposal if not provided
-if (!$proposalId) {
+if (! $proposalId) {
     // try match proposal by mahasiswa->nim
     $mahasiswa = $user->mahasiswa ?? null;
     if ($mahasiswa) {
         $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)->where('status', 'disetujui')->latest()->first();
-        if ($proposal) $proposalId = $proposal->id;
+        if ($proposal) {
+            $proposalId = $proposal->id;
+        }
     }
 }
 
-if (!$proposalId) {
+if (! $proposalId) {
     echo "No proposal id provided and none found for user. Please pass a valid proposal_id.\n";
     exit(1);
 }
 
 $proposal = Proposal::find($proposalId);
-if (!$proposal) {
+if (! $proposal) {
     echo "Proposal id={$proposalId} not found.\n";
     exit(1);
 }

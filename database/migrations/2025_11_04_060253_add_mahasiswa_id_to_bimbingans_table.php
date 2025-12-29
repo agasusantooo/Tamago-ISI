@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::table('bimbingans', function (Blueprint $table) {
             $table->string('nim')->after('id_proyek_akhir');
             $table->foreign('nim')
-                  ->references('nim')
-                  ->on('mahasiswa')
-                  ->onDelete('cascade');
+                ->references('nim')
+                ->on('mahasiswa')
+                ->onDelete('cascade');
         });
     }
 

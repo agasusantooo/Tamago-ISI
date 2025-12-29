@@ -52,12 +52,7 @@
             </a>
         </div>
 
-        <!-- Alerts -->
-        @if(session('success'))
-            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6 rounded-md shadow-sm">
-                <p class="text-yellow-800">{{ session('success') }}</p>
-            </div>
-        @endif
+        {{-- Flash messages are handled in the layout; avoid duplicating here. --}}
 
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -71,7 +66,7 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody id="storyConferenceHistoryBody" class="bg-white divide-y divide-gray-200">
                     @forelse ($history as $item)
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $loop->iteration }}</td>
@@ -98,4 +93,39 @@
             </table>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+    async function fetchStoryConferenceUpdates(){
+        try {
+            const res = await fetch("{{ route('mahasiswa.story-conference.check-updates') }}", { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            const json = await res.json();
+            if (!json.success) return;
+            const tbody = document.getElementById('storyConferenceHistoryBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const items = json.history || [];
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Anda belum pernah mendaftar story conference.</td></tr>`;
+                return;
+            }
+            items.forEach(function(i, idx){
+                const tanggal = i.tanggal_daftar ? new Date(i.tanggal_daftar).toLocaleDateString() : '-';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${idx + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${(i.judul_karya || '').substring(0,40)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${tanggal}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${i.slot_waktu || '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="px-3 py-1 text-xs font-semibold rounded-full">${i.status}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"><a href="#" class="text-yellow-600 hover:text-yellow-900">Detail</a></td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (e) { console.error('Failed to fetch story conference updates', e); }
+    }
+    document.addEventListener('DOMContentLoaded', function(){ fetchStoryConferenceUpdates(); setInterval(fetchStoryConferenceUpdates, 15000); });
+</script>
 @endsection

@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class ProfileTest extends TestCase
 {
@@ -20,4 +20,3 @@ class ProfileTest extends TestCase
         $response->assertSee('Profile');
     }
 }
-

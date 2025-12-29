@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Pages\Auth;
 
-use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
 
 #[Layout('components.layouts.auth')] // Atribut ini memaksa layout auth.blade.php
 class Login extends Component

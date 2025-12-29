@@ -129,39 +129,27 @@
                             <!-- Tugas & Deadline -->
                             <div class="bg-white rounded-xl shadow-sm p-6">
                                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Tugas & Deadline Mendatang</h3>
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+                                <div class="space-y-4">
+                                    <div class="bg-yellow-50 rounded-lg p-4 flex items-center justify-between border-l-4 border-yellow-500 shadow-sm">
                                         <div>
-                                            <p class="font-semibold text-gray-800">Upload Revisi Proposal</p>
-                                            <p class="text-xs text-yellow-700 mt-1">
-                                                <i class="far fa-clock mr-1"></i>Deadline: 25 Mar 2024, 23:59
-                                            </p>
+                                            <p class="font-semibold text-gray-800 text-lg">Upload Revisi Proposal</p>
+                                            <p class="text-xs text-yellow-700 mt-1"><i class="far fa-clock mr-1"></i>Deadline: 25 Mar 2024, 23:59</p>
                                         </div>
-                                        <a href="{{ route('mahasiswa.proposal.index') }}" class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg hover:bg-yellow-600">
-                                            Kerjakan
-                                        </a>
+                                        <a href="{{ route('mahasiswa.proposal.index') }}" class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 shadow">Kerjakan</a>
                                     </div>
-                                    <div class="flex items-center justify-between p-4 bg-yellow-100 border-l-4 border-yellow-600 rounded-lg">
+                                    <div class="bg-yellow-50 rounded-lg p-4 flex items-center justify-between border-l-4 border-yellow-500 shadow-sm">
                                         <div>
-                                            <p class="font-semibold text-gray-800">Pendaftaran Story Conference</p>
-                                            <p class="text-xs text-yellow-700 mt-1">
-                                                <i class="far fa-clock mr-1"></i>Deadline: 30 Mar 2024, 17:00
-                                            </p>
+                                            <p class="font-semibold text-gray-800 text-lg">Pendaftaran Story Conference</p>
+                                            <p class="text-xs text-yellow-700 mt-1"><i class="far fa-clock mr-1"></i>Deadline: 30 Mar 2024, 17:00</p>
                                         </div>
-                                        <a href="{{ route('mahasiswa.story-conference.index') }}" class="px-4 py-2 text-sm font-medium text-gray-800 bg-yellow-400 rounded-lg hover:bg-yellow-500">
-                                            Daftar
-                                        </a>
+                                        <a href="{{ route('mahasiswa.story-conference.index') }}" class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 shadow">Daftar</a>
                                     </div>
-                                    <div class="flex items-center justify-between p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+                                    <div class="bg-yellow-50 rounded-lg p-4 flex items-center justify-between border-l-4 border-yellow-500 shadow-sm">
                                         <div>
-                                            <p class="font-semibold text-gray-800">Submit Laporan Bulanan</p>
-                                            <p class="text-xs text-yellow-700 mt-1">
-                                                <i class="far fa-calendar mr-1"></i>Jadwal: 28 Mar 2024, 10:00
-                                            </p>
+                                            <p class="font-semibold text-gray-800 text-lg">Submit Laporan Bulanan</p>
+                                            <p class="text-xs text-gray-600 mt-1"><i class="far fa-calendar mr-1"></i>Jadwal: 28 Mar 2024, 10:00</p>
                                         </div>
-                                        <a href="#" class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-lg opacity-50 cursor-not-allowed" tabindex="-1" aria-disabled="true">
-                                            Lihat Detail
-                                        </a>
+                                        <a href="#" class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md opacity-50 cursor-not-allowed shadow" tabindex="-1" aria-disabled="true">Lihat Detail</a>
                                     </div>
                                 </div>
                             </div>

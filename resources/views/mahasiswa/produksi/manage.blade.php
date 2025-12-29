@@ -5,23 +5,7 @@
 
 @section('content')
     <div class="max-w-7xl mx-auto">
-        <!-- Alert Messages -->
-        @if(session('success'))
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle text-yellow-600 mr-3"></i>
-                    <p class="text-yellow-700">{{ session('success') }}</p>
-                </div>
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-                <div class="flex items-center">
-                                <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-                                <p class="text-red-700">{{ session('error') }}</p>
-                            </div>
-                        </div>
-                    @endif
+        {{-- Flash messages are handled in the layout; avoid duplicating here. --}}
 
                     @if($errors->any())
                         <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
@@ -35,6 +19,28 @@
                                         @endforeach
                                     </ul>
                                 </div>
+                <script>
+                    async function fetchProduksiManageUpdates(){
+                        try{
+                            const res = await fetch("{{ route('mahasiswa.produksi.check-updates') }}", { headers: { 'Accept': 'application/json' } });
+                            if (!res.ok) return;
+                            const json = await res.json();
+                            const produksi = (json.produksi && json.produksi.length>0) ? json.produksi[0] : null;
+                            const statusBox = document.getElementById('produksiStatusBox');
+                            if (!statusBox) return;
+                            if (!produksi){
+                                statusBox.innerHTML = `<div class="text-center py-8"><i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i><p class="text-sm text-gray-500">Belum ada data pra produksi</p><p class="text-xs text-gray-400 mt-1">Upload file di atas untuk memulai</p></div>`;
+                                return;
+                            }
+                            // Simple status representation
+                            let statusText = 'Status belum tersedia';
+                            if (produksi.status_pra_produksi) statusText = produksi.status_pra_produksi;
+                            let feedback = produksi.feedback_pra_produksi || null;
+                            statusBox.innerHTML = `<h3 class="font-bold text-gray-800 mb-4">Status Persetujuan</h3> <div class="mb-4"><div class="flex items-center space-x-2 mb-2"><span class="font-semibold text-gray-800">${statusText}</span></div></div> <div class="border-t pt-4"><h4 class="font-semibold text-gray-800 mb-3">Catatan/Feedback Dosen Pembimbing</h4> ${feedback ? `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4"><p class="text-sm text-gray-700 leading-relaxed">${feedback}</p></div>` : `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4"><p class="text-sm text-gray-700">Belum ada Feedback</p></div>`} </div>`;
+                        }catch(e){console.error('Failed to fetch produksi manage updates', e);}    
+                    }
+                    document.addEventListener('DOMContentLoaded', function(){ fetchProduksiManageUpdates(); setInterval(fetchProduksiManageUpdates, 15000); });
+                </script>
                             </div>
                         </div>
                     @endif
@@ -168,7 +174,7 @@
                                 </div>
 
                                 <!-- Status Persetujuan & Feedback -->
-                                <div class="bg-white rounded-lg shadow-sm p-6">
+                                <div id="produksiStatusBox" class="bg-white rounded-lg shadow-sm p-6">
                                     <h3 class="font-bold text-gray-800 mb-4">Status Persetujuan</h3>
                                     
                                     @if($produksi)
@@ -221,7 +227,7 @@
                                         </div>
 
                                         @if($produksi && $produksi->status_pra_produksi === 'disetujui')
-                                            <form method="POST" action="{{ route('mahasiswa.produksi.store.produksi') }}" enctype="multipart/form-data">
+                                            <form id="combinedProduksiForm" method="POST" action="{{ route('mahasiswa.produksi.store.produksi') }}" enctype="multipart/form-data">
                                                 @csrf
                                                 
                                                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer mb-4" 
@@ -252,11 +258,8 @@
                                                     </div>
                                                 @endif
 
-                                                <button type="submit" 
-                                                    class="w-full bg-yellow-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-yellow-700 transition text-sm">
-                                                    <i class="fas fa-upload mr-2"></i>Upload File
-                                                </button>
-                                            </form>
+                                                <!-- NOTE: single form will include both file inputs and a combined submit button below -->
+                                            
                                         @else
                                             <div class="text-center py-12">
                                                 <i class="fas fa-lock text-5xl text-gray-300 mb-4"></i>
@@ -279,8 +282,7 @@
                                         </div>
 
                                         @if($produksi && $produksi->status_pra_produksi === 'disetujui')
-                                            <form method="POST" action="{{ route('mahasiswa.produksi.luaran-tambahan') }}" enctype="multipart/form-data">
-                                                @csrf
+                                            {{-- Luaran input is now part of the combined form above; only display the input element here (no separate form) --}}
                                                 
                                                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-400 transition cursor-pointer mb-4" 
                                                     onclick="document.getElementById('fileLuaranTambahan').click()">
@@ -310,11 +312,8 @@
                                                     </div>
                                                 @endif
 
-                                                <button type="submit" 
-                                                    class="w-full bg-yellow-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-yellow-700 transition text-sm">
-                                                    <i class="fas fa-upload mr-2"></i>Upload File
-                                                </button>
-                                            </form>
+                                                <!-- upload handled by combined form's submit -->
+                                            
                                         @else
                                             <div class="text-center py-12">
                                                 <i class="fas fa-lock text-4xl text-gray-300 mb-3"></i>
@@ -323,6 +322,14 @@
                                         @endif
                                     </div>
                                 </div>
+                                @if($produksi && $produksi->status_pra_produksi === 'disetujui')
+                                    <div class="pt-4">
+                                        <button type="submit" class="w-full bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-yellow-700 transition text-sm">
+                                            <i class="fas fa-upload mr-2"></i>Upload File
+                                        </button>
+                                    </div>
+                                </form>
+                                @endif
                             </div>
                             
                             <!-- Tab Content: Pasca Produksi -->
@@ -393,11 +400,12 @@
                     }
 
                     // Drag & Drop functionality
-                    ['fileSkenario', 'fileStoryboard', 'fileDokumen', 'fileKaryaFinal', 'fileLuaranTambahan'].forEach(id => {
+                    (['fileSkenario', 'fileStoryboard', 'fileDokumen', 'fileProduksi', 'fileLuaranTambahan', 'filePasca']).forEach(id => {
                         const element = document.getElementById(id);
                         if (!element) return;
 
-                        const dropZone = element.parentElement;
+                        // Prefer explicitly wrapping dashed area, fallback to parentElement
+                        const dropZone = element.closest('.border-2.border-dashed') || element.parentElement;
 
                         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                             dropZone.addEventListener(eventName, preventDefaults, false);
@@ -420,13 +428,23 @@
                             }, false);
                         });
 
-                        dropZone.addEventListener('drop', (e) => {
+                            dropZone.addEventListener('drop', (e) => {
                             const dt = new DataTransfer();
                             Array.from(e.dataTransfer.files).forEach(file => {
                                 dt.items.add(file);
                             });
                             element.files = dt.files;
-                            const displayId = id + 'FileName';
+                            // Map input IDs to their respective display IDs used in the template
+                            const displayMap = {
+                                fileSkenario: 'skenarioFileName',
+                                fileStoryboard: 'storyboardFileName',
+                                fileDokumen: 'dokumenFileName',
+                                fileProduksi: 'karyaFinalFileName',
+                                fileLuaranTambahan: 'luaranTambahanFileName',
+                                filePasca: 'pascaFileName'
+                            };
+
+                            const displayId = displayMap[id] || (id + 'FileName');
                             updateFileName(element, displayId);
                         }, false);
                     });

@@ -13,7 +13,9 @@ class Mahasiswa extends Model
 
     // The `mahasiswa` table uses `nim` as the primary key (string), not an auto-incrementing `id`.
     protected $primaryKey = 'nim';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -21,7 +23,7 @@ class Mahasiswa extends Model
         'nim',
         'nama',
         // 'prodi' and 'angkatan' removed per request
-            'dosen_pembimbing_id',
+        'dosen_pembimbing_id',
         'email',
         'status',
     ];
@@ -39,9 +41,9 @@ class Mahasiswa extends Model
         return $this->hasOne(ProjekAkhir::class, 'mahasiswa_id', 'user_id');
     }
 
-        // Relasi ke dosen pembimbing
-        public function dosenPembimbing()
-        {
-            return $this->belongsTo(Dosen::class, 'dosen_pembimbing_id', 'nidn');
-        }
+    // Relasi ke dosen pembimbing
+    public function dosenPembimbing()
+    {
+        return $this->belongsTo(Dosen::class, 'dosen_pembimbing_id', 'nidn');
+    }
 }

@@ -111,4 +111,4 @@
             </div>
         </div>
     </div>
-</body><?php /**PATH D:\Tamago-ISI\resources\views/auth/login.blade.php ENDPATH**/ ?>
+</body><?php /**PATH D:\C\Tamago-ISI\resources\views/auth/login.blade.php ENDPATH**/ ?>

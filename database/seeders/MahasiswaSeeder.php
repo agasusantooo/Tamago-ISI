@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
 use App\Models\Mahasiswa;
 use App\Models\Role;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class MahasiswaSeeder extends Seeder
 {
@@ -17,8 +17,9 @@ class MahasiswaSeeder extends Seeder
         // Ambil role mahasiswa
         $roleMahasiswa = Role::where('name', 'mahasiswa')->first();
 
-        if (!$roleMahasiswa) {
+        if (! $roleMahasiswa) {
             $this->command->error('Role mahasiswa tidak ditemukan!');
+
             return;
         }
 

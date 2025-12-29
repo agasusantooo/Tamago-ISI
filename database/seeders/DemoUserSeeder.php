@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Role;
 use App\Models\Dosen;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -50,11 +50,11 @@ class DemoUserSeeder extends Seeder
         $dosenNames = [
             'Dr. Sarah Wijaya', 'Prof. Ahmad Rahman', 'Dr. Siti Aminah', 'Dr. Indah Permata', 'Dr. Rendi Pratama',
             'Prof. Dr. Dewi Lestari', 'Dr. Bambang Susanto', 'Dr. Fitriani Hartono', 'Agus Setiawan, M.Kom.', 'Dr. Dian Novitasari',
-            'Muhammad Iqbal, M.Sn.', 'Dr. Eko Prasetyo', 'Lina Marlina, M.Ds.', 'Dr. Yuniar Supriadi', 'Dr. Heru Wibowo'
+            'Muhammad Iqbal, M.Sn.', 'Dr. Eko Prasetyo', 'Lina Marlina, M.Ds.', 'Dr. Yuniar Supriadi', 'Dr. Heru Wibowo',
         ];
 
         $dosenEmails = [
-            'dospem@test.com', 'kaprodi@test.com', 'koordinator_ta@test.com', 'dosen_penguji@test.com', 'koordinator_tefa@test.com'
+            'dospem@test.com', 'kaprodi@test.com', 'koordinator_ta@test.com', 'dosen_penguji@test.com', 'koordinator_tefa@test.com',
         ];
 
         $dosenRoles = [
@@ -64,11 +64,11 @@ class DemoUserSeeder extends Seeder
             'dosen_penguji@test.com' => $roleDosenPenguji->id,
             'koordinator_tefa@test.com' => $roleKoordinatorTefa->id,
         ];
-        
+
         $i = 0;
         foreach ($dosenNames as $name) {
-            $email = Str::slug($name) . '@test.com';
-            
+            $email = Str::slug($name).'@test.com';
+
             // Override email for specific roles
             if (isset($dosenEmails[$i])) {
                 $email = $dosenEmails[$i];
@@ -76,7 +76,7 @@ class DemoUserSeeder extends Seeder
 
             // Assign a role, default to dospem
             $role_id = $dosenRoles[$email] ?? $roleDospem->id;
-            
+
             $user = User::firstOrCreate(
                 ['email' => $email],
                 [
@@ -87,14 +87,14 @@ class DemoUserSeeder extends Seeder
             );
 
             Dosen::firstOrCreate(
-                ['nidn' => '00112233' . str_pad($i, 2, '0', STR_PAD_LEFT)],
+                ['nidn' => '00112233'.str_pad($i, 2, '0', STR_PAD_LEFT)],
                 [
                     'user_id' => $user->id,
                     'nama' => $name,
                     'jabatan' => 'Dosen',
                     'rumpun_ilmu' => 'Umum', // Default value
                     'jabatan_fungsional' => $jabatanRanks[array_rand($jabatanRanks)],
-                    'status' => 'aktif'
+                    'status' => 'aktif',
                 ]
             );
             $i++;

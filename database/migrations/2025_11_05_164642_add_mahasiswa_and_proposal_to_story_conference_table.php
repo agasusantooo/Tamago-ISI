@@ -33,7 +33,7 @@ return new class extends Migration
             $table->dropColumn([
                 'mahasiswa_id', 'proposal_id', 'dosen_id', 'judul_karya',
                 'slot_waktu', 'file_presentasi', 'tanggal_daftar', 'tanggal_review',
-                'catatan_panitia', 'ruang', 'waktu_presentasi'
+                'catatan_panitia', 'ruang', 'waktu_presentasi',
             ]);
         });
     }

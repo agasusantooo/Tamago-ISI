@@ -1,11 +1,11 @@
 <?php
 
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Livewire\Pages\Auth\Login;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
-use App\Livewire\Pages\Auth\Login;
 
-Route::get('login',Login::class)
+Route::get('login', Login::class)
     ->name('login');
 
 Route::middleware('guest')->group(function () {

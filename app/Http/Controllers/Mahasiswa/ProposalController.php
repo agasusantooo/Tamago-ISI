@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\Bimbingan;
+use App\Models\Dosen;
+use App\Models\Proposal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use App\Models\Proposal;
-use App\Models\Dosen;
-use App\Models\Bimbingan;
 
 class ProposalController extends Controller
 {
@@ -29,15 +29,16 @@ class ProposalController extends Controller
 
         $mahasiswa = Auth::user()->mahasiswa;
         $proposalHistory = collect();
-        
+
         // Ambil semua proposal dari database untuk mahasiswa yang login
         if ($mahasiswa && $mahasiswa->nim) {
             $proposals = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
                 ->orderBy('created_at', 'desc')
                 ->get();
-            
-            $proposalHistory = $proposals->map(function($proposal) use ($badges) {
+
+            $proposalHistory = $proposals->map(function ($proposal) use ($badges) {
                 $proposal->statusBadge = $badges[$proposal->status] ?? $badges['draft'];
+
                 return $proposal;
             });
         }
@@ -59,17 +60,17 @@ class ProposalController extends Controller
         // Validasi: mahasiswa harus melakukan bimbingan minimal 6x sebelum mengajukan proposal
         $bimbinganCount = 0;
         if ($mahasiswa) {
-            $bimbinganCount = Bimbingan::where(function($q) use ($user, $mahasiswa) {
-                    $q->where('mahasiswa_id', $user->id)
-                      ->orWhere('nim', $mahasiswa->nim);
-                })
+            $bimbinganCount = Bimbingan::where(function ($q) use ($user, $mahasiswa) {
+                $q->where('mahasiswa_id', $user->id)
+                    ->orWhere('nim', $mahasiswa->nim);
+            })
                 ->where('status', 'disetujui')
                 ->count();
         }
 
         if ($bimbinganCount < 6) {
             return redirect()->route('mahasiswa.bimbingan.index')
-                ->with('warning', 'Anda harus melakukan bimbingan minimal 6 kali sebelum mengajukan proposal. Saat ini Anda baru melakukan ' . $bimbinganCount . ' bimbingan yang disetujui.');
+                ->with('warning', 'Anda harus melakukan bimbingan minimal 6 kali sebelum mengajukan proposal. Saat ini Anda baru melakukan '.$bimbinganCount.' bimbingan yang disetujui.');
         }
 
         $latestProposal = $mahasiswaNim ? Proposal::where('mahasiswa_nim', $mahasiswaNim)
@@ -79,7 +80,7 @@ class ProposalController extends Controller
         $dosens = Dosen::where('status', 'aktif')
             ->orderBy('nama')
             ->get();
-        
+
         return view('mahasiswa.proposal.create', [
             'proposal' => null, // Set to null for create form
             'dosens' => $dosens,
@@ -106,14 +107,14 @@ class ProposalController extends Controller
             ->with('dosen')
             ->first();
 
-        if (!$proposal) {
+        if (! $proposal) {
             abort(404, 'Proposal tidak ditemukan');
         }
 
         // Cek authorization - user hanya bisa melihat proposal milik mereka sendiri
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        if (!$mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
+        if (! $mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
             abort(403, 'Unauthorized');
         }
 
@@ -132,15 +133,15 @@ class ProposalController extends Controller
         // Validasi bimbingan minimal 6x
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        $bimbinganCount = Bimbingan::where(function($q) use ($user, $mahasiswa) {
-                $q->where('mahasiswa_id', $user->id)
-                  ->orWhere('nim', $mahasiswa->nim);
-            })
+        $bimbinganCount = Bimbingan::where(function ($q) use ($user, $mahasiswa) {
+            $q->where('mahasiswa_id', $user->id)
+                ->orWhere('nim', $mahasiswa->nim);
+        })
             ->where('status', 'disetujui')
             ->count();
 
         if ($bimbinganCount < 6) {
-            return back()->with('error', 'Anda harus melakukan bimbingan minimal 6 kali sebelum mengajukan proposal. Saat ini Anda baru melakukan ' . $bimbinganCount . ' bimbingan yang disetujui.');
+            return back()->with('error', 'Anda harus melakukan bimbingan minimal 6 kali sebelum mengajukan proposal. Saat ini Anda baru melakukan '.$bimbinganCount.' bimbingan yang disetujui.');
         }
 
         $validator = Validator::make($request->all(), [
@@ -170,10 +171,10 @@ class ProposalController extends Controller
 
         try {
             $mahasiswa = Auth::user()->mahasiswa;
-            if (!$mahasiswa) {
+            if (! $mahasiswa) {
                 return back()->with('error', 'Profil mahasiswa tidak ditemukan. Silakan lengkapi profil mahasiswa Anda.')->withInput();
             }
-            
+
             // Calculate version number
             $lastProposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
                 ->latest('versi')
@@ -184,9 +185,9 @@ class ProposalController extends Controller
             $fileProposalPath = null;
             if ($request->hasFile('file_proposal')) {
                 $fileProposal = $request->file('file_proposal');
-                $fileName = 'proposal_v' . $versi . '_' . time() . '.pdf';
+                $fileName = 'proposal_v'.$versi.'_'.time().'.pdf';
                 $fileProposalPath = $fileProposal->storeAs(
-                    'proposals/' . $mahasiswa->nim,
+                    'proposals/'.$mahasiswa->nim,
                     $fileName,
                     'public'
                 );
@@ -197,9 +198,9 @@ class ProposalController extends Controller
             if ($request->hasFile('file_pitch_deck')) {
                 $filePitchDeck = $request->file('file_pitch_deck');
                 $extension = $filePitchDeck->getClientOriginalExtension();
-                $fileName = 'pitchdeck_v' . $versi . '_' . time() . '.' . $extension;
+                $fileName = 'pitchdeck_v'.$versi.'_'.time().'.'.$extension;
                 $filePitchDeckPath = $filePitchDeck->storeAs(
-                    'pitch-decks/' . $mahasiswa->nim,
+                    'pitch-decks/'.$mahasiswa->nim,
                     $fileName,
                     'public'
                 );
@@ -225,7 +226,7 @@ class ProposalController extends Controller
 
         } catch (\Exception $e) {
             return back()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->with('error', 'Terjadi kesalahan: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -236,9 +237,9 @@ class ProposalController extends Controller
     public function edit(Proposal $proposal)
     {
         $mahasiswa = Auth::user()->mahasiswa;
-        
+
         // Cek authorization
-        if (!$mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
+        if (! $mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
             return redirect()->route('mahasiswa.proposal.index')
                 ->with('error', 'Unauthorized');
         }
@@ -252,7 +253,7 @@ class ProposalController extends Controller
         $dosens = Dosen::where('status', 'aktif')
             ->orderBy('nama')
             ->get();
-        
+
         return view('mahasiswa.proposal.create', [
             'proposal' => $proposal,
             'dosens' => $dosens,
@@ -266,7 +267,7 @@ class ProposalController extends Controller
     {
         // Authorization check
         $mahasiswa = Auth::user()->mahasiswa;
-        if (!$mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
+        if (! $mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
             abort(403, 'Anda tidak diizinkan untuk mengupdate proposal ini.');
         }
 
@@ -285,7 +286,7 @@ class ProposalController extends Controller
 
         try {
             $proposalData = $request->only(['judul', 'deskripsi', 'rumpun_ilmu', 'dosen_id']);
-            
+
             // Increment version and set status to 'diajukan'
             $proposalData['versi'] = $proposal->versi + 1;
             $proposalData['status'] = 'diajukan';
@@ -299,8 +300,8 @@ class ProposalController extends Controller
                     Storage::disk('public')->delete($proposal->file_proposal);
                 }
                 $fileProposal = $request->file('file_proposal');
-                $fileName = 'proposal_v' . $proposalData['versi'] . '_' . time() . '.pdf';
-                $proposalData['file_proposal'] = $fileProposal->storeAs('proposals/' . $mahasiswa->nim, $fileName, 'public');
+                $fileName = 'proposal_v'.$proposalData['versi'].'_'.time().'.pdf';
+                $proposalData['file_proposal'] = $fileProposal->storeAs('proposals/'.$mahasiswa->nim, $fileName, 'public');
             }
 
             if ($request->hasFile('file_pitch_deck')) {
@@ -309,8 +310,8 @@ class ProposalController extends Controller
                 }
                 $filePitchDeck = $request->file('file_pitch_deck');
                 $extension = $filePitchDeck->getClientOriginalExtension();
-                $fileName = 'pitchdeck_v' . $proposalData['versi'] . '_' . time() . '.' . $extension;
-                $proposalData['file_pitch_deck'] = $filePitchDeck->storeAs('pitch-decks/' . $mahasiswa->nim, $fileName, 'public');
+                $fileName = 'pitchdeck_v'.$proposalData['versi'].'_'.time().'.'.$extension;
+                $proposalData['file_pitch_deck'] = $filePitchDeck->storeAs('pitch-decks/'.$mahasiswa->nim, $fileName, 'public');
             }
 
             $proposal->update($proposalData);
@@ -320,10 +321,10 @@ class ProposalController extends Controller
                 ->with('success', 'Revisi proposal berhasil diajukan kembali!');
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Terjadi kesalahan: '.$e->getMessage())->withInput();
         }
     }
-    
+
     /**
      * Save proposal as draft
      */
@@ -331,10 +332,10 @@ class ProposalController extends Controller
     {
         try {
             $mahasiswa = Auth::user()->mahasiswa;
-            if (!$mahasiswa) {
+            if (! $mahasiswa) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Profil mahasiswa tidak ditemukan. Silakan lengkapi profil mahasiswa Anda.'
+                    'message' => 'Profil mahasiswa tidak ditemukan. Silakan lengkapi profil mahasiswa Anda.',
                 ], 400);
             }
 
@@ -366,15 +367,42 @@ class ProposalController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Draft berhasil disimpan!'
+                'message' => 'Draft berhasil disimpan!',
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menyimpan draft: ' . $e->getMessage()
+                'message' => 'Gagal menyimpan draft: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Return proposal updates as JSON for AJAX polling
+     */
+    public function checkUpdates(Request $request)
+    {
+        $mahasiswa = Auth::user()->mahasiswa;
+        if (! $mahasiswa) {
+            return response()->json(['error' => 'Mahasiswa not found'], 404);
+        }
+
+        $proposals = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'versi', 'judul', 'status', 'tanggal_pengajuan', 'updated_at'])
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'versi' => $p->versi,
+                    'judul' => $p->judul,
+                    'status' => $p->status,
+                    'tanggal_pengajuan' => $p->tanggal_pengajuan ? $p->tanggal_pengajuan->toIsoString() : null,
+                    'updated_at' => $p->updated_at ? $p->updated_at->timestamp : null,
+                ];
+            });
+
+        return response()->json(['success' => true, 'proposals' => $proposals]);
     }
 
     /**
@@ -383,14 +411,14 @@ class ProposalController extends Controller
     public function download($id)
     {
         $proposal = Proposal::findOrFail($id);
-        
+
         // Check if user owns this proposal
         $mahasiswa = Auth::user()->mahasiswa;
-        if (!$mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
+        if (! $mahasiswa || $proposal->mahasiswa_nim !== $mahasiswa->nim) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (!Storage::disk('public')->exists($proposal->file_proposal)) {
+        if (! Storage::disk('public')->exists($proposal->file_proposal)) {
             abort(404, 'File tidak ditemukan');
         }
 

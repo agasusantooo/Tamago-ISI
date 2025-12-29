@@ -67,7 +67,7 @@
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">Nama Mahasiswa</th>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold text-blue-700">Judul TA</th>
                                                 <th class="px-4 py-3 text-center text-xs font-semibold text-blue-700">Progress</th>
-                                                <th class="px-4 py-3 text-center text-xs font-semibold text-blue-700">Action</th>
+                                                   <!-- Action column removed per UX request -->
                                             </tr>
                                         </thead>
                                         <tbody id="dospemMahasiswaTable" class="divide-y divide-blue-50">
@@ -96,15 +96,11 @@
                                                         <span class="text-sm font-bold text-blue-600">{{ $mhs->progress }}%</span>
                                                     </div>
                                                 </td>
-                                                <td class="px-4 py-3 text-center">
-                                                    <button class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
-                                                        <i class="fas fa-eye mr-1"></i>Detail
-                                                    </button>
-                                                </td>
+                                                   <!-- Detail action removed from dashboard rows -->
                                             </tr>
                                             @empty
                                             <tr>
-                                                <td colspan="5" class="px-4 py-6 text-center text-gray-500">Tidak ada mahasiswa bimbingan</td>
+                                                <td colspan="4" class="px-4 py-6 text-center text-gray-500">Tidak ada mahasiswa bimbingan</td>
                                             </tr>
                                             @endforelse
                                         </tbody>
@@ -175,7 +171,7 @@
                 if (tableBody && data.mahasiswaBimbingan) {
                     tableBody.innerHTML = '';
                     if (data.mahasiswaBimbingan.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Tidak ada mahasiswa bimbingan</td></tr>';
+                        tableBody.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">Tidak ada mahasiswa bimbingan</td></tr>';
                     } else {
                         data.mahasiswaBimbingan.forEach(function(mhs) {
                             const row = document.createElement('tr');
@@ -204,11 +200,7 @@
                                         <span class="text-sm font-bold text-blue-600">${mhs.progress ?? 0}%</span>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3 text-center">
-                                    <button class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
-                                        <i class="fas fa-eye mr-1"></i>Detail
-                                    </button>
-                                </td>
+                                <!-- Detail action removed from dashboard rows -->
                             `;
                             tableBody.appendChild(row);
                         });

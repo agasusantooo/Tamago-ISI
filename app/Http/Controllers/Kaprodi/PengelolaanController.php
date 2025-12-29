@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Dosen;
+use App\Models\Role;
 use App\Models\RumpunIlmu;
 use App\Models\User;
-use App\Models\Role;
+use Illuminate\Http\Request;
 
 class PengelolaanController extends Controller
 {
@@ -17,7 +17,7 @@ class PengelolaanController extends Controller
     public function index()
     {
         $dosens = Dosen::with('user')->get();
-        
+
         $jabatanOptions = [
             'Asisten Ahli' => 'Asisten Ahli',
             'Lektor' => 'Lektor',
@@ -51,6 +51,7 @@ class PengelolaanController extends Controller
     {
         $rumpunIlmus = RumpunIlmu::with('dosens.user')->get();
         $dosens = Dosen::with('user')->get();
+
         return view('kaprodi.rumpun-ilmu', compact('rumpunIlmus', 'dosens'));
     }
 
@@ -61,6 +62,7 @@ class PengelolaanController extends Controller
     {
         $request->validate(['nama' => 'required|string|max:255|unique:rumpun_ilmus,nama']);
         RumpunIlmu::create($request->all());
+
         return redirect()->route('kaprodi.rumpun-ilmu')->with('success', 'Rumpun Ilmu berhasil ditambahkan.');
     }
 
@@ -86,6 +88,7 @@ class PengelolaanController extends Controller
     public function dosenSeminarIndex()
     {
         $dosens = Dosen::with('user')->get();
+
         return view('kaprodi.dosen-seminar', compact('dosens'));
     }
 
@@ -117,9 +120,13 @@ class PengelolaanController extends Controller
     {
         $dosens = Dosen::with('user')->whereHas('user')->get();
         $koordinatorTefaRole = Role::where('name', 'koordinator_tefa')->first();
-        $currentCoordinator = $koordinatorTefaRole ? User::where('role_id', $koordinatorTefaRole->id)->first() : null;
+        $currentCoordinatorTefa = $koordinatorTefaRole ? User::where('role_id', $koordinatorTefaRole->id)->first() : null;
 
-        return view('kaprodi.koordinator-tefa', compact('dosens', 'currentCoordinator'));
+        // Also load Story Conference coordinator info so Kaprodi can manage both
+        $koordinatorStoryRole = Role::where('name', 'koordinator_story_conference')->first();
+        $currentCoordinatorStory = $koordinatorStoryRole ? User::where('role_id', $koordinatorStoryRole->id)->first() : null;
+
+        return view('kaprodi.koordinator-tefa', compact('dosens', 'currentCoordinatorTefa', 'currentCoordinatorStory'));
     }
 
     /**
@@ -132,7 +139,7 @@ class PengelolaanController extends Controller
         ]);
 
         $koordinatorTefaRole = Role::where('name', 'koordinator_tefa')->firstOrFail();
-        
+
         // Remove the role from the old coordinator
         User::where('role_id', $koordinatorTefaRole->id)->update(['role_id' => null]); // Or assign a default 'dosen' role
 
@@ -142,5 +149,27 @@ class PengelolaanController extends Controller
         $newCoordinator->save();
 
         return redirect()->route('kaprodi.koordinator-tefa')->with('success', 'Koordinator TEFA berhasil diperbarui.');
+    }
+
+    /**
+     * Update the Koordinator Story Conference.
+     */
+    public function koordinatorStoryUpdate(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $koordinatorStoryRole = Role::where('name', 'koordinator_story_conference')->firstOrFail();
+
+        // Remove the role from the old coordinator
+        User::where('role_id', $koordinatorStoryRole->id)->update(['role_id' => null]);
+
+        // Assign the role to the new coordinator
+        $newCoordinator = User::find($request->user_id);
+        $newCoordinator->role_id = $koordinatorStoryRole->id;
+        $newCoordinator->save();
+
+        return redirect()->route('kaprodi.koordinator-tefa')->with('success', 'Koordinator Story Conference berhasil diperbarui.');
     }
 }

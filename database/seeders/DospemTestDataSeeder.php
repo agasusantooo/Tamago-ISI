@@ -2,14 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Mahasiswa;
-use App\Models\Dosen;
-use App\Models\Proposal;
 use App\Models\Bimbingan;
+use App\Models\Dosen;
+use App\Models\Mahasiswa;
+use App\Models\Proposal;
 use App\Models\Role;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class DospemTestDataSeeder extends Seeder
 {
@@ -20,14 +19,14 @@ class DospemTestDataSeeder extends Seeder
     {
         // Buat dosen pembimbing jika belum ada
         $dosenPembimbing = User::where('email', 'dosen1@lecturer.isi.ac.id')->first();
-        if (!$dosenPembimbing) {
+        if (! $dosenPembimbing) {
             $role = Role::where('name', 'dospem')->first() ?? Role::create(['name' => 'dospem', 'display_name' => 'Dosen Pembimbing']);
-            
+
             $dosenPembimbing = User::create([
                 'name' => 'Dosen Pembimbing 1',
                 'email' => 'dosen1@lecturer.isi.ac.id',
                 'password' => bcrypt('password'),
-                'role_id' => $role->id
+                'role_id' => $role->id,
             ]);
 
             Dosen::create([
@@ -35,20 +34,20 @@ class DospemTestDataSeeder extends Seeder
                 'nama' => 'Dosen Pembimbing 1',
                 'jabatan' => 'Dosen Pembimbing',
                 'rumpun_ilmu' => 'Informatika',
-                'status' => 'Aktif'
+                'status' => 'Aktif',
             ]);
         }
 
         // Buat mahasiswa jika belum ada
         $mahasiswa = Mahasiswa::where('nim', '71220022')->first();
-        if (!$mahasiswa) {
+        if (! $mahasiswa) {
             $mahasiswaRole = Role::where('name', 'mahasiswa')->first() ?? Role::create(['name' => 'mahasiswa', 'display_name' => 'Mahasiswa']);
-            
+
             $mahasiswaUser = User::create([
                 'name' => 'Debora',
                 'email' => 'debora@student.isi.ac.id',
                 'password' => bcrypt('password'),
-                'role_id' => $mahasiswaRole->id
+                'role_id' => $mahasiswaRole->id,
             ]);
 
             $mahasiswa = Mahasiswa::create([
@@ -57,7 +56,7 @@ class DospemTestDataSeeder extends Seeder
                 'email' => 'debora@student.isi.ac.id',
                 'status' => 'Aktif',
                 'user_id' => $mahasiswaUser->id,
-                'dosen_pembimbing_id' => 'NIDN001'
+                'dosen_pembimbing_id' => 'NIDN001',
             ]);
         } else {
             // Update mahasiswa jika sudah ada
@@ -73,7 +72,7 @@ class DospemTestDataSeeder extends Seeder
                 'deskripsi' => 'Penelitian tentang implementasi machine learning untuk rekomendasi film',
                 'status' => 'diajukan',
                 'tanggal_pengajuan' => now(),
-                'versi' => 1
+                'versi' => 1,
             ]);
 
             Proposal::create([
@@ -83,7 +82,7 @@ class DospemTestDataSeeder extends Seeder
                 'deskripsi' => 'Perbaikan berdasarkan feedback dari dosen',
                 'status' => 'review',
                 'tanggal_pengajuan' => now()->subDays(2),
-                'versi' => 2
+                'versi' => 2,
             ]);
         }
 
@@ -97,7 +96,7 @@ class DospemTestDataSeeder extends Seeder
                 'waktu_selesai' => '15:00:00',
                 'topik' => 'Diskusi Proposal',
                 'status' => 'pending',
-                'catatan_bimbingan' => null
+                'catatan_bimbingan' => null,
             ]);
 
             Bimbingan::create([
@@ -108,7 +107,7 @@ class DospemTestDataSeeder extends Seeder
                 'waktu_selesai' => '16:30:00',
                 'topik' => 'Revisi Bab 3',
                 'status' => 'approved',
-                'catatan_bimbingan' => null
+                'catatan_bimbingan' => null,
             ]);
         }
 

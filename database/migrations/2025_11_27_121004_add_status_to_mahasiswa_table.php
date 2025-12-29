@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('mahasiswa', function (Blueprint $table) {
             // Add status column with default value if it doesn't exist
-            if (!Schema::hasColumn('mahasiswa', 'status')) {
+            if (! Schema::hasColumn('mahasiswa', 'status')) {
                 $table->string('status')->default('aktif')->after('user_id');
             }
         });

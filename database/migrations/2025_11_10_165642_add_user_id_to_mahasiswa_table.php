@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('mahasiswa', function (Blueprint $table) {
-            if (!Schema::hasColumn('mahasiswa', 'user_id')) {
+            if (! Schema::hasColumn('mahasiswa', 'user_id')) {
                 $table->unsignedBigInteger('user_id')->nullable()->after('nim');
                 $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             }

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Proposal;
+use Illuminate\Http\Request;
 
 class KaprodiTaskController extends Controller
 {

@@ -2,13 +2,14 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
 use App\Models\Produksi;
 use Carbon\Carbon;
+use Livewire\Component;
 
 class FinalizationFlow extends Component
 {
     public $produksiId;
+
     public $produksi;
 
     protected $listeners = ['produksiUpdated' => 'loadProduksi'];
@@ -32,8 +33,9 @@ class FinalizationFlow extends Component
     public function saveDraft()
     {
         \Log::info('FinalizationFlow.saveDraft called', ['produksiId' => $this->produksiId]);
-        if (!$this->produksi) {
+        if (! $this->produksi) {
             $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Data produksi tidak ditemukan']);
+
             return;
         }
 
@@ -48,13 +50,15 @@ class FinalizationFlow extends Component
     public function submitVerification()
     {
         \Log::info('FinalizationFlow.submitVerification called', ['produksiId' => $this->produksiId]);
-        if (!$this->produksi) {
+        if (! $this->produksi) {
             $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Data produksi tidak ditemukan']);
+
             return;
         }
 
         if (empty($this->produksi->file_produksi_akhir)) {
             $this->dispatchBrowserEvent('notify', ['type' => 'error', 'message' => 'Unggah file final dulu sebelum mengajukan verifikasi']);
+
             return;
         }
 

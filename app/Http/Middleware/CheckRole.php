@@ -16,12 +16,12 @@ class CheckRole
     public function handle(Request $request, Closure $next, string $role): Response
     {
         // Cek apakah user sudah login
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect('/login');
         }
 
         // Cek apakah user punya role yang sesuai
-        if (!auth()->user()->hasRole($role)) {
+        if (! auth()->user()->hasRole($role)) {
             // Tampilkan error 403 dengan pesan
             abort(403, 'ROLE TIDAK VALID');
         }

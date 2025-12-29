@@ -25,6 +25,12 @@ class TAProgressStage extends Model
         'is_active' => 'boolean',
     ];
 
+    // Provide a friendly `name` alias so views can access `->name` consistently
+    public function getNameAttribute()
+    {
+        return $this->stage_name;
+    }
+
     /**
      * Relasi ke student progress
      */

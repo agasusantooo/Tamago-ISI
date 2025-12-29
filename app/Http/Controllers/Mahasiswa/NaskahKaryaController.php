@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\Produksi;
+use App\Models\ProjekAkhir;
+use App\Models\Proposal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use App\Models\ProjekAkhir;
-use App\Models\Proposal;
-use App\Models\Produksi;
 
 class NaskahKaryaController extends Controller
 {
@@ -55,7 +55,7 @@ class NaskahKaryaController extends Controller
 
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        if (!$mahasiswa) {
+        if (! $mahasiswa) {
             return back()->with('error', 'Profil mahasiswa tidak ditemukan.');
         }
 
@@ -68,8 +68,8 @@ class NaskahKaryaController extends Controller
 
         if ($request->hasFile('file_naskah')) {
             $file = $request->file('file_naskah');
-            $fileName = 'naskah_' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('naskah/' . $mahasiswa->nim, $fileName, 'public');
+            $fileName = 'naskah_'.time().'.'.$file->getClientOriginalExtension();
+            $path = $file->storeAs('naskah/'.$mahasiswa->nim, $fileName, 'public');
 
             $projek->update([
                 'file_naskah_publikasi' => $path,
@@ -95,24 +95,53 @@ class NaskahKaryaController extends Controller
                 abort(403);
             }
             $filePath = $projek->file_naskah_publikasi;
-            if (!$filePath || !Storage::disk('public')->exists($filePath)) {
+            if (! $filePath || ! Storage::disk('public')->exists($filePath)) {
                 abort(404, 'File tidak ditemukan');
             }
+
             return Storage::disk('public')->download($filePath);
         }
 
         // otherwise forward to Produksi download for karya/luaran
         $produksi = Produksi::findOrFail($id);
-        if ($produksi->mahasiswa_id !== $user->id) abort(403);
+        if ($produksi->mahasiswa_id !== $user->id) {
+            abort(403);
+        }
 
         $filePath = null;
-        if ($type === 'akhir') $filePath = $produksi->file_produksi_akhir;
-        if ($type === 'luaran') $filePath = $produksi->file_luaran_tambahan;
+        if ($type === 'akhir') {
+            $filePath = $produksi->file_produksi_akhir;
+        }
+        if ($type === 'luaran') {
+            $filePath = $produksi->file_luaran_tambahan;
+        }
 
-        if (!$filePath || !Storage::disk('public')->exists($filePath)) {
+        if (! $filePath || ! Storage::disk('public')->exists($filePath)) {
             abort(404, 'File tidak ditemukan');
         }
 
         return Storage::disk('public')->download($filePath);
+    }
+
+    /**
+     * Return naskah/projek/produksi related updates as JSON for AJAX polling
+     */
+    public function checkUpdates()
+    {
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        if (! $mahasiswa) {
+            return response()->json(['error' => 'Mahasiswa not found'], 404);
+        }
+
+        $projek = ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first();
+        $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)->where('status', 'disetujui')->latest()->first();
+        $produksi = $proposal ? Produksi::where('mahasiswa_id', $user->id)->where('proposal_id', $proposal->id)->first() : null;
+
+        return response()->json([
+            'success' => true,
+            'projek' => $projek ? ['id' => $projek->id_proyek_akhir, 'judul' => $projek->judul, 'file_naskah_publikasi' => $projek->file_naskah_publikasi] : null,
+            'produksi' => $produksi ? ['id' => $produksi->id, 'status_produksi' => $produksi->status_produksi, 'file_produksi' => $produksi->file_produksi] : null,
+        ]);
     }
 }

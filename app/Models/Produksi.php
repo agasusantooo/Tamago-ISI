@@ -57,7 +57,7 @@ class Produksi extends Model
         parent::booted();
 
         try {
-            $instance = new static();
+            $instance = new static;
             $table = $instance->getTable();
 
             $pairs = [
@@ -143,7 +143,6 @@ class Produksi extends Model
         $this->{ $this->mappedColumn('tanggal_review_produksi') } = $value;
     }
 
-
     /**
      * Get the mahasiswa
      */
@@ -200,7 +199,7 @@ class Produksi extends Model
         return $badges[$this->status_produksi] ?? ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Unknown'];
     }
 
-     /**
+    /**
      * Get status badge for pasca produksi
      */
     public function getStatusPascaProduksiBadgeAttribute()

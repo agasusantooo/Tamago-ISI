@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Koordinator;
 
 use App\Http\Controllers\Controller;
+use App\Models\ProjekAkhir;
+use App\Models\UjianTA;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Models\UjianTA;
-use App\Models\ProjekAkhir;
 
 class UjianController extends Controller
 {
@@ -45,7 +45,7 @@ class UjianController extends Controller
             }
 
             // Only allow certain statuses to be set here
-            $allowed = ['belum_upload','menunggu_review','disetujui','revisi','ditolak','pengajuan_ujian','jadwal_ditetapkan','ujian_berlangsung','selesai_ujian'];
+            $allowed = ['belum_upload', 'menunggu_review', 'disetujui', 'revisi', 'ditolak', 'pengajuan_ujian', 'jadwal_ditetapkan', 'ujian_berlangsung', 'selesai_ujian'];
             if (! in_array($status, $allowed)) {
                 return response()->json(['success' => false, 'message' => 'Invalid status'], 422);
             }
@@ -58,6 +58,7 @@ class UjianController extends Controller
             return response()->json(['success' => true, 'message' => 'Status updated', 'status' => $status]);
         } catch (\Exception $e) {
             Log::error('Failed updateStatus', ['error' => $e->getMessage()]);
+
             return response()->json(['success' => false, 'message' => 'Server error'], 500);
         }
     }

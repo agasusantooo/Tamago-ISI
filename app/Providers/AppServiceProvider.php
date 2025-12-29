@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Auth;
-use App\Service\ProgressService;
 use App\Models\Proposal;
+use App\Service\ProgressService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,14 +14,14 @@ class AppServiceProvider extends ServiceProvider
     {
         // Registrasi ProgressService
         $this->app->bind(ProgressService::class, function ($app) {
-            return new ProgressService();
+            return new ProgressService;
         });
     }
 
     public function boot(): void
     {
-        // 🔸 View Composer untuk header mahasiswa
-        View::composer('mahasiswa.partials.header-mahasiswa', function ($view) {
+        // 🔸 View Composer untuk semua view mahasiswa -> inject latestProposal, progress
+        View::composer('mahasiswa.*', function ($view) {
             $user = Auth::user();
             $latestProposal = null;
             $progress = 0;
@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
                     $progressDetails = $progressData['details'] ?? [];
                 } catch (\Throwable $e) {
                     // Fail silently, header should not break rendering
-                    \Log::warning('ProgressService unavailable for header: ' . $e->getMessage());
+                    \Log::warning('ProgressService unavailable for header: '.$e->getMessage());
                 }
             }
 

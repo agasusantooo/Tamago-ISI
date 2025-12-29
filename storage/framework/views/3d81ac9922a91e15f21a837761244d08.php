@@ -142,12 +142,31 @@
     <div class="lg:col-span-4">
             <div class="bg-white rounded-lg shadow p-4 mb-6">
                 <?php
+                    $initialStatus = null;
+                    if (!empty($ujianTA)) {
+                        $stat = strtolower(str_replace([' ', '-', '_'], '', $ujianTA->status_pendaftaran ?? ''));
+                        $variant = strpos($stat, 'pengajuan') !== false ? 'yellow' : 'green';
+                        $initialStatus = ['text' => 'Status: '.str_replace('_',' ', ucfirst($ujianTA->status_pendaftaran ?? 'Tidak ada status')), 'variant' => $variant];
+                        $initialTanggal = $ujianTA->tanggal_daftar ? $ujianTA->tanggal_daftar->format('d M Y') : '—';
+                    } else {
+                        $initialTanggal = '—';
+                    }
+                ?>
+
+                <?php
 $__split = function ($name, $params = []) {
     return [$name, $params];
 };
-[$__name, $__params] = $__split('mahasiswa.ujian-timeline', ['projekId' => optional($projek)->id_proyek_akhir ?? null, 'ujianId' => optional($ujianTA)->id_ujian ?? optional($ujianTA)->getKey() ?? null]);
+[$__name, $__params] = $__split('mahasiswa.ujian-timeline', [
+                    'projekId' => optional($projek)->id_proyek_akhir ?? null,
+                    'ujianId' => optional($ujianTA)->id_ujian ?? optional($ujianTA)->getKey() ?? null,
+                    'status' => $initialStatus,
+                    'ujianStatusPendaftaran' => optional($ujianTA)->status_pendaftaran ?? null,
+                    'ujianStatus' => optional($ujianTA)->status_ujian ?? null,
+                    'ujianTanggalDaftar' => $initialTanggal,
+                ]);
 
-$__html = app('livewire')->mount($__name, $__params, 'lw-3555144122-0', $__slots ?? [], get_defined_vars());
+$__html = app('livewire')->mount($__name, $__params, 'lw-1474918660-0', $__slots ?? [], get_defined_vars());
 
 echo $__html;
 
@@ -157,6 +176,16 @@ unset($__params);
 unset($__split);
 if (isset($__slots)) unset($__slots);
 ?>
+
+                <?php if(session('ujian_registered')): ?>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            if (window.Livewire) {
+                                Livewire.emit('ujianRegistered');
+                            }
+                        });
+                    </script>
+                <?php endif; ?>
             </div>
 
             
@@ -166,4 +195,4 @@ if (isset($__slots)) unset($__slots);
 </div>
 <?php $__env->stopSection(); ?>
 
-<?php echo $__env->make('mahasiswa.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Tamago-ISI\resources\views/mahasiswa/ujian-ta.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('mahasiswa.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\C\Tamago-ISI\resources\views/mahasiswa/ujian-ta.blade.php ENDPATH**/ ?>

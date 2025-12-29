@@ -10,6 +10,7 @@ class TefaFair extends Model
     use HasFactory;
 
     protected $table = 'tefa_fair';
+
     protected $primaryKey = 'id_tefa';
 
     protected $fillable = [
@@ -37,9 +38,17 @@ class TefaFair extends Model
         return $badges[$this->status] ?? ['class' => 'bg-gray-100 text-gray-800', 'text' => 'Unknown'];
     }
 
-
     public function projekAkhir()
     {
         return $this->belongsTo(ProjekAkhir::class, 'id_proyek_akhir', 'id_proyek_akhir');
+    }
+
+    /**
+     * Get the mahasiswa (student) for this TefaFair entry.
+     * The `mahasiswa` table uses `nim` as primary key (string).
+     */
+    public function mahasiswa()
+    {
+        return $this->belongsTo(Mahasiswa::class, 'mahasiswa_nim', 'nim');
     }
 }

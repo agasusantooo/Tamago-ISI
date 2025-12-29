@@ -5,14 +5,7 @@
 
 @section('content')
     <div class="max-w-7xl mx-auto">
-        @if(session('success'))
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle text-yellow-600 mr-3"></i>
-                    <p class="text-yellow-700">{{ session('success') }}</p>
-                </div>
-            </div>
-        @endif
+        {{-- Flash messages are handled in the layout; avoid duplicating here. --}}
         @if($errors->any())
             <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
                 <div class="flex items-start">
@@ -63,7 +56,7 @@
                                             </div>
 
                                             @if(optional($projek)->file_naskah_publikasi)
-                                                <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
+                                                <div id="naskahPublishedBox" class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
                                                     <p class="text-sm text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> Naskah sudah diunggah</p>
                                                     <a href="{{ route('mahasiswa.naskah-karya.download', [$projek->id_proyek_akhir ?? $projek->id, 'naskah']) }}" class="text-sm text-yellow-600 hover:underline"><i class="fas fa-download mr-1"></i> Download Naskah</a>
                                                 </div>
@@ -93,7 +86,7 @@
                                                 </div>
 
                                                 @if(optional($produksi)->file_produksi)
-                                                    <div class="mt-3 bg-green-50 border border-green-200 rounded p-3">
+                                                    <div id="produksiFileBox" class="mt-3 bg-green-50 border border-green-200 rounded p-3">
                                                         <p class="text-xs text-green-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p>
                                                         <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'akhir']) }}" class="text-sm text-blue-600 hover:underline"><i class="fas fa-download mr-1"></i> Download File</a>
                                                     <p class="text-xs text-gray-500 mt-2">Maksimum 500MB - MP4/MOV/AVI/MKV/PDF/ZIP</p>
@@ -101,9 +94,10 @@
                                                     <button type="button" onclick="document.getElementById('fileKarya').click()" class="mt-3 px-6 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">Pilih File</button>
                                                     <p id="karyaFileName" class="text-sm text-yellow-600 font-medium mt-2"></p>
                                                 </div>
+                                                @endif
 
-                                                @if(optional($produksi)->file_produksi_akhir)
-                                                    <div class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
+                                                    @if(optional($produksi)->file_produksi_akhir)
+                                                    <div id="produksiFileAkhirBox" class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
                                                         <p class="text-xs text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p>
                                                         <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'akhir']) }}" class="text-sm text-yellow-600 hover:underline"><i class="fas fa-download mr-1"></i> Download File</a>
                                                     </div>
@@ -308,4 +302,47 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+    async function fetchNaskahUpdates(){
+        try {
+            const res = await fetch("{{ route('mahasiswa.naskah-karya.check-updates') }}", { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            const json = await res.json();
+            if (!json.success) return;
+
+            const projek = json.projek;
+            const produksi = json.produksi;
+
+            const naskahBox = document.getElementById('naskahPublishedBox');
+            if (naskahBox) {
+                if (projek && projek.file_naskah_publikasi) {
+                    naskahBox.innerHTML = `<p class="text-sm text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> Naskah sudah diunggah</p><a href="/mahasiswa/naskah-karya/${projek.id}/naskah" class="text-sm text-yellow-600 hover:underline"><i class='fas fa-download mr-1'></i> Download Naskah</a>`;
+                } else {
+                    naskahBox.innerHTML = '';
+                }
+            }
+
+            const produksiBox = document.getElementById('produksiFileBox');
+            const produksiAkhirBox = document.getElementById('produksiFileAkhirBox');
+            if (produksiBox) {
+                if (produksi && produksi.file_produksi) {
+                    produksiBox.innerHTML = `<p class="text-xs text-green-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p><a href="/mahasiswa/produksi/${produksi.id}/akhir" class="text-sm text-blue-600 hover:underline"><i class='fas fa-download mr-1'></i> Download File</a>`;
+                } else {
+                    produksiBox.innerHTML = '';
+                }
+            }
+            if (produksiAkhirBox) {
+                if (produksi && produksi.file_produksi_akhir) {
+                    produksiAkhirBox.innerHTML = `<p class="text-xs text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File akhir sudah diunggah</p><a href="/mahasiswa/produksi/${produksi.id}/akhir" class="text-sm text-yellow-600 hover:underline"><i class='fas fa-download mr-1'></i> Download File</a>`;
+                } else {
+                    produksiAkhirBox.innerHTML = '';
+                }
+            }
+        } catch (e) { console.error('Failed to fetch naskah updates', e); }
+    }
+    document.addEventListener('DOMContentLoaded', function(){ fetchNaskahUpdates(); setInterval(fetchNaskahUpdates, 15000); });
+</script>
 @endsection

@@ -52,29 +52,29 @@ class Proposal extends Model
     {
         $badges = [
             'draft' => [
-                'class' => 'bg-gray-100 text-gray-800', 
-                'text' => 'Draft'
+                'class' => 'bg-gray-100 text-gray-800',
+                'text' => 'Draft',
             ],
             'diajukan' => [
-                'class' => 'bg-blue-100 text-blue-800', 
-                'text' => 'Diajukan'
-        ],
-        'review' => [
-            'class' => 'bg-yellow-100 text-yellow-800', 
-            'text' => 'Dalam Review'
-        ],
-        'revisi' => [
-            'class' => 'bg-orange-100 text-orange-800', 
-            'text' => 'Perlu Revisi'
-        ],
-        'disetujui' => [
-            'class' => 'bg-green-100 text-green-800', 
-            'text' => 'Disetujui'
-        ],
-        'ditolak' => [
-            'class' => 'bg-red-100 text-red-800', 
-            'text' => 'Ditolak'
-        ],
+                'class' => 'bg-blue-100 text-blue-800',
+                'text' => 'Diajukan',
+            ],
+            'review' => [
+                'class' => 'bg-yellow-100 text-yellow-800',
+                'text' => 'Dalam Review',
+            ],
+            'revisi' => [
+                'class' => 'bg-orange-100 text-orange-800',
+                'text' => 'Perlu Revisi',
+            ],
+            'disetujui' => [
+                'class' => 'bg-green-100 text-green-800',
+                'text' => 'Disetujui',
+            ],
+            'ditolak' => [
+                'class' => 'bg-red-100 text-red-800',
+                'text' => 'Ditolak',
+            ],
         ];
 
         return $badges[$this->status] ?? ['color' => 'gray', 'text' => 'Unknown'];
@@ -85,12 +85,17 @@ class Proposal extends Model
      */
     public function getFileProposalSizeAttribute()
     {
-        if (!$this->file_proposal) return null;
-        
-        $path = storage_path('app/public/' . $this->file_proposal);
-        if (!file_exists($path)) return null;
-        
+        if (! $this->file_proposal) {
+            return null;
+        }
+
+        $path = storage_path('app/public/'.$this->file_proposal);
+        if (! file_exists($path)) {
+            return null;
+        }
+
         $bytes = filesize($path);
+
         return $this->formatBytes($bytes);
     }
 
@@ -104,8 +109,8 @@ class Proposal extends Model
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
         $bytes /= pow(1024, $pow);
-        
-        return round($bytes, $precision) . ' ' . $units[$pow];
+
+        return round($bytes, $precision).' '.$units[$pow];
     }
 
     /**

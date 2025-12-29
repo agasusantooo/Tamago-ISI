@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\KoordinatorTA;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Proposal;
+use Illuminate\Http\Request;
 
 class KoordinatorTaskController extends Controller
 {

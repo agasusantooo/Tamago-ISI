@@ -16,13 +16,13 @@ return new class extends Migration
     public function up()
     {
         Schema::table('projek_akhir', function (Blueprint $table) {
-            if (!Schema::hasColumn('projek_akhir', 'file_naskah_publikasi')) {
+            if (! Schema::hasColumn('projek_akhir', 'file_naskah_publikasi')) {
                 $table->string('file_naskah_publikasi')->nullable()->after('file_proposal');
             }
-            if (!Schema::hasColumn('projek_akhir', 'link_jurnal')) {
+            if (! Schema::hasColumn('projek_akhir', 'link_jurnal')) {
                 $table->string('link_jurnal')->nullable()->after('file_naskah_publikasi');
             }
-            if (!Schema::hasColumn('projek_akhir', 'tanggal_upload_naskah')) {
+            if (! Schema::hasColumn('projek_akhir', 'tanggal_upload_naskah')) {
                 $table->timestamp('tanggal_upload_naskah')->nullable()->after('link_jurnal');
             }
         });

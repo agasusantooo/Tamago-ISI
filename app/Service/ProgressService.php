@@ -2,14 +2,16 @@
 
 namespace App\Service;
 
-use App\Models\TAProgressStage;
-use App\Models\Proposal;
 use App\Models\Bimbingan;
-use App\Models\StoryConference;
-use App\Models\Produksi;
-use App\Models\UjianTA;
-use App\Models\ProjekAkhir;
 use App\Models\Mahasiswa;
+use App\Models\Produksi;
+use App\Models\ProjekAkhir;
+use App\Models\Proposal;
+use App\Models\StoryConference;
+use App\Models\TAProgressStage;
+use App\Models\UjianTA;
+use App\Models\TefaFair;
+use Illuminate\Support\Facades\Schema;
 
 class ProgressService
 {
@@ -20,7 +22,7 @@ class ProgressService
     public function getDashboardData($userId)
     {
         $user = \App\Models\User::find($userId);
-        if (!$user) {
+        if (! $user) {
             return [
                 'percentage' => 0,
                 'details' => [],
@@ -30,7 +32,7 @@ class ProgressService
         }
 
         $mahasiswa = $user->mahasiswa;
-        if (!$mahasiswa) {
+        if (! $mahasiswa) {
             return [
                 'percentage' => 0,
                 'details' => [],
@@ -78,22 +80,71 @@ class ProgressService
 
                 case 'bimbingan_progress':
                     // Count both submitted (pending) and approved sessions so student's submissions reflect progress
-                    $doneCount = Bimbingan::where(function($q) use ($userId, $nim) {
-                            $q->where('mahasiswa_id', $userId)
-                              ->orWhere('nim', $nim);
-                        })
+                    $doneCount = Bimbingan::where(function ($q) use ($userId, $nim) {
+                        $q->where('mahasiswa_id', $userId)
+                            ->orWhere('nim', $nim);
+                    })
                         ->whereIn('status', ['pending', 'disetujui'])
                         ->count();
 
-                    $required = 8; // minimum sessions
+                    $required = 6; // minimum sessions
                     $fraction = min($doneCount / $required, 1.0);
                     break;
 
                 case 'story_conference':
-                    $accepted = StoryConference::where('mahasiswa_id', $userId)
-                        ->accepted()
-                        ->exists();
-                    $fraction = $accepted ? 1.0 : 0.0;
+                    // Accept either a numeric mahasiswa_id or mahasiswa_nim when matching
+                    $accepted = StoryConference::where(function ($q) use ($userId, $nim) {
+                        $q->where('mahasiswa_id', $userId)
+                            ->orWhere('mahasiswa_nim', $nim);
+                    })->accepted()->exists();
+
+                    if ($accepted) {
+                        $fraction = 1.0;
+                    } else {
+                        $pending = StoryConference::where(function ($q) use ($userId, $nim) {
+                            $q->where('mahasiswa_id', $userId)
+                                ->orWhere('mahasiswa_nim', $nim);
+                        })->whereIn('status', ['menunggu_persetujuan', 'sedang_direview'])->exists();
+
+                        $fraction = $pending ? 0.5 : 0.0;
+                    }
+                    break;
+
+                case 'tefa_registration':
+                    // TEFA counts as full only when approved; pending registration yields partial credit
+                    $approved = false;
+                    $pending = false;
+
+                    if (! empty($nim)) {
+                        $approved = TefaFair::where('mahasiswa_nim', $nim)
+                            ->where('status', 'disetujui')
+                            ->exists();
+
+                        $pending = $pending || TefaFair::where('mahasiswa_nim', $nim)
+                            ->where('status', 'menunggu_review')
+                            ->exists();
+                    }
+
+                    if (! $approved) {
+                        $projekIds = ProjekAkhir::where('nim', $nim)->pluck('id_proyek_akhir');
+                        if ($projekIds->isNotEmpty() && Schema::hasColumn('tefa_fair', 'id_proyek_akhir')) {
+                            $approved = TefaFair::whereIn('id_proyek_akhir', $projekIds)
+                                ->where('status', 'disetujui')
+                                ->exists() || $approved;
+
+                            $pending = $pending || TefaFair::whereIn('id_proyek_akhir', $projekIds)
+                                ->where('status', 'menunggu_review')
+                                ->exists();
+                        }
+                    }
+
+                    if ($approved) {
+                        $fraction = 1.0;
+                    } elseif ($pending) {
+                        $fraction = 0.5;
+                    } else {
+                        $fraction = 0.0;
+                    }
                     break;
 
                 case 'production_upload':
@@ -132,7 +183,7 @@ class ProgressService
                     $finalDoc = ProjekAkhir::where('nim', $nim)
                         ->whereNotNull('file_naskah_publikasi')
                         ->exists();
-                    if (!$finalDoc) {
+                    if (! $finalDoc) {
                         $finalDoc = Produksi::where('mahasiswa_id', $userId)
                             ->where('status_produksi', 'disetujui')
                             ->exists();

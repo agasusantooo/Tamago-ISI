@@ -39,13 +39,14 @@
                             <span class="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-200 rounded-full">{{ Str::title(str_replace('_', ' ', $registration->status ?? 'Belum ada status')) }}</span>
                         </td>
                         <td class="px-4 py-3 text-center space-x-2">
-                            <form action="{{ route('koordinator_tefa.monitoring.approve', $registration->id) }}" method="POST" class="inline">
+                            <form action="{{ route('koordinator_tefa.monitoring.approve', $registration->getKey()) }}" method="POST" class="inline">
                                 @csrf
                                 <button type="submit" class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">Setujui</button>
                             </form>
-                            <form action="{{ route('koordinator_tefa.monitoring.reject', $registration->id) }}" method="POST" class="inline">
+                            <form action="{{ route('koordinator_tefa.monitoring.reject', $registration->getKey()) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Tolak</button>
+                                <input type="hidden" name="reason" class="reject-reason-input">
+                                <button type="submit" class="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 reject-btn">Tolak</button>
                             </form>
                         </td>
                     </tr>
@@ -60,4 +61,29 @@
 
     </div>
 </div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.reject-btn').forEach(function(btn) {
+        btn.addEventListener('click', function (e) {
+            // prompt for an optional reason
+            var reason = prompt('Alasan penolakan (opsional, minimal 5 karakter jika diisi):');
+            if (reason === null) {
+                // user cancelled
+                e.preventDefault();
+                return;
+            }
+            if (reason && reason.length < 5) {
+                alert('Alasan penolakan harus minimal 5 karakter jika diisi.');
+                e.preventDefault();
+                return;
+            }
+            // find hidden input in the same form and set value
+            var input = btn.closest('form').querySelector('.reject-reason-input');
+            if (input) input.value = reason;
+        });
+    });
+});
+</script>
+@endpush
 @endsection

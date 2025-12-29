@@ -29,8 +29,8 @@
                     <div class="mb-6">
                         <h1 class="text-2xl font-bold text-blue-800 mb-1">Detail Mahasiswa</h1>
                         <div class="text-sm text-gray-600">
-                            Mahasiswa Aktif: <span class="font-semibold text-blue-700">{{ $mahasiswaAktifCount ?? 0 }}</span> | 
-                            Tugas Review: <span class="font-semibold text-blue-700">{{ $tugasReview ?? 0 }}</span>
+                            Mahasiswa Aktif: <span id="dospemMahasiswaAktif" class="font-semibold text-blue-700">{{ $mahasiswaAktifCount ?? 0 }}</span> | 
+                            Tugas Review: <span id="dospemTugasReview" class="font-semibold text-blue-700">{{ $tugasReview ?? 0 }}</span>
                         </div>
                     </div>
 
@@ -47,12 +47,10 @@
                                         <h2 class="text-xl font-bold text-blue-900">{{ $mahasiswa->name }}</h2>
                                         <p class="text-sm text-gray-500">NIM: {{ $mahasiswa->nim }}</p>
                                         <p class="text-sm text-gray-500">Email: {{ $mahasiswa->email }}</p>
+                                            <p class="text-sm text-gray-500">Bimbingan Terakhir: {{ $mahasiswa->bimbingan_terakhir ?? '-' }}</p>
                                     </div>
                                 </div>
-                                <div class="mt-4">
-                                    <h3 class="font-semibold text-gray-800">Judul Tugas Akhir</h3>
-                                    <div class="mt-2 p-4 bg-gray-100 rounded-lg">{{ $mahasiswa->judul_ta ?? 'Belum ada judul' }}</div>
-                                </div>
+                                <!-- Judul Tugas Akhir removed from detail view (displayed in daftar/dashboard) -->
                             </div>
 
                             <!-- Tabs -->
@@ -69,7 +67,7 @@
                             <div id="proposal-tab" class="tab-content bg-white rounded-xl shadow-sm p-6 mb-6">
                                 <h3 class="text-lg font-semibold text-blue-800 mb-4">Pengajuan Proposal</h3>
                                 @if(!empty($proposals) && count($proposals) > 0)
-                                    <div class="space-y-4">
+                                    <div id="proposalList" class="space-y-4">
                                         @foreach($proposals as $proposal)
                                             <div class="border rounded-lg p-4 bg-gray-50 max-w-xl mx-auto">
                                                 <div class="flex justify-between items-start mb-3">
@@ -254,7 +252,7 @@
                             <div id="bimbingan-tab" class="tab-content hidden bg-white rounded-xl shadow-sm p-6 mb-6">
                                 <h3 class="text-lg font-semibold text-blue-800 mb-4">Permintaan Jadwal Bimbingan</h3>
                                 @if(!empty($jadwal_bimbingan) && count($jadwal_bimbingan) > 0)
-                                    <div class="space-y-4">
+                                    <div id="jadwalList" class="space-y-4">
                                         @foreach($jadwal_bimbingan as $jadwal)
                                             <div class="border rounded-lg p-4 bg-gray-50 max-w-2xl mx-auto">
                                                 <div class="flex justify-between items-start mb-3">
@@ -318,7 +316,7 @@
                                                 <th class="py-3 pr-6">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y">
+                                        <tbody class="divide-y" id="riwayatBimbinganBody">
                                             @forelse($mahasiswa->riwayat_bimbingan as $riwayat)
                                             <tr class="align-top">
                                                 <td class="py-4 pr-6 w-40 text-gray-700">
@@ -360,7 +358,7 @@
                                 @endphp
                                 
                                 @if(!empty($produksiList) && count($produksiList) > 0)
-                                    <div class="space-y-6">
+                                    <div id="produksiList" class="space-y-6">
                                         @foreach($produksiList as $prod)
                                             <!-- Pra Produksi Section -->
                                             @if(data_get($prod, 'file_skenario') || data_get($prod, 'file_storyboard') || data_get($prod, 'file_dokumen_pendukung'))
@@ -884,6 +882,143 @@
             console.error(err);
             alert('❌ Gagal mengirim permintaan: ' + (err.message || err));
         });
+    });
+
+    // Fetch and update all detail data (proposals, jadwal, riwayat, produksi) periodically
+    async function fetchMahasiswaDetailData() {
+        const url = "{{ route('dospem.mahasiswa-bimbingan.detail-data', ['id' => $mahasiswa->nim ?? $mahasiswa->id]) }}";
+
+        try {
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            const data = await res.json();
+
+            // Update header counts
+            if (data.mahasiswaAktifCount !== undefined && document.getElementById('dospemMahasiswaAktif')) {
+                document.getElementById('dospemMahasiswaAktif').textContent = data.mahasiswaAktifCount;
+            }
+            if (data.tugasReview !== undefined && document.getElementById('dospemTugasReview')) {
+                document.getElementById('dospemTugasReview').textContent = data.tugasReview;
+            }
+
+            // Update proposals
+            if (document.getElementById('proposalList') && Array.isArray(data.proposals)) {
+                const list = data.proposals;
+                if (list.length === 0) {
+                    document.getElementById('proposalList').innerHTML = '<div class="text-center py-8"><i class="fas fa-inbox text-gray-300 text-4xl mb-3 block"></i><p class="text-gray-500">Tidak ada pengajuan proposal.</p></div>';
+                } else {
+                    let html = '';
+                    list.forEach(p => {
+                        html += `
+                            <div class="border rounded-lg p-4 bg-gray-50 max-w-xl mx-auto">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="max-w-xs">
+                                        <h4 class="font-semibold text-gray-800 truncate">${p.judul || 'Proposal'}</h4>
+                                        <p class="text-sm text-gray-500">Diajukan: ${p.tanggal_pengajuan || '-'}</p>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium ${p.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : (p.status === 'disetujui' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}">
+                                        ${ (p.status || 'pending').charAt(0).toUpperCase() + (p.status || 'pending').slice(1) }
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-700 mb-3 truncate max-w-lg" title="${p.deskripsi || ''}">${p.deskripsi || ''}</p>
+                                <div class="flex flex-wrap gap-2">
+                                    ${p.file_proposal ? `<a href="${p.file_proposal}" target="_blank" class="text-xs text-blue-600 hover:underline"><i class="fas fa-file-pdf mr-1"></i>Lihat Proposal</a>` : ''}
+                                    ${(['diajukan','review','revisi'].includes(p.status)) ? `<button type="button" class="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" onclick="openProposalModal(${p.id})"><i class="fas fa-edit mr-1"></i>Tindakan</button>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('proposalList').innerHTML = html;
+                }
+            }
+
+            // Update jadwal bimbingan
+            if (document.getElementById('jadwalList') && Array.isArray(data.jadwal_bimbingan)) {
+                const jadwal = data.jadwal_bimbingan;
+                if (jadwal.length === 0) {
+                    document.getElementById('jadwalList').innerHTML = '<div class="text-center py-8"><i class="fas fa-inbox text-gray-300 text-4xl mb-3 block"></i><p class="text-gray-500">Tidak ada permintaan jadwal bimbingan.</p></div>';
+                } else {
+                    let html = '';
+                    jadwal.forEach(j => {
+                        html += `
+                            <div class="border rounded-lg p-4 bg-gray-50 max-w-2xl mx-auto">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="max-w-xs">
+                                        <h4 class="font-semibold text-gray-800">${j.tanggal || '-'} - ${j.waktu || '-'}</h4>
+                                        <p class="text-sm text-gray-500">Diajukan: ${j.created_at || '-'}</p>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full text-xs font-medium ${j.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : (j.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}">
+                                        ${ (j.status || 'pending').charAt(0).toUpperCase() + (j.status || 'pending').slice(1) }
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-700 mb-3">${j.deskripsi || ''}</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <p class="text-sm text-gray-600 mt-1">📌 ${j.topik || 'Bimbingan umum'}</p>
+                                </div>
+                                ${j.status === 'pending' ? `<button type="button" onclick="openAccBimbinganModal(${j.id || 0}, '${j.tanggal || '-'}', '${j.waktu || '-'}', '${j.topik || 'Bimbingan umum'}', '${(j.deskripsi || '').replace(/'/g, '\\' + "'") }')" class="ml-4 px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 hover:shadow-lg transition-all whitespace-nowrap cursor-pointer"><i class="fas fa-check-circle mr-2"></i>ACC/Tolak</button>` : ''}
+                            </div>
+                        `;
+                    });
+                    document.getElementById('jadwalList').innerHTML = html;
+                }
+            }
+
+            // Update riwayat bimbingan table
+            if (document.getElementById('riwayatBimbinganBody') && Array.isArray(data.riwayat_bimbingan)) {
+                const rows = data.riwayat_bimbingan;
+                if (rows.length === 0) {
+                    document.getElementById('riwayatBimbinganBody').innerHTML = '<tr><td colspan="5" class="py-6 text-center text-gray-500">Belum ada riwayat bimbingan.</td></tr>';
+                } else {
+                    let html = '';
+                    rows.forEach(r => {
+                        html += `
+                            <tr class="align-top">
+                                <td class="py-4 pr-6 w-40 text-gray-700">
+                                    <div class="font-semibold">${r.tanggal || '-'}</div>
+                                    <div class="text-xs text-gray-400">${r.waktu || ''}</div>
+                                </td>
+                                <td class="py-4 pr-6 text-gray-800">${r.topik || '-'}</td>
+                                <td class="py-4 pr-6 text-gray-600">${r.catatan_mahasiswa || r.catatan || '-'}</td>
+                                <td class="py-4 pr-6 text-blue-600">${r.file ? `<a href="${r.file}" class="underline">Lihat</a>` : '-'}</td>
+                                <td class="py-4 pr-6">${r.status && r.status.toLowerCase() === 'selesai' ? `<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs">Selesai</span>` : `<span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs">${r.status || 'Menunggu'}</span>`}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('riwayatBimbinganBody').innerHTML = html;
+                }
+            }
+
+            // Update produksi list using updateProduksiUI if we have existing DOM nodes, otherwise render minimal list
+            if (Array.isArray(data.produksi)) {
+                // If the production DOM already exists, call updateProduksiUI
+                if (document.getElementById('produksiList') && document.querySelector('[data-produksi-id]')) {
+                    updateProduksiUI(data.produksi);
+                } else {
+                    // Fallback: render minimal produksi list
+                    const pl = document.getElementById('produksiList');
+                    if (pl) {
+                        if (data.produksi.length === 0) {
+                            pl.innerHTML = '<div class="text-center py-8"><i class="fas fa-inbox text-gray-300 text-4xl mb-3 block"></i><p class="text-gray-500">Belum ada file produksi yang diajukan.</p></div>';
+                        } else {
+                            let html = '';
+                            data.produksi.forEach(p => {
+                                html += `<div class="border rounded-lg p-4 bg-gray-50" data-produksi-id="${p.id}"><div class="flex items-start justify-between mb-3"><h4 class="font-semibold">Produksi</h4><span class="status-badge px-3 py-1 rounded-full text-xs font-semibold">${p.status_produksi || 'Menunggu'}</span></div></div>`;
+                            });
+                            pl.innerHTML = html;
+                        }
+                    }
+                }
+            }
+
+        } catch (e) {
+            console.error('Error fetching mahasiswa detail data:', e);
+        }
+    }
+
+    // Start polling for detail data
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchMahasiswaDetailData();
+        setInterval(fetchMahasiswaDetailData, 15000);
     });
 </script>
 

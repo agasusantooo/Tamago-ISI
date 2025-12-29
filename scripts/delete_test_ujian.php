@@ -1,32 +1,33 @@
 <?php
+
 // scripts/delete_test_ujian.php
 // Usage: php scripts/delete_test_ujian.php [nim|user_id]
 $arg = $argv[1] ?? null;
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-use App\Models\User;
 use App\Models\ProjekAkhir;
 use App\Models\UjianTA;
+use App\Models\User;
 
 try {
-    if (!$arg) {
+    if (! $arg) {
         echo "Provide user id or nim as argument\n";
         exit(1);
     }
 
     // try as user id
-    $user = is_numeric($arg) ? User::find((int)$arg) : null;
+    $user = is_numeric($arg) ? User::find((int) $arg) : null;
     $nim = null;
     if ($user && $user->mahasiswa) {
         $nim = $user->mahasiswa->nim;
-    } elseif (!is_numeric($arg)) {
+    } elseif (! is_numeric($arg)) {
         $nim = $arg;
     }
 
-    if (!$nim) {
+    if (! $nim) {
         echo "Could not determine nim for argument: $arg\n";
         exit(1);
     }
@@ -41,5 +42,5 @@ try {
 
     echo "Done. Removed projek & ujian entries for nim=$nim\n";
 } catch (\Exception $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }

@@ -42,13 +42,13 @@ class RegisterController extends Controller
         // Validasi NIM untuk mahasiswa
         if ($roleName === 'mahasiswa') {
             $nim = $request->input('nim');
-            if (!$nim) {
+            if (! $nim) {
                 return back()->withErrors(['nim' => 'NIM harus diisi untuk mahasiswa'])->withInput();
             }
 
             // Cek apakah NIM ada di tabel mahasiswa
             $existingMahasiswa = \App\Models\Mahasiswa::where('nim', $nim)->first();
-            if (!$existingMahasiswa) {
+            if (! $existingMahasiswa) {
                 // Jika tidak ditemukan, buatkan record Mahasiswa baru (user_id diset null).
                 // Record ini nanti akan di-link ke user setelah user dibuat di bawah.
                 $existingMahasiswa = \App\Models\Mahasiswa::create([
@@ -67,7 +67,7 @@ class RegisterController extends Controller
 
         // Ambil role dari database
         $role = \App\Models\Role::where('name', $roleName)->first();
-        if (!$role) {
+        if (! $role) {
             return back()->withErrors(['email' => 'Role untuk domain email ini tidak ditemukan.'])->withInput();
         }
 

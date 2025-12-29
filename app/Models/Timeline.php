@@ -7,12 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class Timeline extends Model
 {
     protected $fillable = ['semester_id', 'ta_progress_stage_id', 'due_date'];
-    
+
+    protected $casts = [
+        'due_date' => 'datetime',
+    ];
+
     public function semester()
     {
         return $this->belongsTo(Semester::class);
     }
-    
+
     public function taProgressStage()
     {
         return $this->belongsTo(TAProgressStage::class);

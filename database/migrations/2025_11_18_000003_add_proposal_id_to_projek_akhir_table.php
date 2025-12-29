@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('projek_akhir', function (Blueprint $table) {
-            if (!Schema::hasColumn('projek_akhir', 'proposal_id')) {
+            if (! Schema::hasColumn('projek_akhir', 'proposal_id')) {
                 $table->unsignedBigInteger('proposal_id')->nullable();
             }
             // Uncomment below if you want to add a foreign key constraint

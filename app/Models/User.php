@@ -121,7 +121,7 @@ class User extends Authenticatable
     // Relasi ke Mahasiswa
     public function mahasiswa()
     {
-    // user_id = kolom di tabel mahasiswa yang mengacu ke users.id
+        // user_id = kolom di tabel mahasiswa yang mengacu ke users.id
         return $this->hasOne(Mahasiswa::class, 'user_id', 'id');
     }
 
@@ -130,5 +130,4 @@ class User extends Authenticatable
     {
         return $this->hasOne(Dosen::class, 'user_id', 'id');
     }
-
 }

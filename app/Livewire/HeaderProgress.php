@@ -2,13 +2,14 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\Auth;
 use App\Service\ProgressService;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class HeaderProgress extends Component
 {
     public $progress = 0; // State untuk progres bar
+
     protected $listeners = ['updateProgress' => 'setProgress']; // Listener untuk sinkronisasi
 
     protected $progressService;
@@ -22,7 +23,7 @@ class HeaderProgress extends Component
     public function setProgress($value)
     {
         $this->progress = (int) round($value);
-        logger('Progress updated to: ' . $value);
+        logger('Progress updated to: '.$value);
     }
 
     /**
@@ -36,7 +37,7 @@ class HeaderProgress extends Component
             $data = $this->progressService->getDashboardData($userId);
             $this->progress = (int) round($data['percentage'] ?? 0);
         } catch (\Throwable $e) {
-            logger('Failed to fetch progress: ' . $e->getMessage());
+            logger('Failed to fetch progress: '.$e->getMessage());
             $this->progress = 0;
         }
     }

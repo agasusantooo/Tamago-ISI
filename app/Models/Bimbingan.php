@@ -13,7 +13,9 @@ class Bimbingan extends Model
     // Karena tabel bernama "bimbingans", tidak perlu define $table lagi.
     // Primary key in this table is `id_bimbingan` (not `id`).
     protected $primaryKey = 'id_bimbingan';
+
     public $incrementing = true;
+
     protected $keyType = 'int';
 
     protected $fillable = [

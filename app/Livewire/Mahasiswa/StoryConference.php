@@ -2,10 +2,9 @@
 
 namespace App\Livewire\Mahasiswa;
 
-use Livewire\Component;
 use App\Models\StoryConference as StoryConferenceModel;
-use App\Models\ProjekAkhir;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class StoryConference extends Component
@@ -13,7 +12,9 @@ class StoryConference extends Component
     use WithFileUploads;
 
     public $waktu;
+
     public $file;
+
     public $storyConference;
 
     public function mount()
@@ -54,6 +55,7 @@ class StoryConference extends Component
     public function render()
     {
         $storyConferences = StoryConferenceModel::with('projekAkhir.mahasiswa')->get();
+
         return view('livewire.mahasiswa.story-conference', compact('storyConferences'));
     }
 }

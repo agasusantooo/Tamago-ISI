@@ -3,15 +3,13 @@
 namespace App\Http\Controllers\Dospem;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Mahasiswa;
 use App\Models\Bimbingan;
-use App\Models\Proposal;
 use App\Models\Dosen;
+use App\Models\Mahasiswa;
+use App\Models\Proposal;
 use App\Service\ProgressService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Schema;
 
 class MahasiswaBimbinganController extends Controller
 {
@@ -21,12 +19,14 @@ class MahasiswaBimbinganController extends Controller
     {
         $this->progressService = $progressService;
     }
+
     /**
      * Menampilkan daftar mahasiswa bimbingan.
      */
     public function index()
     {
         $data = $this->getMahasiswaBimbinganData();
+
         return view('dospem.mahasiswa-bimbingan', $data);
     }
 
@@ -36,6 +36,7 @@ class MahasiswaBimbinganController extends Controller
     public function getMahasiswaBimbinganDataJson()
     {
         $data = $this->getMahasiswaBimbinganData();
+
         return response()->json($data);
     }
 
@@ -49,22 +50,38 @@ class MahasiswaBimbinganController extends Controller
         $mahasiswaBimbingan = Mahasiswa::where('dosen_pembimbing_id', $nidn)
             ->with('user', 'projekAkhir')
             ->get()
-            ->map(function ($m) {
+            ->map(function ($m) use ($nidn) {
                 // Get real progress using ProgressService
                 $progress = 0;
                 if ($m->user_id) {
                     $progressData = $this->progressService->getDashboardData($m->user_id);
                     $progress = $progressData['percentage'] ?? 0;
                 }
-                
-                return (object)[
+                // Prefer ProjekAkhir title, fallback to latest Proposal title
+                $proposal = Proposal::where('mahasiswa_nim', $m->nim)->latest()->first();
+                $judul = optional($m->projekAkhir)->judul_ta ?? optional($proposal)->judul ?? 'Belum ada judul';
+
+                // Latest bimbingan for this mahasiswa with this dosen
+                $lastBimbingan = Bimbingan::where(function ($q) use ($m) {
+                    $q->where('nim', $m->nim)
+                        ->orWhere('mahasiswa_id', $m->user_id);
+                })
+                    ->where('dosen_nidn', $nidn)
+                    ->orderBy('tanggal', 'desc')
+                    ->first();
+
+                $bimbinganTerakhir = $lastBimbingan?->tanggal?->format('Y-m-d')
+                    ?? $lastBimbingan?->created_at?->format('Y-m-d')
+                    ?? '-';
+
+                return (object) [
                     'id' => $m->nim,
                     'nim' => $m->nim,
                     'name' => $m->nama ?? optional($m->user)->name,
                     'email' => optional($m->user)->email ?? $m->email,
-                    'judul_ta' => optional($m->projekAkhir)->judul_ta ?? 'Belum ada judul',
+                    'judul_ta' => $judul,
                     'progress' => $progress,
-                    'bimbingan_terakhir' => optional($m->projekAkhir)->updated_at?->format('Y-m-d') ?? '-'
+                    'bimbingan_terakhir' => $bimbinganTerakhir,
                 ];
             })->toArray();
 
@@ -107,10 +124,10 @@ class MahasiswaBimbinganController extends Controller
             ->toArray();
 
         // Ambil jadwal bimbingan yang diajukan mahasiswa
-        $jadwal_bimbingan = Bimbingan::where(function($q) use ($mahasiswa) {
-                $q->where('nim', $mahasiswa->nim)
-                  ->orWhere('mahasiswa_id', $mahasiswa->user_id);
-            })
+        $jadwal_bimbingan = Bimbingan::where(function ($q) use ($mahasiswa) {
+            $q->where('nim', $mahasiswa->nim)
+                ->orWhere('mahasiswa_id', $mahasiswa->user_id);
+        })
             ->where('dosen_nidn', $nidn)
             ->orderBy('tanggal', 'asc')
             ->get()
@@ -128,13 +145,13 @@ class MahasiswaBimbinganController extends Controller
             ->toArray();
 
         // Ambil riwayat bimbingan yang sudah selesai
-                $riwayat_bimbingan = Bimbingan::where(function($q) use ($mahasiswa) {
-                                $q->where('nim', $mahasiswa->nim)
-                                    ->orWhere('mahasiswa_id', $mahasiswa->id);
-                        })
-                        ->where('dosen_nidn', $nidn)
-                        ->whereIn('status', ['completed', 'disetujui', 'selesai'])
-                        ->orderBy('tanggal', 'desc')
+        $riwayat_bimbingan = Bimbingan::where(function ($q) use ($mahasiswa) {
+            $q->where('nim', $mahasiswa->nim)
+                ->orWhere('mahasiswa_id', $mahasiswa->id);
+        })
+            ->where('dosen_nidn', $nidn)
+            ->whereIn('status', ['completed', 'disetujui', 'selesai'])
+            ->orderBy('tanggal', 'desc')
             ->get()
             ->map(function ($r) {
                 return [
@@ -149,16 +166,29 @@ class MahasiswaBimbinganController extends Controller
             })
             ->toArray();
 
-            // Attach arrays onto the mahasiswa object so view can access them as properties
-            // (the view expects $mahasiswa->riwayat_bimbingan etc.)
-            $mahasiswa->riwayat_bimbingan = $riwayat_bimbingan;
-            $mahasiswa->jadwal_bimbingan = $jadwal_bimbingan;
-            $mahasiswa->proposals = $proposals;
-            // Get produksi list
-            $produksiController = new MahasiswaProduksiController();
-            $produksi = $produksiController->getProduksiList($mahasiswa->nim);
+        // Attach arrays onto the mahasiswa object so view can access them as properties
+        // (the view expects $mahasiswa->riwayat_bimbingan etc.)
+        $mahasiswa->riwayat_bimbingan = $riwayat_bimbingan;
+        $mahasiswa->jadwal_bimbingan = $jadwal_bimbingan;
+        $mahasiswa->proposals = $proposals;
+        // Get produksi list
+        $produksiController = new MahasiswaProduksiController;
+        $produksi = $produksiController->getProduksiList($mahasiswa->nim);
 
-            // Provide header variables expected by the partials
+        // Ensure frontend shows correct current TA title and last bimbingan
+        $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)->latest()->first();
+        $mahasiswa->judul_ta = optional($mahasiswa->projekAkhir)->judul_ta ?? optional($proposal)->judul ?? 'Belum ada judul';
+
+        $lastBimbingan = Bimbingan::where(function ($q) use ($mahasiswa) {
+            $q->where('nim', $mahasiswa->nim)
+                ->orWhere('mahasiswa_id', $mahasiswa->id);
+        })
+            ->where('dosen_nidn', $nidn)
+            ->orderBy('tanggal', 'desc')
+            ->first();
+        $mahasiswa->bimbingan_terakhir = $lastBimbingan?->tanggal?->format('Y-m-d') ?? $lastBimbingan?->created_at?->format('Y-m-d') ?? '-';
+
+        // Provide header variables expected by the partials
         $mahasiswaAktifCount = Mahasiswa::where('dosen_pembimbing_id', $nidn)->count();
         $tugasReview = Bimbingan::where('dosen_nidn', $nidn)
             ->whereIn('status', ['pending', 'diajukan', 'review'])
@@ -177,6 +207,112 @@ class MahasiswaBimbinganController extends Controller
             'riwayat_bimbingan',
             'produksi'
         ));
+    }
+
+    /**
+     * Return mahasiswa detail data as JSON for real-time polling in Dospem detail page
+     */
+    public function getMahasiswaDetailDataJson(Request $request, $id)
+    {
+        // Load mahasiswa data by nim or user_id
+        $mahasiswa = Mahasiswa::where('nim', $id)->orWhere('user_id', $id)->firstOrFail();
+        $nidn = Auth::user()->nidn;
+
+        // Proposals
+        $proposals = Proposal::where('mahasiswa_nim', $mahasiswa->nim)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'judul' => $p->judul,
+                    'deskripsi' => $p->deskripsi,
+                    'status' => $p->status,
+                    'tanggal_pengajuan' => $p->tanggal_pengajuan?->format('Y-m-d'),
+                    'file_proposal' => $p->file_proposal,
+                ];
+            })->toArray();
+
+        // Jadwal bimbingan yang diajukan mahasiswa
+        $jadwal_bimbingan = Bimbingan::where(function ($q) use ($mahasiswa) {
+            $q->where('nim', $mahasiswa->nim)
+                ->orWhere('mahasiswa_id', $mahasiswa->user_id);
+        })
+            ->where('dosen_nidn', $nidn)
+            ->orderBy('tanggal', 'asc')
+            ->get()
+            ->map(function ($j) {
+                return [
+                    'id' => $j->id_bimbingan ?? $j->id,
+                    'tanggal' => $j->tanggal?->format('Y-m-d'),
+                    'waktu' => $j->waktu_mulai ?? '10:00',
+                    'topik' => $j->topik ?? 'Bimbingan',
+                    'deskripsi' => $j->catatan_mahasiswa ?? '',
+                    'created_at' => $j->created_at?->format('Y-m-d H:i:s'),
+                    'status' => $j->status ?? 'pending',
+                ];
+            })->toArray();
+
+        // Riwayat bimbingan
+        $riwayat_bimbingan = Bimbingan::where(function ($q) use ($mahasiswa) {
+            $q->where('nim', $mahasiswa->nim)
+                ->orWhere('mahasiswa_id', $mahasiswa->id);
+        })
+            ->where('dosen_nidn', $nidn)
+            ->whereIn('status', ['completed', 'disetujui', 'selesai'])
+            ->orderBy('tanggal', 'desc')
+            ->get()
+            ->map(function ($r) {
+                return [
+                    'tanggal' => $r->tanggal?->format('Y-m-d'),
+                    'waktu' => $r->waktu_mulai ? $r->waktu_mulai->format('H:i') : '',
+                    'topik' => $r->topik ?? 'Bimbingan',
+                    'catatan' => $r->catatan_dosen ?? $r->catatan_bimbingan,
+                    'catatan_mahasiswa' => $r->catatan_mahasiswa,
+                    'file' => $r->file_pendukung,
+                    'status' => $r->status ?? 'Selesai',
+                ];
+            })->toArray();
+
+        // Produksi list via Dospem MahasiswaProduksiController
+        $produksiController = new MahasiswaProduksiController;
+        $produksi = $produksiController->getProduksiList($mahasiswa->nim);
+
+        // Header variables
+        $mahasiswaAktifCount = Mahasiswa::where('dosen_pembimbing_id', $nidn)->count();
+        $tugasReview = Bimbingan::where('dosen_nidn', $nidn)
+            ->whereIn('status', ['pending', 'diajukan', 'review'])
+            ->count();
+
+        // Fallback: use latest proposal title if projekAkhir is missing
+        $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)->latest()->first();
+        $judul = optional($mahasiswa->projekAkhir)->judul_ta ?? optional($proposal)->judul ?? 'Belum ada judul';
+
+        // Calculate last bimbingan date for this dosen (if any)
+        $lastBimbingan = Bimbingan::where(function ($q) use ($mahasiswa) {
+            $q->where('nim', $mahasiswa->nim)
+                ->orWhere('mahasiswa_id', $mahasiswa->user_id);
+        })
+            ->where('dosen_nidn', $nidn)
+            ->orderBy('tanggal', 'desc')
+            ->first();
+        $bimbinganTerakhir = $lastBimbingan?->tanggal?->format('Y-m-d') ?? $lastBimbingan?->created_at?->format('Y-m-d') ?? '-';
+
+        return response()->json([
+            'mahasiswa' => [
+                'nim' => $mahasiswa->nim,
+                'name' => $mahasiswa->nama ?? optional($mahasiswa->user)->name,
+                'email' => optional($mahasiswa->user)->email ?? $mahasiswa->email,
+                'judul_ta' => $judul,
+                'bimbingan_terakhir' => $bimbinganTerakhir,
+            ],
+            'proposals' => $proposals,
+            'jadwal_bimbingan' => $jadwal_bimbingan,
+            'riwayat_bimbingan' => $riwayat_bimbingan,
+            'produksi' => $produksi,
+            'mahasiswaAktifCount' => $mahasiswaAktifCount,
+            'tugasReview' => $tugasReview,
+        ]);
     }
 
     /**
@@ -202,6 +338,7 @@ class MahasiswaBimbinganController extends Controller
             $proposal->feedback = $data['catatan'] ?? $data['catatan_ringkas'] ?? '';
             $proposal->save();
         }
+
         return redirect()->back()->with('success', 'Feedback proposal berhasil disimpan.');
     }
 
@@ -255,7 +392,7 @@ class MahasiswaBimbinganController extends Controller
             }
         } catch (\Exception $e) {
             // Jangan gagalkan flow utama jika pembuatan projek gagal, log saja
-            \Log::error('Gagal membuat/menupdate ProjekAkhir setelah approve proposal: ' . $e->getMessage());
+            \Log::error('Gagal membuat/menupdate ProjekAkhir setelah approve proposal: '.$e->getMessage());
         }
 
         return redirect()->back()->with('success', 'Proposal berhasil disetujui!');
@@ -313,7 +450,7 @@ class MahasiswaBimbinganController extends Controller
             $bimbingan->save();
 
             // Update mahasiswa status so mahasiswa role sees the change
-            if (!empty($bimbingan->nim)) {
+            if (! empty($bimbingan->nim)) {
                 $mahasiswa = Mahasiswa::where('nim', $bimbingan->nim)->first();
                 if ($mahasiswa) {
                     $mahasiswa->status = 'bimbingan_disetujui';
@@ -323,8 +460,9 @@ class MahasiswaBimbinganController extends Controller
 
             return $this->handleResponse($request, 'success', '✅ Jadwal bimbingan berhasil diterima!', 200);
         } catch (\Exception $e) {
-            \Log::error('approveBimbingan error: ' . $e->getMessage());
-            return $this->handleResponse($request, 'error', '❌ Gagal menerima jadwal: ' . $e->getMessage(), 500);
+            \Log::error('approveBimbingan error: '.$e->getMessage());
+
+            return $this->handleResponse($request, 'error', '❌ Gagal menerima jadwal: '.$e->getMessage(), 500);
         }
     }
 
@@ -351,7 +489,7 @@ class MahasiswaBimbinganController extends Controller
             $bimbingan->save();
 
             // Update mahasiswa status
-            if (!empty($bimbingan->nim)) {
+            if (! empty($bimbingan->nim)) {
                 $mahasiswa = Mahasiswa::where('nim', $bimbingan->nim)->first();
                 if ($mahasiswa) {
                     $mahasiswa->status = 'bimbingan_ditolak';
@@ -361,8 +499,9 @@ class MahasiswaBimbinganController extends Controller
 
             return $this->handleResponse($request, 'success', '✅ Jadwal bimbingan berhasil ditolak.', 200);
         } catch (\Exception $e) {
-            \Log::error('rejectBimbingan error: ' . $e->getMessage());
-            return $this->handleResponse($request, 'error', '❌ Gagal menolak jadwal: ' . $e->getMessage(), 500);
+            \Log::error('rejectBimbingan error: '.$e->getMessage());
+
+            return $this->handleResponse($request, 'error', '❌ Gagal menolak jadwal: '.$e->getMessage(), 500);
         }
     }
 
@@ -398,13 +537,14 @@ class MahasiswaBimbinganController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validasi gagal',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Proposal update error: ' . $e->getMessage());
+            \Log::error('Proposal update error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -419,7 +559,7 @@ class MahasiswaBimbinganController extends Controller
                 'status' => $status,
                 'success' => $status === 'success',
                 'message' => $message,
-                'code' => $httpCode
+                'code' => $httpCode,
             ], $httpCode);
         }
 

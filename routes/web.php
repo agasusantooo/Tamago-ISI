@@ -1,27 +1,26 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminLogController;
+use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DebugController;
-use App\Http\Controllers\Mahasiswa\ProposalController;
-use App\Http\Controllers\Mahasiswa\BimbinganController;
-use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\AdminLogController;
-use App\Http\Controllers\Admin\AdminSettingController;
-use App\Http\Controllers\Mahasiswa\StoryConferenceController;
-use App\Http\Controllers\Mahasiswa\ProduksiController;
-use App\Http\Controllers\Mahasiswa\NaskahKaryaController;
-use App\Http\Controllers\Mahasiswa\UjianTAController;
-use App\Http\Controllers\Mahasiswa\TefaFairController;
-
 use App\Http\Controllers\DosenPembimbingController;
-use App\Http\Controllers\KoordinatorTA\KoordinatorTaskController;
-use App\Http\Controllers\Kaprodi\SetupController;
-use App\Http\Controllers\Kaprodi\PengelolaanController;
 use App\Http\Controllers\Kaprodi\MonitoringController;
+use App\Http\Controllers\Kaprodi\PengelolaanController;
+use App\Http\Controllers\Kaprodi\SetupController;
+use App\Http\Controllers\KoordinatorTA\KoordinatorTaskController;
+use App\Http\Controllers\Mahasiswa\BimbinganController;
+use App\Http\Controllers\Mahasiswa\NaskahKaryaController;
+use App\Http\Controllers\Mahasiswa\ProduksiController;
+use App\Http\Controllers\Mahasiswa\ProposalController;
+use App\Http\Controllers\Mahasiswa\StoryConferenceController;
+use App\Http\Controllers\Mahasiswa\TefaFairController;
+use App\Http\Controllers\Mahasiswa\UjianTAController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +45,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 });
-
 
 // API Dosen Pembimbing
 Route::prefix('dosen-pembimbing')->group(function () {
@@ -93,6 +91,7 @@ Route::middleware(['auth', 'role:mahasiswa'])
         Route::post('/proposal/draft', [ProposalController::class, 'saveDraft'])->name('proposal.draft');
         Route::get('/proposal/{id}', [ProposalController::class, 'show'])->name('proposal.show');
         Route::get('/proposal/{id}/download', [ProposalController::class, 'download'])->name('proposal.download');
+        Route::get('/proposal/check/updates', [ProposalController::class, 'checkUpdates'])->name('proposal.check-updates');
 
         // ------------------------
         // BIMBINGAN ROUTES
@@ -117,6 +116,8 @@ Route::middleware(['auth', 'role:mahasiswa'])
             ->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/create', 'create')->name('create');
+                Route::get('/check/updates', 'checkUpdates')->name('check-updates');
+                Route::get('/check/updates', 'checkUpdates')->name('check-updates');
                 Route::post('/store', 'store')->name('store');
                 Route::get('/{id}/download', 'download')->name('download');
                 Route::delete('/{id}/cancel', 'cancel')->name('cancel');
@@ -131,6 +132,7 @@ Route::middleware(['auth', 'role:mahasiswa'])
             ->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/manage', [ProduksiController::class, 'manage'])->name('manage');
+                Route::get('/check/updates', 'checkUpdates')->name('check-updates');
                 Route::post('/store-pra', 'storePraProduksi')->name('store.pra');
                 Route::post('/store-produksi', 'storeProduksi')->name('store.produksi');
                 Route::post('/store-pasca', 'storePascaProduksi')->name('store.pasca');
@@ -148,6 +150,7 @@ Route::middleware(['auth', 'role:mahasiswa'])
                 Route::get('/', 'index')->name('index');
                 Route::post('/', 'store')->name('store');
                 Route::get('/hasil', 'hasil')->name('hasil');
+                Route::get('/check/updates', 'checkUpdates')->name('check-updates');
                 Route::post('/submit-revisi', 'submitRevisi')->name('submit-revisi');
                 Route::get('/{id}/{type}', 'download')->name('download');
             });
@@ -164,17 +167,16 @@ Route::middleware(['auth', 'role:mahasiswa'])
                 Route::post('/', 'store')->name('store');
             });
 
-
-    // ------------------------
-    // NASKAH & KARYA
-    // ------------------------
-    Route::get('/naskah-karya', [NaskahKaryaController::class, 'index'])->name('naskah-karya');
-    Route::post('/naskah-karya/upload-naskah', [NaskahKaryaController::class, 'uploadNaskah'])->name('naskah-karya.upload');
-    Route::get('/naskah-karya/{id}/{type}', [NaskahKaryaController::class, 'download'])->name('naskah-karya.download');
+        // ------------------------
+        // NASKAH & KARYA
+        // ------------------------
+        Route::get('/naskah-karya', [NaskahKaryaController::class, 'index'])->name('naskah-karya');
+        Route::post('/naskah-karya/upload-naskah', [NaskahKaryaController::class, 'uploadNaskah'])->name('naskah-karya.upload');
+        Route::get('/naskah-karya/{id}/{type}', [NaskahKaryaController::class, 'download'])->name('naskah-karya.download');
+        Route::get('/naskah-karya/check/updates', [NaskahKaryaController::class, 'checkUpdates'])->name('naskah-karya.check-updates');
         Route::view('/akun', 'mahasiswa.akun')->name('akun');
 
     });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -232,6 +234,7 @@ Route::middleware(['auth', 'role:dospem'])
 
         // Routes for Mahasiswa Bimbingan detail / feedback
         Route::match(['GET', 'POST'], '/mahasiswa-bimbingan/{id}', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'show'])->name('mahasiswa-bimbingan.show');
+        Route::get('/mahasiswa-bimbingan/{id}/data', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'getMahasiswaDetailDataJson'])->name('mahasiswa-bimbingan.detail-data');
         Route::post('/mahasiswa-bimbingan/{id}/feedback', [\App\Http\Controllers\Dospem\MahasiswaBimbinganController::class, 'submitFeedback'])->name('mahasiswa.feedback.submit');
 
         // Routes for Proposal approval/rejection
@@ -279,7 +282,7 @@ Route::middleware(['auth', 'role:kaprodi'])
         Route::view('/manajemen-data', 'kaprodi.manajemen_data')->name('manajemen-data');
         Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring');
         Route::get('/monitoring/{mahasiswa:nim}', [MonitoringController::class, 'show'])->name('monitoring.show');
-        
+
         // Setup and Timeline routes
         Route::get('/setup', [SetupController::class, 'index'])->name('setup');
         Route::post('/setup/semester', [SetupController::class, 'storeSemester'])->name('semester.store');
@@ -295,6 +298,8 @@ Route::middleware(['auth', 'role:kaprodi'])
         Route::post('/dosen-seminar', [PengelolaanController::class, 'dosenSeminarUpdate'])->name('dosen-seminar.update');
         Route::get('/koordinator-tefa', [PengelolaanController::class, 'koordinatorTefaIndex'])->name('koordinator-tefa');
         Route::post('/koordinator-tefa', [PengelolaanController::class, 'koordinatorTefaUpdate'])->name('koordinator-tefa.update');
+        // Add Story Conference coordinator management on the same Kaprodi page
+        Route::post('/koordinator-story-conference', [PengelolaanController::class, 'koordinatorStoryUpdate'])->name('koordinator-story-conference.update');
 
         // Kaprodi task actions (approve / reject) for TA proposals
         Route::post('/tasks/{id}/approve', [\App\Http\Controllers\Kaprodi\KaprodiTaskController::class, 'approve'])->name('tasks.approve');
@@ -314,11 +319,11 @@ Route::middleware(['auth', 'role:koordinator_tefa'])
         Route::get('/monitoring', [\App\Http\Controllers\KoordinatorTefa\MonitoringController::class, 'index'])->name('monitoring');
         Route::post('/monitoring/{id}/approve', [\App\Http\Controllers\KoordinatorTefa\MonitoringController::class, 'approve'])->name('monitoring.approve');
         Route::post('/monitoring/{id}/reject', [\App\Http\Controllers\KoordinatorTefa\MonitoringController::class, 'reject'])->name('monitoring.reject');
-        
+
         Route::controller(\App\Http\Controllers\KoordinatorTefa\JadwalController::class)
             ->prefix('jadwal')
             ->name('jadwal.')
-            ->group(function() {
+            ->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::post('/', 'store')->name('store');
             });
@@ -341,7 +346,7 @@ Route::middleware(['auth', 'role:koordinator_story_conference'])
         Route::controller(\App\Http\Controllers\KoordinatorStoryConference\JadwalController::class)
             ->prefix('jadwal')
             ->name('jadwal.')
-            ->group(function() {
+            ->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::post('/', 'store')->name('store');
             });
@@ -444,6 +449,7 @@ Route::get('/dashboard/default', function () {
             return redirect()->route('dosen_penguji.dashboard');
         default:
             Auth::logout();
+
             return redirect()->route('login');
     }
 })->middleware('auth')->name('dashboard.default');
@@ -475,4 +481,3 @@ Route::post('/profile/theme', [App\Http\Controllers\ProfileController::class, 's
 // Debug routes
 Route::get('/debug/bimbingan', [DebugController::class, 'bimbingan'])->middleware('auth');
 Route::get('/debug/produksi', [DebugController::class, 'produksi'])->middleware('auth');
-    ->name('profile.theme');

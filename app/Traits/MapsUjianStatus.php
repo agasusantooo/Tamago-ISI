@@ -23,10 +23,11 @@ trait MapsUjianStatus
 
         try {
             $col = DB::select("SHOW COLUMNS FROM ujian_tugas_akhir LIKE 'status_ujian'");
-            if (!empty($col)) {
+            if (! empty($col)) {
                 $type = $col[0]->Type ?? null;
                 if ($type && preg_match_all("/'([^']+)'/", $type, $m)) {
                     self::$ujianStatusCache = $m[1];
+
                     return self::$ujianStatusCache;
                 }
             }

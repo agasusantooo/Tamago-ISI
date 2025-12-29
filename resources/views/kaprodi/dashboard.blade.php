@@ -47,6 +47,26 @@
                             </div>
                         </div>
 
+                        <!-- Ujian TA summary -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-white rounded-lg p-4 border">
+                                <div class="text-sm text-gray-600">Pending Pendaftaran</div>
+                                <div class="text-2xl font-bold text-yellow-600">{{ $pendingUjian ?? 0 }}</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-4 border">
+                                <div class="text-sm text-gray-600">Jadwal Ditetapkan</div>
+                                <div class="text-2xl font-bold text-blue-600">{{ $jadwalDitetapkan ?? 0 }}</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-4 border">
+                                <div class="text-sm text-gray-600">Berlangsung</div>
+                                <div class="text-2xl font-bold text-purple-600">{{ $berlangsung ?? 0 }}</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-4 border">
+                                <div class="text-sm text-gray-600">Selesai Ujian</div>
+                                <div class="text-2xl font-bold text-green-600">{{ $selesaiUjian ?? 0 }}</div>
+                            </div>
+                        </div>
+
                         <!-- Chart -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div class="bg-gray-50 rounded-lg p-6">
@@ -94,10 +114,27 @@
                                         <i class="fas fa-clock text-orange-500 mt-1"></i>
                                         <div>
                                             <p class="font-semibold text-gray-800">Sidang Tertunda</p>
-                                            <p class="text-sm text-gray-600 mt-1">19 mahasiswa belum dijadwalkan sidang</p>
+                                            <p class="text-sm text-gray-600 mt-1">{{ $pendingUjian ?? 0 }} mahasiswa belum dijadwalkan sidang</p>
                                             <button class="text-xs text-orange-600 font-medium mt-2">Perlu Tindakan</button>
                                         </div>
                                     </div>
+
+                                    @if(!empty($pendingUjianList) && $pendingUjianList->count() > 0)
+                                    <div class="mt-3 p-3 bg-white rounded-lg border">
+                                        <div class="font-semibold text-gray-800 mb-2 text-sm">Mahasiswa menunggu jadwal</div>
+                                        <ul class="text-sm text-gray-700 space-y-2">
+                                            @foreach($pendingUjianList as $p)
+                                            <li class="flex justify-between">
+                                                <span>{{ $p->name ?? $p->nim ?? 'N/A' }}</span>
+                                                <span class="text-xs text-gray-500">{{ $p->tanggal_daftar ?? '-' }}</span>
+                                            </li>
+                                            @endforeach
+                                        </ul>
+                                        <div class="mt-3 text-right">
+                                            <a href="{{ route('kaprodi.dashboard.ta') ?? '#' }}" class="text-xs text-blue-600 hover:underline">Lihat semua</a>
+                                        </div>
+                                    </div>
+                                    @endif
 
                                     <div class="flex items-start space-x-3 p-4 bg-yellow-50 border-l-4 border-yellow-600 rounded-lg">
                                         <i class="fas fa-user-clock text-yellow-600 mt-1"></i>

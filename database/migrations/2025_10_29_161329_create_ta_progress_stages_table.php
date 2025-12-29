@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -47,8 +47,8 @@ return new class extends Migration
             ],
             [
                 'stage_code' => 'bimbingan_progress',
-                'stage_name' => 'Bimbingan (Min. 8x)',
-                'description' => 'Melakukan bimbingan minimal 8 kali',
+                'stage_name' => 'Bimbingan (Min. 6x)',
+                'description' => 'Melakukan bimbingan minimal 6 kali',
                 'weight' => 25.00,
                 'sequence' => 3,
                 'is_active' => true,

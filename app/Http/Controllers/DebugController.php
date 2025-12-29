@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bimbingan;
-use App\Models\User;
 use App\Models\Produksi;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class DebugController extends Controller
@@ -15,14 +15,14 @@ class DebugController extends Controller
         $mahasiswa = $user->mahasiswa;
 
         echo "=== Debug Bimbingan ===\n";
-        echo "User ID: " . $user->id . "\n";
-        echo "User Email: " . $user->email . "\n";
-        echo "Mahasiswa: " . ($mahasiswa ? $mahasiswa->nim . " (id={$mahasiswa->id})" : "NULL") . "\n\n";
+        echo 'User ID: '.$user->id."\n";
+        echo 'User Email: '.$user->email."\n";
+        echo 'Mahasiswa: '.($mahasiswa ? $mahasiswa->nim." (id={$mahasiswa->id})" : 'NULL')."\n\n";
 
         // Check query dengan WHERE mahasiswa_id
         $query = Bimbingan::where('mahasiswa_id', $mahasiswa->id ?? 0);
-        echo "Query: WHERE mahasiswa_id = " . ($mahasiswa->id ?? 'NULL') . "\n";
-        echo "Count: " . $query->count() . "\n\n";
+        echo 'Query: WHERE mahasiswa_id = '.($mahasiswa->id ?? 'NULL')."\n";
+        echo 'Count: '.$query->count()."\n\n";
 
         if ($query->count() > 0) {
             echo "Data (seharusnya hanya user ini):\n";
@@ -44,15 +44,15 @@ class DebugController extends Controller
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
 
-        echo "=== Debug Produksi untuk user " . $user->email . " ===\n";
-        echo "User ID: " . $user->id . "\n";
-        echo "Mahasiswa ID: " . ($mahasiswa?->id ?? 'NULL') . " (NIM: " . ($mahasiswa?->nim ?? 'NULL') . ")\n\n";
+        echo '=== Debug Produksi untuk user '.$user->email." ===\n";
+        echo 'User ID: '.$user->id."\n";
+        echo 'Mahasiswa ID: '.($mahasiswa?->id ?? 'NULL').' (NIM: '.($mahasiswa?->nim ?? 'NULL').")\n\n";
 
         if ($mahasiswa) {
             echo "Produksi untuk user ini (mahasiswa_id = {$mahasiswa->id}):\n";
             $produksis = Produksi::where('mahasiswa_id', $mahasiswa->id)->get();
-            echo "Count: " . $produksis->count() . "\n\n";
-            
+            echo 'Count: '.$produksis->count()."\n\n";
+
             foreach ($produksis as $p) {
                 echo "- ID: {$p->id} | proposal_id: {$p->proposal_id} | status: {$p->status_produksi}\n";
             }
@@ -60,7 +60,7 @@ class DebugController extends Controller
 
         echo "\n=== ALL Produksi in Database ===\n";
         $all = Produksi::all();
-        echo "Total: " . $all->count() . "\n\n";
+        echo 'Total: '.$all->count()."\n\n";
         foreach ($all->take(15) as $p) {
             echo "ID: {$p->id} | mahasiswa_id: {$p->mahasiswa_id} | proposal: {$p->proposal_id} | status: {$p->status_produksi}\n";
         }

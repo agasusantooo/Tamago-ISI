@@ -11,6 +11,7 @@ class DosenPembimbingController extends Controller
     public function index()
     {
         $dosen = Dosen::where('status', 'aktif')->get();
+
         return response()->json($dosen);
     }
 
@@ -18,6 +19,7 @@ class DosenPembimbingController extends Controller
     public function show($nidn)
     {
         $dosen = Dosen::findOrFail($nidn);
+
         return response()->json($dosen);
     }
 
@@ -32,6 +34,7 @@ class DosenPembimbingController extends Controller
             'status' => 'required|string',
         ]);
         $dosen = Dosen::create($validated);
+
         return response()->json($dosen, 201);
     }
 
@@ -46,6 +49,7 @@ class DosenPembimbingController extends Controller
             'status' => 'sometimes|required|string',
         ]);
         $dosen->update($validated);
+
         return response()->json($dosen);
     }
 
@@ -54,6 +58,7 @@ class DosenPembimbingController extends Controller
     {
         $dosen = Dosen::findOrFail($nidn);
         $dosen->delete();
+
         return response()->json(['message' => 'Dosen pembimbing deleted']);
     }
 }

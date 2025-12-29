@@ -1,23 +1,24 @@
 <?php
+
 // scripts/debug_ujian.php
 // Usage: php scripts/debug_ujian.php [user_id]
 $uid = $argv[1] ?? 5;
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 // Use models
-use App\Models\User;
-use App\Models\ProjekAkhir;
-use App\Models\UjianTA;
 use App\Models\Produksi;
+use App\Models\ProjekAkhir;
 use App\Models\Proposal;
+use App\Models\UjianTA;
+use App\Models\User;
 
-$out = ['user_id' => (int)$uid, 'found' => false];
+$out = ['user_id' => (int) $uid, 'found' => false];
 try {
     $user = User::find($uid);
-    if (!$user) {
+    if (! $user) {
         echo json_encode(['error' => "User id $uid not found"], JSON_PRETTY_PRINT);
         exit(0);
     }
@@ -57,4 +58,3 @@ try {
 } catch (\Exception $e) {
     echo json_encode(['error' => $e->getMessage()], JSON_PRETTY_PRINT);
 }
-

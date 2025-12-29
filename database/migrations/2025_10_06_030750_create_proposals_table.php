@@ -21,13 +21,12 @@ return new class extends Migration
                 ->on('mahasiswa')
                 ->onDelete('cascade');
 
-
             // Relasi ke dosen (nidn, string)
             $table->string('dosen_id')->nullable();
             $table->foreign('dosen_id')
-                  ->references('nidn')
-                  ->on('dosen')
-                  ->onDelete('set null');
+                ->references('nidn')
+                ->on('dosen')
+                ->onDelete('set null');
 
             // Informasi proposal
             $table->string('judul');
@@ -43,7 +42,7 @@ return new class extends Migration
                 'review',
                 'revisi',
                 'disetujui',
-                'ditolak'
+                'ditolak',
             ])->default('draft');
 
             // Tanggal dan feedback

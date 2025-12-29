@@ -1,33 +1,35 @@
 <?php
+
 // scripts/create_test_ujian.php
 // Usage: php scripts/create_test_ujian.php [user_id]
 $uid = $argv[1] ?? 5;
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-use App\Models\User;
 use App\Models\ProjekAkhir;
-use App\Models\UjianTA;
 use App\Models\Proposal;
+use App\Models\UjianTA;
+use App\Models\User;
 use App\Traits\MapsUjianStatus;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-class TestUjianHelper {
+class TestUjianHelper
+{
     use MapsUjianStatus;
 }
 
 try {
     $user = User::find($uid);
-    if (!$user) {
+    if (! $user) {
         echo "User $uid not found\n";
         exit(1);
     }
 
     $mahasiswa = $user->mahasiswa;
-    if (!$mahasiswa) {
+    if (! $mahasiswa) {
         echo "Mahasiswa relation not found for user $uid\n";
         exit(1);
     }
@@ -38,14 +40,14 @@ try {
         ->latest()
         ->first();
 
-    if (!$proposal) {
+    if (! $proposal) {
         echo "No approved proposal for nim {$mahasiswa->nim}. Please approve a proposal first.\n";
         exit(1);
     }
 
     // Create projek_akhir if missing
     $projek = ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first();
-    if (!$projek) {
+    if (! $projek) {
         $projek = ProjekAkhir::create([
             'nim' => $mahasiswa->nim,
             'nidn1' => null,
@@ -61,31 +63,45 @@ try {
 
     // Create ujian if missing. Use only columns that actually exist in DB to avoid migration mismatch.
     $ujian = UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first();
-    $helper = new TestUjianHelper();
-    
-    if (!$ujian) {
+    $helper = new TestUjianHelper;
+
+    if (! $ujian) {
         $cols = Schema::getColumnListing('ujian_tugas_akhir');
         $data = [];
-        if (in_array('id_proyek_akhir', $cols)) $data['id_proyek_akhir'] = $projek->id_proyek_akhir;
-        if (in_array('status_pendaftaran', $cols)) $data['status_pendaftaran'] = 'pengajuan_ujian';
-        if (in_array('status_ujian', $cols)) $data['status_ujian'] = $helper->mapUjianStatus('selesai_ujian');
-        if (in_array('tanggal_daftar', $cols)) $data['tanggal_daftar'] = now();
-        if (in_array('tanggal_ujian', $cols)) $data['tanggal_ujian'] = now();
-        if (in_array('nilai_akhir', $cols)) $data['nilai_akhir'] = 85;
+        if (in_array('id_proyek_akhir', $cols)) {
+            $data['id_proyek_akhir'] = $projek->id_proyek_akhir;
+        }
+        if (in_array('status_pendaftaran', $cols)) {
+            $data['status_pendaftaran'] = 'pengajuan_ujian';
+        }
+        if (in_array('status_ujian', $cols)) {
+            $data['status_ujian'] = $helper->mapUjianStatus('selesai_ujian');
+        }
+        if (in_array('tanggal_daftar', $cols)) {
+            $data['tanggal_daftar'] = now();
+        }
+        if (in_array('tanggal_ujian', $cols)) {
+            $data['tanggal_ujian'] = now();
+        }
+        if (in_array('nilai_akhir', $cols)) {
+            $data['nilai_akhir'] = 85;
+        }
+        if (in_array('mahasiswa_id', $cols)) {
+            $data['mahasiswa_id'] = $user->id;
+        }
 
         // create using only available columns
         $ujian = UjianTA::create($data);
-        echo "Created UjianTA id=" . ($ujian->id_ujian ?? $ujian->getKey()) . " (status_ujian=" . ($ujian->status_ujian ?? 'n/a') . ")\n";
+        echo 'Created UjianTA id='.($ujian->id_ujian ?? $ujian->getKey()).' (status_ujian='.($ujian->status_ujian ?? 'n/a').")\n";
     } else {
         echo "Existing UjianTA id={$ujian->id_ujian} (status_ujian={$ujian->status_ujian})\n";
         if (Schema::hasColumn('ujian_tugas_akhir', 'status_ujian') && $ujian->status_ujian !== $helper->mapUjianStatus('selesai_ujian')) {
             $ujian->update(['status_ujian' => $helper->mapUjianStatus('selesai_ujian')]);
-            echo "Updated UjianTA id={$ujian->id_ujian} to status_ujian=" . $helper->mapUjianStatus('selesai_ujian') . "\n";
+            echo "Updated UjianTA id={$ujian->id_ujian} to status_ujian=".$helper->mapUjianStatus('selesai_ujian')."\n";
         }
     }
 
     echo "Done. You can now visit the hasil page for this mahasiswa.\n";
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }
-

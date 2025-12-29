@@ -2,10 +2,9 @@
 
 namespace App\Livewire\Mahasiswa;
 
-use Livewire\Component;
 use App\Models\TefaFair as TefaFairModel;
-use App\Models\ProjekAkhir;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class TefaFair extends Component
@@ -13,8 +12,11 @@ class TefaFair extends Component
     use WithFileUploads;
 
     public $semester;
+
     public $file_presentasi;
+
     public $daftar_kebutuhan;
+
     public $tefaFair;
 
     public function mount()
@@ -55,6 +57,7 @@ class TefaFair extends Component
     public function render()
     {
         $tefaFairs = TefaFairModel::with('projekAkhir.mahasiswa')->get();
+
         return view('livewire.mahasiswa.tefa-fair', compact('tefaFairs'));
     }
 }

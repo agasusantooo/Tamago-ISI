@@ -2,22 +2,15 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Role;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
-
 {
-
     /**
-
      * Run the database seeds.
-
      */
-
     public function run(): void
-
     {
 
         $roles = [
@@ -28,7 +21,7 @@ class RoleSeeder extends Seeder
 
                 'display_name' => 'Mahasiswa',
 
-                'description' => 'Role untuk mahasiswa yang mengerjakan Tugas Akhir'
+                'description' => 'Role untuk mahasiswa yang mengerjakan Tugas Akhir',
 
             ],
 
@@ -38,7 +31,7 @@ class RoleSeeder extends Seeder
 
                 'display_name' => 'Dosen Pembimbing',
 
-                'description' => 'Role untuk dosen pembimbing mahasiswa TA'
+                'description' => 'Role untuk dosen pembimbing mahasiswa TA',
 
             ],
 
@@ -48,7 +41,7 @@ class RoleSeeder extends Seeder
 
                 'display_name' => 'Koordinator Prodi',
 
-                'description' => 'Role untuk koordinator program studi'
+                'description' => 'Role untuk koordinator program studi',
 
             ],
 
@@ -58,7 +51,7 @@ class RoleSeeder extends Seeder
 
                 'display_name' => 'Koordinator TA',
 
-                'description' => 'Role untuk koordinator tugas akhir'
+                'description' => 'Role untuk koordinator tugas akhir',
 
             ],
 
@@ -68,7 +61,7 @@ class RoleSeeder extends Seeder
 
                 'display_name' => 'Dosen Penguji',
 
-                'description' => 'Role untuk dosen penguji sidang TA'
+                'description' => 'Role untuk dosen penguji sidang TA',
 
             ],
 
@@ -78,7 +71,7 @@ class RoleSeeder extends Seeder
 
                 'display_name' => 'Administrator',
 
-                'description' => 'Role untuk administrator sistem'
+                'description' => 'Role untuk administrator sistem',
 
             ],
 
@@ -88,19 +81,17 @@ class RoleSeeder extends Seeder
 
                 'display_name' => 'Koordinator TEFA',
 
-                'description' => 'Role untuk koordinator TEFA Fair'
+                'description' => 'Role untuk koordinator TEFA Fair',
 
             ],
 
             [
                 'name' => 'koordinator_story_conference',
                 'display_name' => 'Koordinator Story Conference',
-                'description' => 'Role untuk koordinator story conference'
-            ]
+                'description' => 'Role untuk koordinator story conference',
+            ],
 
         ];
-
-
 
         foreach ($roles as $role) {
 
@@ -108,10 +99,7 @@ class RoleSeeder extends Seeder
 
         }
 
-
-
         $this->command->info('✓ Roles berhasil disinkronkan!');
 
     }
-
 }

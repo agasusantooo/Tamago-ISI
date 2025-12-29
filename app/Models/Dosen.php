@@ -10,8 +10,11 @@ class Dosen extends Model
     use HasFactory;
 
     protected $table = 'dosen';
+
     protected $primaryKey = 'nidn';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -33,15 +36,14 @@ class Dosen extends Model
         return $this->belongsTo(User::class);
     }
 
-        // Relasi ke mahasiswa yang dibimbing
-            public function mahasiswaBimbingan()
-            {
-                return $this->hasMany(Mahasiswa::class, 'dosen_pembimbing_id', 'nidn');
-            }
-        
-            public function rumpunIlmus()
-            {
-                return $this->belongsToMany(RumpunIlmu::class, 'dosen_rumpun_ilmu', 'dosen_nidn', 'rumpun_ilmu_id');
-            }
-        }
-        
+    // Relasi ke mahasiswa yang dibimbing
+    public function mahasiswaBimbingan()
+    {
+        return $this->hasMany(Mahasiswa::class, 'dosen_pembimbing_id', 'nidn');
+    }
+
+    public function rumpunIlmus()
+    {
+        return $this->belongsToMany(RumpunIlmu::class, 'dosen_rumpun_ilmu', 'dosen_nidn', 'rumpun_ilmu_id');
+    }
+}

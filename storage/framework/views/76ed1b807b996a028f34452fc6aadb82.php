@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $__env->yieldContent('title', 'Dashboard Mahasiswa'); ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-100">
@@ -69,5 +69,6 @@
             });
         }
     </script>
+    <?php echo $__env->yieldContent('scripts'); ?>
 </body>
-</html><?php /**PATH D:\Tamago-ISI\resources\views/mahasiswa/layouts/app.blade.php ENDPATH**/ ?>
+</html><?php /**PATH D:\C\Tamago-ISI\resources\views/mahasiswa/layouts/app.blade.php ENDPATH**/ ?>

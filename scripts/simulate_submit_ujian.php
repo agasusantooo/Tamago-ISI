@@ -1,21 +1,21 @@
 <?php
+
 // scripts/simulate_submit_ujian.php
 // Usage: php scripts/simulate_submit_ujian.php [user_id]
 $uid = $argv[1] ?? 5;
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Mahasiswa\UjianTAController;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 try {
     $user = User::find($uid);
-    if (!$user) {
+    if (! $user) {
         echo "User $uid not found\n";
         exit(1);
     }
@@ -25,8 +25,8 @@ try {
 
     // create temp files for upload
     $tmpDir = sys_get_temp_dir();
-    $suratPath = tempnam($tmpDir, 'surat_') . '.pdf';
-    $transPath = tempnam($tmpDir, 'trans_') . '.pdf';
+    $suratPath = tempnam($tmpDir, 'surat_').'.pdf';
+    $transPath = tempnam($tmpDir, 'trans_').'.pdf';
     file_put_contents($suratPath, "%PDF-1.4 Dummy PDF content\n");
     file_put_contents($transPath, "%PDF-1.4 Dummy PDF content\n");
 
@@ -62,19 +62,19 @@ try {
         $laravelSession = $app->make('session.store');
     } catch (Exception $e) {
         // fallback to array session store
-        $laravelSession = new \Illuminate\Session\Store('cli', new \Illuminate\Session\ArraySessionHandler());
+        $laravelSession = new \Illuminate\Session\Store('cli', new \Illuminate\Session\ArraySessionHandler);
     }
     if (method_exists($laravelSession, 'start')) {
         $laravelSession->start();
     }
     $request->setLaravelSession($laravelSession);
 
-    $controller = new UjianTAController();
+    $controller = new UjianTAController;
     $response = $controller->store($request);
 
-    echo "Controller response type: " . get_class($response) . "\n";
+    echo 'Controller response type: '.get_class($response)."\n";
     if (method_exists($response, 'getStatusCode')) {
-        echo "Status: " . $response->getStatusCode() . "\n";
+        echo 'Status: '.$response->getStatusCode()."\n";
     }
 
     // print session flash messages if any
@@ -90,6 +90,6 @@ try {
 
     echo "Done.\n";
 } catch (\Exception $e) {
-    echo "Exception: " . $e->getMessage() . "\n";
-    echo $e->getTraceAsString() . "\n";
+    echo 'Exception: '.$e->getMessage()."\n";
+    echo $e->getTraceAsString()."\n";
 }

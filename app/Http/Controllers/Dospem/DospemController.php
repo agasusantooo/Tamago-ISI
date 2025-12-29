@@ -3,13 +3,9 @@
 namespace App\Http\Controllers\Dospem;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Bimbingan;
 use App\Models\Mahasiswa;
-use App\Models\ProjekAkhir;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Log;
 
 class DospemController extends Controller
 {
@@ -21,14 +17,18 @@ class DospemController extends Controller
             ->with('user', 'projekAkhir')
             ->get()
             ->map(function ($m) {
-                return (object)[
+                // Prefer the latest Proposal title (pengumpulan proposal) when available.
+                $proposal = \App\Models\Proposal::where('mahasiswa_nim', $m->nim)->latest()->first();
+                $judul = optional($proposal)->judul ?? optional($m->projekAkhir)->judul_proyek ?? 'Belum ada judul';
+
+                return (object) [
                     'id' => $m->nim,
                     'nim' => $m->nim,
                     'name' => $m->nama ?? optional($m->user)->name,
                     'email' => optional($m->user)->email ?? $m->email,
-                    'judul_ta' => optional($m->projekAkhir)->judul_proyek ?? 'Belum ada judul',
+                    'judul_ta' => $judul,
                     'progress' => optional($m->projekAkhir)->progress_persentase ?? 0,
-                    'bimbingan_terakhir' => optional($m->projekAkhir)->updated_at?->format('Y-m-d') ?? '-'
+                    'bimbingan_terakhir' => optional($m->projekAkhir)->updated_at?->format('Y-m-d') ?? '-',
                 ];
             });
 
@@ -63,13 +63,13 @@ class DospemController extends Controller
                     $mahasiswaName = $m ? ($m->nama ?? optional($m->user)->name) : $b->nim;
                 }
 
-                return (object)[
+                return (object) [
                     'id' => $b->id_bimbingan ?? $b->id,
                     'topik' => $b->topik ?? $b->catatan_bimbingan ?? 'Bimbingan',
                     'mahasiswa_nim' => $b->nim,
                     'mahasiswa_name' => $mahasiswaName,
                     'created_at' => $b->created_at,
-                    'status' => $b->status ?? 'pending'
+                    'status' => $b->status ?? 'pending',
                 ];
             });
 
@@ -98,13 +98,13 @@ class DospemController extends Controller
                     $mahasiswaName = $m ? ($m->nama ?? optional($m->user)->name) : $b->nim;
                 }
 
-                return (object)[
+                return (object) [
                     'id' => $b->id_bimbingan ?? $b->id,
                     'topik' => $b->topik ?? $b->catatan_bimbingan ?? 'Bimbingan',
                     'mahasiswa_name' => $mahasiswaName,
                     'created_at' => $b->created_at,
                     'tanggal' => $b->tanggal?->format('Y-m-d'),
-                    'status' => $b->status ?? 'completed'
+                    'status' => $b->status ?? 'completed',
                 ];
             });
 
@@ -114,13 +114,13 @@ class DospemController extends Controller
     public function jadwalBimbingan()
     {
         $nidn = Auth::user()->nidn;
-        
+
         // Stats untuk header
         $mahasiswaAktifCount = Mahasiswa::where('dosen_pembimbing_id', $nidn)->count();
         $tugasReview = Bimbingan::where('dosen_nidn', $nidn)
             ->whereIn('status', ['pending', 'diajukan', 'review'])
             ->count();
-        
+
         $jadwal = Bimbingan::where('dosen_nidn', $nidn)
             ->orderBy('tanggal', 'asc')
             ->get()
@@ -131,17 +131,17 @@ class DospemController extends Controller
                     $mahasiswaName = $m ? ($m->nama ?? optional($m->user)->name) : $b->nim;
                 }
 
-                return (object)[
+                return (object) [
                     'id' => $b->id_bimbingan ?? $b->id,
                     'topik' => $b->topik ?? $b->catatan_bimbingan ?? 'Bimbingan',
                     'mahasiswa_name' => $mahasiswaName,
                     'mahasiswa_nim' => $b->nim,
                     'tanggal' => $b->tanggal?->format('Y-m-d'),
                     'waktu' => $b->waktu_mulai ? $b->waktu_mulai->format('H:i') : '10:00',
-                    'status' => $b->status ?? 'pending'
+                    'status' => $b->status ?? 'pending',
                 ];
             });
-        
+
         return view('dospem.jadwal-bimbingan', compact('jadwal', 'mahasiswaAktifCount', 'tugasReview'));
     }
 
@@ -176,7 +176,7 @@ class DospemController extends Controller
                     'mahasiswa_nim' => $b->nim,
                     'mahasiswa_name' => $mahasiswaName,
                     'created_at' => $b->created_at?->format('Y-m-d H:i') ?? '-',
-                    'status' => $b->status ?? 'pending'
+                    'status' => $b->status ?? 'pending',
                 ];
             });
 
@@ -186,7 +186,7 @@ class DospemController extends Controller
                 'mahasiswaAktifCount' => $mahasiswaAktifCount,
                 'tugasReview' => $tugasReview,
                 'bimbingan' => $bimbingan,
-            ]
+            ],
         ]);
     }
 
@@ -196,13 +196,13 @@ class DospemController extends Controller
     public function jadwalBimbinganData()
     {
         $nidn = Auth::user()->nidn;
-        
+
         // Stats untuk header
         $mahasiswaAktifCount = Mahasiswa::where('dosen_pembimbing_id', $nidn)->count();
         $tugasReview = Bimbingan::where('dosen_nidn', $nidn)
             ->whereIn('status', ['pending', 'diajukan', 'review'])
             ->count();
-        
+
         $jadwal = Bimbingan::where('dosen_nidn', $nidn)
             ->orderBy('tanggal', 'asc')
             ->get()
@@ -220,17 +220,17 @@ class DospemController extends Controller
                     'mahasiswa_nim' => $b->nim,
                     'tanggal' => $b->tanggal?->format('Y-m-d'),
                     'waktu' => $b->waktu_mulai ? $b->waktu_mulai->format('H:i') : '10:00',
-                    'status' => $b->status ?? 'pending'
+                    'status' => $b->status ?? 'pending',
                 ];
             });
-        
+
         return response()->json([
             'status' => 'success',
             'data' => [
                 'mahasiswaAktifCount' => $mahasiswaAktifCount,
                 'tugasReview' => $tugasReview,
                 'jadwal' => $jadwal,
-            ]
+            ],
         ]);
     }
 
@@ -264,7 +264,7 @@ class DospemController extends Controller
                     'mahasiswa_name' => $mahasiswaName,
                     'created_at' => $b->created_at?->format('Y-m-d H:i') ?? '-',
                     'tanggal' => $b->tanggal?->format('Y-m-d'),
-                    'status' => $b->status ?? 'completed'
+                    'status' => $b->status ?? 'completed',
                 ];
             });
 
@@ -274,7 +274,7 @@ class DospemController extends Controller
                 'mahasiswaAktifCount' => $mahasiswaAktifCount,
                 'tugasReview' => $tugasReview,
                 'bimbingan' => $bimbingan,
-            ]
+            ],
         ]);
     }
 
@@ -313,7 +313,7 @@ class DospemController extends Controller
                 'mahasiswaAktifCount' => $mahasiswaAktifCount,
                 'tugasReview' => $tugasReview,
                 'mahasiswaBimbingan' => $mahasiswa,
-            ]
+            ],
         ]);
     }
 }

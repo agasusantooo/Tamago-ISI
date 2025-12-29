@@ -27,18 +27,16 @@ return new class extends Migration
     }
 
     public function down(): void
-{
-    Schema::disableForeignKeyConstraints();
+    {
+        Schema::disableForeignKeyConstraints();
 
-    Schema::table('bimbingans', function (Blueprint $table) {
-        $table->dropForeign(['id_proyek_akhir']);
-        $table->dropForeign(['nidn']);
-    });
+        Schema::table('bimbingans', function (Blueprint $table) {
+            $table->dropForeign(['id_proyek_akhir']);
+            $table->dropForeign(['nidn']);
+        });
 
-    Schema::dropIfExists('bimbingans');
+        Schema::dropIfExists('bimbingans');
 
-    Schema::enableForeignKeyConstraints();
-}
-
-
+        Schema::enableForeignKeyConstraints();
+    }
 };

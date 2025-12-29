@@ -18,6 +18,12 @@
 
             <main class="flex-1 overflow-y-auto p-6">
                 <div class="max-w-7xl mx-auto">
+                    <div id="migrationWarning" class="mb-4 p-3 bg-red-100 text-red-800 rounded {{ isset($schemaChecks) && $schemaChecks['dosen_penguji_ready'] ? 'hidden' : ''}}">
+                        Skema database untuk penguji belum diperbarui. Jalankan migrasi (`php artisan migrate`).
+                        @if (!isset($schemaChecks) || !$schemaChecks['dosen_penguji_ready'])
+                            <div class="text-sm mt-1">Tip: Jalankan <code>php artisan migrate</code> untuk memperbarui DB schema.</div>
+                        @endif
+                    </div>
                     <!-- Page Header -->
                     <div class="mb-6">
                         <h1 class="text-3xl font-bold text-purple-900">Dashboard Dosen Penguji</h1>
@@ -101,10 +107,10 @@
                                             <td class="py-3 px-2">{{ $ujian['jadwal'] }}</td>
                                             <td class="py-3 px-2">
                                                 <span class="px-3 py-1 rounded-full text-xs font-medium
-                                                    @if($ujian['status'] == 'selesai') bg-green-100 text-green-800
-                                                    @elseif($ujian['status'] == 'berlangsung') bg-blue-100 text-blue-800
+                                                    @if($ujian['status_key'] == 'selesai') bg-green-100 text-green-800
+                                                    @elseif($ujian['status_key'] == 'berlangsung') bg-blue-100 text-blue-800
                                                     @else bg-yellow-100 text-yellow-800 @endif">
-                                                    {{ ucfirst(str_replace('_', ' ', $ujian['status'])) }}
+                                                    {{ $ujian['status_label'] ?? ucfirst(str_replace('_', ' ', $ujian['status'])) }}
                                                 </span>
                                             </td>
                                             <td class="py-3 px-2 font-semibold">{{ $ujian['nilai'] ?? '-' }}</td>
@@ -189,6 +195,14 @@
 
             // Update table
             updateTable(data.ujianList);
+
+            // Show migration warning if necessary
+            const migrationWarning = document.getElementById('migrationWarning');
+            if (data.needsMigration) {
+                migrationWarning.classList.remove('hidden');
+            } else {
+                migrationWarning.classList.add('hidden');
+            }
         }
 
         function updateTable(ujianList) {
@@ -214,14 +228,14 @@
                         <div class="text-xs text-gray-500">${ujian.nim}</div>
                     </td>
                     <td class="py-3 px-2">${ujian.jadwal}</td>
-                    <td class="py-3 px-2">
-                        <span class="px-3 py-1 rounded-full text-xs font-medium
-                            ${ujian.status == 'selesai' ? 'bg-green-100 text-green-800' :
-                              ujian.status == 'berlangsung' ? 'bg-blue-100 text-blue-800' :
-                              'bg-yellow-100 text-yellow-800'}">
-                            ${ujian.status.replace(/_/g, ' ').charAt(0).toUpperCase() + ujian.status.replace(/_/g, ' ').slice(1)}
-                        </span>
-                    </td>
+                                        <td class="py-3 px-2">
+                                                <span class="px-3 py-1 rounded-full text-xs font-medium
+                                                        ${ujian.status_key == 'selesai' ? 'bg-green-100 text-green-800' :
+                                                            ujian.status_key == 'berlangsung' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-yellow-100 text-yellow-800'}">
+                                                        ${ujian.status_label || (ujian.status.replace(/_/g, ' ').charAt(0).toUpperCase() + ujian.status.replace(/_/g, ' ').slice(1))}
+                                                </span>
+                                        </td>
                     <td class="py-3 px-2 font-semibold">${ujian.nilai || '-'}</td>
                 </tr>
             `).join('');
@@ -239,8 +253,8 @@
             };
             initChart(initialData);
 
-            // Poll every 10 seconds for real-time updates
-            setInterval(refreshData, 10000);
+            // Poll every 5 seconds for near-real-time updates
+            setInterval(refreshData, 5000);
         });
 
         // Close modal when clicking outside

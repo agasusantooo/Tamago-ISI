@@ -15,28 +15,28 @@ return new class extends Migration
         if (Schema::hasTable('jadwal')) {
             Schema::table('jadwal', function (Blueprint $table) {
                 // Add columns if they don't exist
-                if (!Schema::hasColumn('jadwal', 'nim')) {
+                if (! Schema::hasColumn('jadwal', 'nim')) {
                     $table->string('nim')->nullable();
                 }
-                if (!Schema::hasColumn('jadwal', 'nidn')) {
+                if (! Schema::hasColumn('jadwal', 'nidn')) {
                     $table->string('nidn')->nullable();
                 }
-                if (!Schema::hasColumn('jadwal', 'status')) {
+                if (! Schema::hasColumn('jadwal', 'status')) {
                     $table->enum('status', ['menunggu', 'disetujui', 'ditolak'])->default('menunggu');
                 }
-                if (!Schema::hasColumn('jadwal', 'approved_at')) {
+                if (! Schema::hasColumn('jadwal', 'approved_at')) {
                     $table->timestamp('approved_at')->nullable();
                 }
-                if (!Schema::hasColumn('jadwal', 'approved_by')) {
+                if (! Schema::hasColumn('jadwal', 'approved_by')) {
                     $table->unsignedBigInteger('approved_by')->nullable();
                 }
-                if (!Schema::hasColumn('jadwal', 'rejected_at')) {
+                if (! Schema::hasColumn('jadwal', 'rejected_at')) {
                     $table->timestamp('rejected_at')->nullable();
                 }
-                if (!Schema::hasColumn('jadwal', 'rejected_by')) {
+                if (! Schema::hasColumn('jadwal', 'rejected_by')) {
                     $table->unsignedBigInteger('rejected_by')->nullable();
                 }
-                if (!Schema::hasColumn('jadwal', 'rejection_reason')) {
+                if (! Schema::hasColumn('jadwal', 'rejection_reason')) {
                     $table->text('rejection_reason')->nullable();
                 }
             });

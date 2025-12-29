@@ -10,6 +10,7 @@ class StoryConference extends Model
     use HasFactory;
 
     protected $table = 'story_conference';
+
     protected $primaryKey = 'id_conference';
 
     protected $fillable = [
@@ -42,7 +43,34 @@ class StoryConference extends Model
      */
     public function mahasiswa()
     {
-        return $this->belongsTo(User::class, 'mahasiswa_id');
+        // prefer linking to Mahasiswa by numeric id when available
+        return $this->belongsTo(Mahasiswa::class, 'mahasiswa_id');
+    }
+
+    /**
+     * Fallback relation by mahasiswa_nim (owner key 'nim')
+     */
+    public function mahasiswaByNim()
+    {
+        return $this->belongsTo(Mahasiswa::class, 'mahasiswa_nim', 'nim');
+    }
+
+    /**
+     * Resolved mahasiswa object: prefer `mahasiswa` (by id), fall back to `mahasiswaByNim`
+     */
+    public function getResolvedMahasiswaAttribute()
+    {
+        // if relation is already loaded and present, use it
+        if ($this->relationLoaded('mahasiswa') && $this->getRelation('mahasiswa')) {
+            return $this->getRelation('mahasiswa');
+        }
+
+        $m = $this->mahasiswa()->getResults();
+        if ($m) {
+            return $m;
+        }
+
+        return $this->mahasiswaByNim()->getResults();
     }
 
     /**

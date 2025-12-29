@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\ProjekAkhir;
+use App\Models\TefaFair;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\TefaFair;
-use App\Models\ProjekAkhir;
 
 class TefaFairController extends Controller
 {
@@ -14,7 +14,7 @@ class TefaFairController extends Controller
     {
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        
+
         $statusBadges = [
             'menunggu_review' => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Menunggu Review'],
             'disetujui' => ['class' => 'bg-green-100 text-green-800', 'text' => 'Disetujui'],
@@ -24,20 +24,20 @@ class TefaFairController extends Controller
         // Ambil TEFA Fair history dari database
         // Query by nim first, then fallback to all tefas if needed
         $history = collect();
-        
+
         if ($mahasiswa && $mahasiswa->nim) {
             $tefaFairs = TefaFair::where('mahasiswa_nim', $mahasiswa->nim)
                 ->orderBy('created_at', 'desc')
                 ->get();
-            
-            $history = $tefaFairs->map(function($tefa) use ($statusBadges) {
+
+            $history = $tefaFairs->map(function ($tefa) use ($statusBadges) {
                 $tefa->statusBadge = $statusBadges[$tefa->status] ?? $statusBadges['menunggu_review'];
                 // Add judul_proyek placeholder (since tefa_fair doesn't store it, use semester as display)
                 $tefa->judul_proyek = $tefa->semester ?? 'Tefa Fair';
+
                 return $tefa;
             });
         }
-        
 
         $jadwalTefaFair = [
             [
@@ -49,11 +49,11 @@ class TefaFairController extends Controller
                 'persyaratan' => [
                     'Karya akhir telah disetujui untuk dipamerkan.',
                     'Menyiapkan materi pameran (display, poster, produk, dll).',
-                    'Mengisi form pendaftaran dan daftar kebutuhan pameran.'
+                    'Mengisi form pendaftaran dan daftar kebutuhan pameran.',
                 ],
                 'bg_color' => 'bg-green-50',
-                'border_color' => 'border-green-500'
-            ]
+                'border_color' => 'border-green-500',
+            ],
         ];
 
         return view('mahasiswa.tefa-fair.index', compact('jadwalTefaFair', 'history'));
@@ -63,8 +63,8 @@ class TefaFairController extends Controller
     {
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        
-        if (!$mahasiswa) {
+
+        if (! $mahasiswa) {
             return redirect()->route('mahasiswa.proposal.index')
                 ->with('error', 'Profil mahasiswa tidak ditemukan.');
         }
@@ -74,7 +74,7 @@ class TefaFairController extends Controller
             ->orWhere('nim', $mahasiswa->nim)
             ->first();
 
-        if (!$projekAkhir) {
+        if (! $projekAkhir) {
             return redirect()->route('mahasiswa.tefa-fair.index')
                 ->with('error', 'Anda belum memiliki proyek akhir. Silakan selesaikan tahap produksi terlebih dahulu.');
         }
@@ -91,8 +91,8 @@ class TefaFairController extends Controller
     {
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        
-        if (!$mahasiswa) {
+
+        if (! $mahasiswa) {
             return back()->with('error', 'Data mahasiswa tidak ditemukan.');
         }
 
@@ -117,7 +117,7 @@ class TefaFairController extends Controller
                 ->orWhere('nim', $mahasiswa->nim)
                 ->first();
 
-            if (!$projekAkhir) {
+            if (! $projekAkhir) {
                 return back()->with('error', 'Proyek akhir tidak ditemukan.');
             }
 
@@ -125,9 +125,9 @@ class TefaFairController extends Controller
             $filePath = null;
             if ($request->hasFile('file_presentasi')) {
                 $file = $request->file('file_presentasi');
-                $fileName = 'tefa_presentasi_' . time() . '.' . $file->getClientOriginalExtension();
+                $fileName = 'tefa_presentasi_'.time().'.'.$file->getClientOriginalExtension();
                 $filePath = $file->storeAs(
-                    'tefa-fair/' . $mahasiswa->nim,
+                    'tefa-fair/'.$mahasiswa->nim,
                     $fileName,
                     'public'
                 );
@@ -151,7 +151,34 @@ class TefaFairController extends Controller
             return redirect()->route('mahasiswa.tefa-fair.index')
                 ->with('success', 'Pendaftaran TEFA Fair berhasil disimpan!');
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Terjadi kesalahan: '.$e->getMessage())->withInput();
         }
+    }
+
+    /**
+     * Return tefa fair records as JSON for polling
+     */
+    public function checkUpdates(Request $request)
+    {
+        $user = Auth::user();
+        $mahasiswa = $user->mahasiswa;
+        if (! $mahasiswa) {
+            return response()->json(['error' => 'Mahasiswa not found'], 404);
+        }
+
+        $history = TefaFair::where('mahasiswa_nim', $mahasiswa->nim)
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'semester', 'status', 'file_presentasi', 'created_at'])
+            ->map(function ($t) {
+                return [
+                    'id' => $t->id,
+                    'semester' => $t->semester,
+                    'status' => $t->status,
+                    'file_presentasi' => $t->file_presentasi,
+                    'created_at' => $t->created_at ? $t->created_at->toIsoString() : null,
+                ];
+            });
+
+        return response()->json(['success' => true, 'history' => $history]);
     }
 }

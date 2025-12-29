@@ -10,11 +10,11 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::table('dosen', function (Blueprint $table) {
-        $table->string('status')->default('aktif');
-    });
-}
+    {
+        Schema::table('dosen', function (Blueprint $table) {
+            $table->string('status')->default('aktif');
+        });
+    }
 
     public function down(): void
     {
@@ -22,5 +22,4 @@ return new class extends Migration
             $table->dropColumn('status');
         });
     }
-
 };

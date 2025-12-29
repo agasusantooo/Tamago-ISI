@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Kaprodi;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Bimbingan;
 use App\Models\Mahasiswa;
 use App\Service\ProgressService;
-use App\Models\Bimbingan;
+use Illuminate\Http\Request;
 
 class MonitoringController extends Controller
 {
@@ -25,7 +25,7 @@ class MonitoringController extends Controller
         $mahasiswas = Mahasiswa::with('user')
             ->when($request->status, function ($query, $status) {
                 $s = strtolower($status);
-                if (in_array($s, ['aktif','non aktif','lulus'])) {
+                if (in_array($s, ['aktif', 'non aktif', 'lulus'])) {
                     if ($s === 'lulus') {
                         return $query->where('status', 'like', '%lulus%');
                     }
@@ -33,8 +33,8 @@ class MonitoringController extends Controller
                     if ($s === 'non aktif') {
                         return $query->where(function ($q) {
                             $q->where('status', 'like', '%non%')
-                              ->orWhere('status', 'like', '%nonaktif%')
-                              ->orWhere('status', 'like', '%non_aktif%');
+                                ->orWhere('status', 'like', '%nonaktif%')
+                                ->orWhere('status', 'like', '%non_aktif%');
                         });
                     }
 
@@ -48,14 +48,14 @@ class MonitoringController extends Controller
             ->get();
 
         $monitoringData = $mahasiswas->map(function ($mahasiswa) {
-            if (!$mahasiswa->user) {
+            if (! $mahasiswa->user) {
                 return null;
             }
 
             $progressData = $this->progressService->getDashboardData($mahasiswa->user->id);
-            
+
             $currentStageName = 'Selesai';
-            if (!empty($progressData['details'])) {
+            if (! empty($progressData['details'])) {
                 // Find the first stage that is not fully completed
                 $firstUncompleted = collect($progressData['details'])->firstWhere('fraction', '<', 1.0);
                 if ($firstUncompleted) {
@@ -65,7 +65,7 @@ class MonitoringController extends Controller
 
             $normalized = $this->normalizeStatus($mahasiswa->status);
 
-            return (object)[
+            return (object) [
                 'nim' => $mahasiswa->nim,
                 'nama' => $mahasiswa->user->name ?? $mahasiswa->nama,
                 'progress' => $progressData['percentage'],
@@ -97,7 +97,7 @@ class MonitoringController extends Controller
      */
     private function normalizeStatus(?string $raw)
     {
-        if (!$raw) {
+        if (! $raw) {
             return 'aktif';
         }
 

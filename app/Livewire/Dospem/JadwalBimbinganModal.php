@@ -2,16 +2,20 @@
 
 namespace App\Livewire\Dospem;
 
-use Livewire\Component;
 use App\Models\Jadwal;
 use App\Models\Mahasiswa;
+use Livewire\Component;
 
 class JadwalBimbinganModal extends Component
 {
     public $showModal = false;
+
     public $jadwalId = null;
+
     public $jadwal = null;
+
     public $confirmAction = null;
+
     public $actionMessage = '';
 
     protected $listeners = ['openJadwalModal'];
@@ -27,7 +31,9 @@ class JadwalBimbinganModal extends Component
 
     public function approveBimbingan()
     {
-        if (!$this->jadwal) return;
+        if (! $this->jadwal) {
+            return;
+        }
 
         try {
             $this->jadwal->update([
@@ -49,13 +55,15 @@ class JadwalBimbinganModal extends Component
 
             session()->flash('success', 'Jadwal bimbingan berhasil disetujui!');
         } catch (\Exception $e) {
-            $this->addError('approval', 'Gagal menyetujui jadwal: ' . $e->getMessage());
+            $this->addError('approval', 'Gagal menyetujui jadwal: '.$e->getMessage());
         }
     }
 
     public function rejectBimbingan()
     {
-        if (!$this->jadwal) return;
+        if (! $this->jadwal) {
+            return;
+        }
 
         try {
             $this->jadwal->update([
@@ -78,7 +86,7 @@ class JadwalBimbinganModal extends Component
 
             session()->flash('success', 'Jadwal bimbingan berhasil ditolak!');
         } catch (\Exception $e) {
-            $this->addError('rejection', 'Gagal menolak jadwal: ' . $e->getMessage());
+            $this->addError('rejection', 'Gagal menolak jadwal: '.$e->getMessage());
         }
     }
 

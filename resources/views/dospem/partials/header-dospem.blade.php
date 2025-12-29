@@ -5,10 +5,7 @@
             <div>
                 <h1 class="text-lg font-semibold text-gray-700">Dosen Pembimbing</h1>
                 <div class="mt-2 mb-1">
-                    <p class="text-xs text-gray-500">
-                        Mahasiswa Aktif: <span id="headerMahasiswaAktifDospem" class="font-semibold text-blue-600">{{ $mahasiswaAktifCount }}</span> | 
-                        Tugas Review: <span id="headerTugasReviewDospem" class="font-semibold text-sky-600">{{ $tugasReview }}</span>
-                    </p>
+                    {{-- Header counters removed: Mahasiswa Aktif and Tugas Review --}}
                 </div>
 
                 <div class="h-3"></div>
