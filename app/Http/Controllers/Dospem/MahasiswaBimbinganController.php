@@ -511,11 +511,18 @@ class MahasiswaBimbinganController extends Controller
     public function updateProposalStatus(Request $request, $id)
     {
         try {
-            // Validasi input
-            $validated = $request->validate([
+            // Validasi input (feedback wajib dan minimal 5 karakter hanya untuk status revisi atau ditolak)
+            $rules = [
                 'status' => 'required|in:review,revisi,disetujui,ditolak',
-                'feedback' => 'required|string|min:5',
-            ]);
+                'feedback' => 'nullable|string',
+            ];
+
+            // Terapkan aturan yang lebih ketat jika status adalah revisi atau ditolak
+            if (in_array($request->input('status'), ['revisi', 'ditolak'])) {
+                $rules['feedback'] = 'required|string|min:5';
+            }
+
+            $validated = $request->validate($rules);
 
             // Cari proposal berdasarkan ID
             $proposal = Proposal::findOrFail($id);

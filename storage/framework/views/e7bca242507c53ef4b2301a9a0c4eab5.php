@@ -76,16 +76,24 @@
                 tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Anda belum pernah mengajukan proposal.</td></tr>`;
                 return;
             }
-            proposals.forEach(function(p, idx){
+            const baseShowUrl = "<?php echo e(url('mahasiswa/proposal')); ?>";
+        proposals.forEach(function(p, idx){
                 const tanggal = p.tanggal_pengajuan ? new Date(p.tanggal_pengajuan).toLocaleDateString() : '-';
                 const status = p.status || 'N/A';
                 const row = document.createElement('tr');
+
+                // Build action links (Detail + optional Edit for revisi)
+                let actions = `<a href="${baseShowUrl}/${p.id}" class="text-yellow-600 hover:text-yellow-900">Detail</a>`;
+                if (p.status === 'revisi') {
+                    actions += ` <a href="${baseShowUrl}/${p.id}/edit" class="text-blue-600 hover:text-blue-900 ml-4">Edit</a>`;
+                }
+
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${idx + 1}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${p.judul ?? 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${tanggal}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm"> <span class="px-3 py-1 text-xs font-semibold rounded-full">${status}</span></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"><a href="#" class="text-yellow-600 hover:text-yellow-900">Detail</a></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${actions}</td>
                 `;
                 tbody.appendChild(row);
             });

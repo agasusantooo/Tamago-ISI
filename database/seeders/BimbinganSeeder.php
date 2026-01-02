@@ -14,33 +14,42 @@ class BimbinganSeeder extends Seeder
      */
     public function run(): void
     {
-        Mahasiswa::create([
-            'nim' => '12345678',
-            'nama' => 'adminnn',
-            'email' => 'admin@gmail.com',
-            'status' => 'aktif',
-        ]);
+        Mahasiswa::updateOrCreate(
+            ['nim' => '12345678'],
+            [
+                'nama' => 'adminnn',
+                'email' => 'admin@gmail.com',
+                'status' => 'aktif',
+                'rumpun_ilmu' => 'fotografi',
+            ]
+        );
 
-        Dosen::create([
-            'nidn' => '12345',
-            'nama' => 'Dosen 1',
-            'jabatan' => 'Dosen',
-            'rumpun_ilmu' => 'Informatika',
-        ]);
+        Dosen::updateOrCreate(
+            ['nidn' => '12345'],
+            [
+                'nama' => 'Dosen 1',
+                'jabatan' => 'Dosen',
+                'rumpun_ilmu' => 'Informatika',
+            ]
+        );
 
-        Dosen::create([
-            'nidn' => '54321',
-            'nama' => 'Dosen 2',
-            'jabatan' => 'Dosen',
-            'rumpun_ilmu' => 'Informatika',
-        ]);
+        Dosen::updateOrCreate(
+            ['nidn' => '54321'],
+            [
+                'nama' => 'Dosen 2',
+                'jabatan' => 'Dosen',
+                'rumpun_ilmu' => 'Informatika',
+            ]
+        );
 
-        ProjekAkhir::create([
-            'nim' => '12345678',
-            'nidn1' => '12345',
-            'nidn2' => '54321',
-            'judul' => 'Test Judul',
-            'status' => 'berjalan',
-        ]);
+        ProjekAkhir::updateOrCreate(
+            ['nim' => '12345678'],
+            [
+                'nidn1' => '12345',
+                'nidn2' => '54321',
+                'judul' => 'Test Judul',
+                'status' => 'berjalan',
+            ]
+        );
     }
 }

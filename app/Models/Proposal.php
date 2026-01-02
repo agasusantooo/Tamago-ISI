@@ -42,7 +42,8 @@ class Proposal extends Model
      */
     public function dosen()
     {
-        return $this->belongsTo(Dosen::class);
+        // Dosen primary key is `nidn`, and Proposal stores that value in `dosen_id`.
+        return $this->belongsTo(Dosen::class, 'dosen_id', 'nidn');
     }
 
     /**

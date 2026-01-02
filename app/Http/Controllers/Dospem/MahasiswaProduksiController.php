@@ -95,16 +95,13 @@ class MahasiswaProduksiController extends Controller
             \Log::info('Produksi found for pra', ['produksi_id' => $produksi->id, 'mahasiswa_id' => $produksi->mahasiswa_id]);
 
             // OTORISASI: Validasi bahwa DOSPEM adalah pembimbing mahasiswa ini
-            $dosenAuth = auth()->user();
-            $authNidn = null;
-            if ($dosenAuth) {
-                $dosenModel = \App\Models\Dosen::where('user_id', $dosenAuth->id)->first();
-                $authNidn = $dosenModel?->nidn ?? null;
-            }
-
-            // Cari mahasiswa untuk mendapatkan dosen pembimbing yang benar
+            // Cari mahasiswa untuk mendapatkan dosen pembimbing yang benar (dibutuhkan untuk attach jika perlu)
             $mahasiswa = \App\Models\Mahasiswa::where('user_id', $produksi->mahasiswa_id)->first();
             $mahasiswaDosenPembimbingId = $mahasiswa?->dosen_pembimbing_id ?? null;
+
+            $dosenAuth = auth()->user();
+            $dosenModel = $this->ensureDosenForAuth($dosenAuth, $mahasiswaDosenPembimbingId);
+            $authNidn = $dosenModel?->nidn ?? null;
 
             \Log::info('Authorization check for approvePraProduksi', [
                 'user_id' => $dosenAuth?->id,
@@ -180,15 +177,12 @@ class MahasiswaProduksiController extends Controller
                 return $this->handleResponse($request, 'error', 'Mahasiswa tidak ditemukan.', 404);
             }
 
-            // Cek apakah dosen pembimbing - resolve nidn via Dosen model linked to auth user
-            $dosenAuth = auth()->user();
-            $authNidn = null;
-            if ($dosenAuth) {
-                $dosenModel = \App\Models\Dosen::where('user_id', $dosenAuth->id)->first();
-                $authNidn = $dosenModel?->nidn ?? null;
-            }
-
+            // Cek apakah dosen pembimbing - attempt to attach an existing Dosen or create minimal record if necessary
             $mahasiswaDosenPembimbingId = $mahasiswa?->dosen_pembimbing_id ?? null;
+
+            $dosenAuth = auth()->user();
+            $dosenModel = $this->ensureDosenForAuth($dosenAuth, $mahasiswaDosenPembimbingId);
+            $authNidn = $dosenModel?->nidn ?? null;
 
             \Log::info('Authorization check for rejectPraProduksi', [
                 'user_id' => $dosenAuth?->id,
@@ -271,16 +265,13 @@ class MahasiswaProduksiController extends Controller
             \Log::info('Produksi found for produksi', ['produksi_id' => $produksi->id, 'mahasiswa_id' => $produksi->mahasiswa_id]);
 
             // OTORISASI: Validasi bahwa DOSPEM adalah pembimbing mahasiswa ini
-            $dosenAuth = auth()->user();
-            $authNidn = null;
-            if ($dosenAuth) {
-                $dosenModel = \App\Models\Dosen::where('user_id', $dosenAuth->id)->first();
-                $authNidn = $dosenModel?->nidn ?? null;
-            }
-
-            // Cari mahasiswa untuk mendapatkan dosen pembimbing yang benar
+            // Cari mahasiswa untuk mendapatkan dosen pembimbing yang benar (dibutuhkan untuk attach jika perlu)
             $mahasiswa = \App\Models\Mahasiswa::where('user_id', $produksi->mahasiswa_id)->first();
             $mahasiswaDosenPembimbingId = $mahasiswa?->dosen_pembimbing_id ?? null;
+
+            $dosenAuth = auth()->user();
+            $dosenModel = $this->ensureDosenForAuth($dosenAuth, $mahasiswaDosenPembimbingId);
+            $authNidn = $dosenModel?->nidn ?? null;
 
             \Log::info('Authorization check for approveProduksi', [
                 'user_id' => $dosenAuth?->id,
@@ -353,15 +344,12 @@ class MahasiswaProduksiController extends Controller
                 return $this->handleResponse($request, 'error', 'Mahasiswa tidak ditemukan.', 404);
             }
 
-            // Cek apakah dosen pembimbing
-            $dosenAuth = auth()->user();
-            $authNidn = null;
-            if ($dosenAuth) {
-                $dosenModel = \App\Models\Dosen::where('user_id', $dosenAuth->id)->first();
-                $authNidn = $dosenModel?->nidn ?? null;
-            }
-
+            // Cek apakah dosen pembimbing - attempt to attach an existing Dosen or create minimal record if necessary
             $mahasiswaDosenPembimbingId = $mahasiswa?->dosen_pembimbing_id ?? null;
+
+            $dosenAuth = auth()->user();
+            $dosenModel = $this->ensureDosenForAuth($dosenAuth, $mahasiswaDosenPembimbingId);
+            $authNidn = $dosenModel?->nidn ?? null;
 
             \Log::info('Authorization check for rejectProduksi', [
                 'user_id' => $dosenAuth?->id,
@@ -444,16 +432,13 @@ class MahasiswaProduksiController extends Controller
             \Log::info('Produksi found for pasca', ['produksi_id' => $produksi->id, 'mahasiswa_id' => $produksi->mahasiswa_id]);
 
             // OTORISASI: Validasi bahwa DOSPEM adalah pembimbing mahasiswa ini
-            $dosenAuth = auth()->user();
-            $authNidn = null;
-            if ($dosenAuth) {
-                $dosenModel = \App\Models\Dosen::where('user_id', $dosenAuth->id)->first();
-                $authNidn = $dosenModel?->nidn ?? null;
-            }
-
-            // Cari mahasiswa untuk mendapatkan dosen pembimbing yang benar
+            // Cari mahasiswa untuk mendapatkan dosen pembimbing yang benar (dibutuhkan untuk attach jika perlu)
             $mahasiswa = \App\Models\Mahasiswa::where('user_id', $produksi->mahasiswa_id)->first();
             $mahasiswaDosenPembimbingId = $mahasiswa?->dosen_pembimbing_id ?? null;
+
+            $dosenAuth = auth()->user();
+            $dosenModel = $this->ensureDosenForAuth($dosenAuth, $mahasiswaDosenPembimbingId);
+            $authNidn = $dosenModel?->nidn ?? null;
 
             \Log::info('Authorization check for approvePascaProduksi', [
                 'user_id' => $dosenAuth?->id,
@@ -526,15 +511,12 @@ class MahasiswaProduksiController extends Controller
                 return $this->handleResponse($request, 'error', 'Mahasiswa tidak ditemukan.', 404);
             }
 
-            // Cek apakah dosen pembimbing
-            $dosenAuth = auth()->user();
-            $authNidn = null;
-            if ($dosenAuth) {
-                $dosenModel = \App\Models\Dosen::where('user_id', $dosenAuth->id)->first();
-                $authNidn = $dosenModel?->nidn ?? null;
-            }
-
+            // Cek apakah dosen pembimbing - attempt to attach an existing Dosen or create minimal record if necessary
             $mahasiswaDosenPembimbingId = $mahasiswa?->dosen_pembimbing_id ?? null;
+
+            $dosenAuth = auth()->user();
+            $dosenModel = $this->ensureDosenForAuth($dosenAuth, $mahasiswaDosenPembimbingId);
+            $authNidn = $dosenModel?->nidn ?? null;
 
             \Log::info('Authorization check for rejectPascaProduksi', [
                 'user_id' => $dosenAuth?->id,
@@ -666,6 +648,71 @@ class MahasiswaProduksiController extends Controller
                 'message' => 'Mahasiswa tidak ditemukan: '.$e->getMessage(),
             ], 404);
         }
+    }
+
+    /**
+     * Ensure there is a Dosen model for the authenticated user.
+     * If the user has role 'dospem' and no Dosen record exists, create a minimal Dosen record.
+     */
+    private function ensureDosenForAuth($user, $mahasiswaDosenPembimbingId = null)
+    {
+        if (! $user) return null;
+
+        $dosen = \App\Models\Dosen::where('user_id', $user->id)->first();
+        if (! $dosen && $user->isDospem()) {
+            // Compute the generated nidn that would normally be assigned to this user
+            $generatedNidn = '9'.str_pad($user->id, 7, '0', STR_PAD_LEFT);
+
+            // If a mahasiswa dosen pembimbing id is provided and it matches the expected generated nidn,
+            // prefer creating/attaching to that nidn so the account mapping is consistent and intentional.
+            if (! empty($mahasiswaDosenPembimbingId) && $mahasiswaDosenPembimbingId === $generatedNidn) {
+                $existing = \App\Models\Dosen::where('nidn', $mahasiswaDosenPembimbingId)->first();
+                if ($existing) {
+                    // Only attach if the existing dosen is not assigned to any user to avoid reassigning others
+                    if (empty($existing->user_id)) {
+                        $existing->user_id = $user->id;
+                        $existing->save();
+
+                        \Log::info('Attached existing Dosen record to auth user (matching generated nidn)', ['user_id' => $user->id, 'nidn' => $mahasiswaDosenPembimbingId]);
+                    }
+
+                    return $existing;
+                }
+
+                // Create a dosen record using the mahasiswa's dosen pembimbing id to ensure consistency
+                $dosen = \App\Models\Dosen::create([
+                    'nidn' => $mahasiswaDosenPembimbingId,
+                    'user_id' => $user->id,
+                    'nama' => $user->name,
+                    'jabatan' => 'Dosen',
+                    'rumpun_ilmu' => 'fotografi',
+                    'status' => 'aktif',
+                ]);
+
+                \Log::info('Created Dosen record matching mahasiswa pembimbing id for auth user', ['user_id' => $user->id, 'nidn' => $mahasiswaDosenPembimbingId]);
+
+                return $dosen;
+            }
+
+            // Fallback: If no pembimbing id is provided (or it doesn't match the expected nidn),
+            // generate a safe nidn based on user id to avoid collisions with existing nidn values
+            if (\App\Models\Dosen::where('nidn', $generatedNidn)->exists()) {
+                $generatedNidn = '9'.str_pad($user->id . time() % 1000000, 7, '0', STR_PAD_LEFT);
+            }
+
+            $dosen = \App\Models\Dosen::create([
+                'nidn' => $generatedNidn,
+                'user_id' => $user->id,
+                'nama' => $user->name,
+                'jabatan' => 'Dosen',
+                'rumpun_ilmu' => 'fotografi',
+                'status' => 'aktif',
+            ]);
+
+            \Log::info('Auto-created Dosen record for auth user', ['user_id' => $user->id, 'nidn' => $generatedNidn]);
+        }
+
+        return $dosen;
     }
 
     /**

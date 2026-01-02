@@ -78,6 +78,17 @@ class UjianTimeline extends Component
             $this->ujianTA = UjianTA::where('id_proyek_akhir', $this->projek->id_proyek_akhir)->latest()->first();
         }
 
+        // Fallbacks when the ujian record may not be linked by projek (legacy rows or timing issues)
+        if (! $this->ujianTA && $this->ujianId) {
+            // try direct lookup by primary key passed from parent
+            $this->ujianTA = UjianTA::find($this->ujianId);
+        }
+
+        if (! $this->ujianTA && $user) {
+            // As a final fallback, try to find any ujian registered for this mahasiswa by user id
+            $this->ujianTA = UjianTA::where('mahasiswa_id', $user->id)->latest()->first();
+        }
+
         // Debug: log current state
         Log::debug('UjianTimeline refreshData', [
             'has_projek' => (bool) $this->projek,

@@ -33,4 +33,4 @@
         </ul>
     </nav>
 </aside>
-<?php /**PATH D:\C\Tamago-ISI\resources\views/dosen_penguji/partials/sidebar-dosen_penguji.blade.php ENDPATH**/ ?>
+<?php /**PATH D:\C\Tamago-ISI\resources\views\dosen_penguji\partials\sidebar-dosen_penguji.blade.php ENDPATH**/ ?>

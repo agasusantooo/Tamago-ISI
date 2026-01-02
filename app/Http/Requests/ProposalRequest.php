@@ -34,7 +34,7 @@ class ProposalRequest extends FormRequest
             ],
             'dosen_id' => [
                 'nullable',
-                'exists:dosens,id',
+                'exists:dosen,nidn',
             ],
             'file_proposal' => [
                 'required',

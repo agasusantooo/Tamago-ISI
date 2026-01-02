@@ -204,12 +204,15 @@
                                             }
 
                                             console.log('Submitting proposal with:', {status, feedback, action: form.action});
+                                            const proposalToken = document.querySelector('meta[name="csrf-token"]').content;
+                                            console.log('DEBUG proposal submit — CSRF token present:', !!proposalToken, 'cookieEnabled:', navigator.cookieEnabled, 'cookieLen:', document.cookie.length);
 
                                             fetch(form.action, {
                                                 method: 'POST',
+                                                credentials: 'include',
                                                 headers: {
                                                     'Content-Type': 'application/json',
-                                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                                    'X-CSRF-TOKEN': proposalToken,
                                                     'Accept': 'application/json'
                                                 },
                                                 body: JSON.stringify({
@@ -217,9 +220,11 @@
                                                     feedback: feedback
                                                 })
                                             })
-                                            .then(res => {
-                                                console.log('Response status:', res.status);
-                                                return res.json();
+                                            .then(async res => {
+                                                if (res.status === 419) throw { type: 'csrf', message: 'Sesi Anda telah kadaluwarsa atau CSRF mismatch (419). Silakan reload halaman.' };
+                                                if (res.status === 403) throw { type: 'forbidden', message: 'Anda tidak memiliki izin untuk melakukan aksi ini (403).' };
+                                                const data = await res.json();
+                                                return data;
                                             })
                                             .then(data => {
                                                 console.log('Response data:', data);
@@ -228,7 +233,19 @@
                                                     closeProposalModal();
                                                     location.reload();
                                                 } else {
-                                                    alert('❌ Error: ' + (data.message || 'Gagal menyimpan tindakan'));
+                                                    // Tampilkan pesan validasi jika ada
+                                                    if (data.errors) {
+                                                        const messages = [];
+                                                        for (const key in data.errors) {
+                                                            if (data.errors[key] && data.errors[key].length) {
+                                                                messages.push(data.errors[key][0]);
+                                                            }
+                                                        }
+                                                        alert('❌ Error: ' + (messages.join('\n') || data.message || 'Gagal menyimpan tindakan'));
+                                                    } else {
+                                                        alert('❌ Error: ' + (data.message || 'Gagal menyimpan tindakan'));
+                                                    }
+
                                                     submitBtn.disabled = false;
                                                     submitBtn.innerHTML = '<i class="fas fa-check"></i> Kirim Tindakan';
                                                 }
@@ -614,33 +631,59 @@
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
 
+        console.log('Submitting produksi review to', url, { produksi_status: status, produksi_feedback: feedback });
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        console.log('DEBUG produksi submit — CSRF token present:', !!token, 'cookieEnabled:', navigator.cookieEnabled, 'cookieLen:', document.cookie.length);
         fetch(url, {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-CSRF-TOKEN': token,
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
                 produksi_status: status,
                 produksi_feedback: feedback
             })
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data && (data.status === 'success' || data.success)) {
-                alert(data.message);
+        .then(async res => {
+            // Handle session/CSRF/permission errors explicitly
+            if (res.status === 419) {
+                throw { type: 'csrf', message: 'Sesi Anda telah kadaluwarsa atau terjadi kesalahan CSRF. Silakan reload halaman dan coba lagi.' };
+            }
+            if (res.status === 403) {
+                throw { type: 'forbidden', message: 'Anda tidak memiliki izin untuk melakukan aksi ini (403).' };
+            }
+
+            const text = await res.text();
+            let data = null;
+            try { data = text ? JSON.parse(text) : null; } catch(e) { data = { message: text }; }
+
+            if (res.ok && data && (data.status === 'success' || data.success)) {
+                console.log('Server success response:', data);
+                alert(data.message || 'Berhasil');
                 closeProduksiModal();
-                // Real-time update: fetch latest data dari server
                 refreshProduksiData();
             } else {
-                alert('❌ ' + (data.message || 'Terjadi kesalahan.'));
+                console.error('Server returned error', res.status, data);
+                const msg = (data && (data.message || data.error)) || 'Terjadi kesalahan.';
+                alert('❌ ' + (msg) + (res.status ? ' (HTTP ' + res.status + ')' : ''));
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-check"></i> Kirim Feedback';
             }
         })
         .catch(err => {
-            console.error(err);
+            console.error('Fetch error:', err);
+            if (err && err.type === 'csrf') {
+                alert('⚠️ ' + err.message);
+                return;
+            }
+            if (err && err.type === 'forbidden') {
+                alert('⚠️ ' + err.message);
+                return;
+            }
             alert('❌ Gagal mengirim: ' + (err.message || err));
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-check"></i> Kirim Feedback';

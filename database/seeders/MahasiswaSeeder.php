@@ -34,6 +34,13 @@ class MahasiswaSeeder extends Seeder
             ]);
         }
 
+        // Pastikan mahasiswa lama / existing punya rumpun_ilmu kalau belum ada
+        $rumpuns = ['fotografi', 'film dan televisi', 'animasi', 'produksi film dan televisi'];
+        foreach (Mahasiswa::whereNull('rumpun_ilmu')->get() as $m) {
+            $m->rumpun_ilmu = $rumpuns[array_rand($rumpuns)];
+            $m->save();
+        }
+
         $this->command->info('✓ 100 data dummy mahasiswa berhasil dibuat!');
     }
 }

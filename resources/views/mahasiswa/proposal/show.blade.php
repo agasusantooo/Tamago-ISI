@@ -55,23 +55,27 @@
             <div class="space-y-6">
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2">Dosen Pembimbing</h4>
-                    @if($proposal->dosen)
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-gray-200 text-gray-600 flex items-center justify-center rounded-full font-bold">
-                            {{ substr($proposal->dosen->nama, 0, 1) }}
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-800 text-sm">{{ $proposal->dosen->nama }}</p>
-                            <p class="text-xs text-gray-500">{{ $proposal->dosen->gelar ?? '' }}</p>
-                        </div>
-                    </div>
+                    @if(!empty($dosenLabel))
+                        @if($proposal->dosen)
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gray-200 text-gray-600 flex items-center justify-center rounded-full font-bold">
+                                    {{ substr($proposal->dosen->nama, 0, 1) }}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800 text-sm">{{ $proposal->dosen->nama }}</p>
+                                    <p class="text-xs text-gray-500">{{ $proposal->dosen->gelar ?? '' }}</p>
+                                </div>
+                            </div>
+                        @else
+                            <p class="text-sm text-gray-500">{{ $dosenLabel }}</p>
+                        @endif
                     @else
-                    <p class="text-sm text-gray-500">Belum ada dosen pembimbing</p>
+                        <p class="text-sm text-gray-500">Belum ada dosen pembimbing</p>
                     @endif
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2">File Proposal</h4>
-                    <a href="{{ $proposal->file_proposal }}" class="flex items-center space-x-3 bg-gray-100 p-3 rounded-lg hover:bg-gray-200 transition">
+                    <a href="{{ Storage::disk('public')->url($proposal->file_proposal) }}" target="_blank" rel="noopener" class="flex items-center space-x-3 bg-gray-100 p-3 rounded-lg hover:bg-gray-200 transition">
                         <i class="fas fa-file-pdf text-red-500 text-xl"></i>
                         <div>
                             <p class="text-sm font-medium text-gray-800">proposal_v{{$proposal->versi}}.pdf</p>

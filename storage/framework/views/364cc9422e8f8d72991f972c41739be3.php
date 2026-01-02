@@ -82,9 +82,10 @@ $isEdit = isset($proposal) && !empty($proposal->id);
                             <?php
                                 $selectedRumpun = old('rumpun_ilmu', $proposal->rumpun_ilmu ?? '');
                             ?>
-                            <option value="Penciptaan Seni" <?php echo e($selectedRumpun == 'Penciptaan Seni' ? 'selected' : ''); ?>>Penciptaan Seni</option>
-                            <option value="Pengkajian Seni" <?php echo e($selectedRumpun == 'Pengkajian Seni' ? 'selected' : ''); ?>>Pengkajian Seni</option>
-                            <option value="Media Rekam" <?php echo e($selectedRumpun == 'Media Rekam' ? 'selected' : ''); ?>>Media Rekam</option>
+                            <option value="Fotografi" <?php echo e($selectedRumpun == 'Fotografi' ? 'selected' : ''); ?>>Fotografi</option>
+                            <option value="Film dan Televisi" <?php echo e($selectedRumpun == 'Film dan Televisi' ? 'selected' : ''); ?>>Film dan Televisi</option>
+                            <option value="Animasi" <?php echo e($selectedRumpun == 'Animasi' ? 'selected' : ''); ?>>Animasi</option>
+                            <option value="Produksi Film dan Televisi" <?php echo e($selectedRumpun == 'Produksi Film dan Televisi' ? 'selected' : ''); ?>>Produksi Film dan Televisi</option>
                         </select>
                     </div>
                     <!-- Dosen Pembimbing -->
@@ -99,8 +100,8 @@ $isEdit = isset($proposal) && !empty($proposal->id);
                                 $selectedDosen = old('dosen_id', $proposal->dosen_id ?? '');
                             ?>
                             <?php $__currentLoopData = $dosens; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dosen): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <option value="<?php echo e($dosen->id); ?>" <?php echo e($selectedDosen == $dosen->id ? 'selected' : ''); ?>>
-                                    <?php echo e($dosen->nama); ?> - <?php echo e($dosen->gelar); ?>
+                                <option value="<?php echo e($dosen->nidn); ?>" <?php echo e($selectedDosen == $dosen->nidn ? 'selected' : ''); ?>>
+                                    <?php echo e($dosen->nama); ?> - <?php echo e($dosen->gelar ?? ''); ?>
 
                                 </option>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -111,16 +112,18 @@ $isEdit = isset($proposal) && !empty($proposal->id);
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             File Proposal (PDF) <span class="text-red-500"><?php echo e($isEdit ? '' : '*'); ?></span>
                         </label>
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-500 transition cursor-pointer"
-                            onclick="document.getElementById('fileProposal').click()">
+                        <div id="proposalArea" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-500 transition">
                             <i class="fas fa-cloud-upload-alt text-4xl text-yellow-600 mb-3"></i>
-                            <p class="text-sm text-gray-600 mb-1">Drag & drop file atau klik untuk browse</p>
-                            <p class="text-xs text-gray-500">PDF, maksimal 10 MB. <?php echo e($isEdit ? 'Kosongkan jika tidak ingin mengubah file.' : ''); ?></p>
+                            <p class="text-sm text-gray-600 mb-1">Drag & drop file skenario atau</p>
+                            <button type="button" onclick="document.getElementById('fileProposal').click()" class="inline-block bg-yellow-700 text-white px-4 py-2 rounded-md font-medium">Pilih File</button>
+                            <p class="text-xs text-gray-500 mt-3">Maksimal 10MB. <?php echo e($isEdit ? 'Kosongkan jika tidak ingin mengubah file.' : ''); ?></p>
                             <input type="file" id="fileProposal" name="file_proposal" accept=".pdf" class="hidden">
-                            <p id="proposalFileName" class="text-sm text-yellow-700 font-medium mt-2"></p>
+                            <div id="proposalFeedback" class="mt-2 hidden">
+                                <span class="inline-flex items-center text-yellow-700 font-semibold"><i class="fas fa-check mr-2"></i> <span id="proposalFileName"></span></span>
+                            </div>
                         </div>
                          <?php if($isEdit && !empty($proposal->file_proposal)): ?>
-                            <p class="text-xs text-gray-600 mt-2">File saat ini: <a href="<?php echo e(Storage::url($proposal->file_proposal)); ?>" target="_blank" class="text-blue-600 hover:underline"><?php echo e(basename($proposal->file_proposal)); ?></a></p>
+                            <p id="currentProposalFile" class="text-xs text-gray-600 mt-2">File saat ini: <a href="<?php echo e(Storage::url($proposal->file_proposal)); ?>" target="_blank" class="text-blue-600 hover:underline"><?php echo e(basename($proposal->file_proposal)); ?></a></p>
                         <?php endif; ?>
                     </div>
                     <!-- File Pitch Deck -->
@@ -128,16 +131,18 @@ $isEdit = isset($proposal) && !empty($proposal->id);
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             File Pitch Deck (PDF/PPT)
                         </label>
-                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-500 transition cursor-pointer"
-                            onclick="document.getElementById('filePitchDeck').click()">
+                         <div id="pitchDeckArea" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-yellow-500 transition">
                             <i class="fas fa-file-powerpoint text-4xl text-yellow-600 mb-3"></i>
-                            <p class="text-sm text-gray-600 mb-1">Drag & drop file atau klik untuk browse</p>
-                            <p class="text-xs text-gray-500">PDF/PPT, maksimal 15 MB. <?php echo e($isEdit ? 'Kosongkan jika tidak ingin mengubah file.' : ''); ?></p>
+                            <p class="text-sm text-gray-600 mb-1">Drag & drop file atau</p>
+                            <button type="button" onclick="document.getElementById('filePitchDeck').click()" class="inline-block bg-yellow-700 text-white px-4 py-2 rounded-md font-medium">Pilih File</button>
+                            <p class="text-xs text-gray-500 mt-3">PDF/PPT, maksimal 15 MB. <?php echo e($isEdit ? 'Kosongkan jika tidak ingin mengubah file.' : ''); ?></p>
                             <input type="file" id="filePitchDeck" name="file_pitch_deck" accept=".pdf,.ppt,.pptx" class="hidden">
-                            <p id="pitchDeckFileName" class="text-sm text-yellow-700 font-medium mt-2"></p>
+                            <div id="pitchDeckFeedback" class="mt-2 hidden">
+                                <span class="inline-flex items-center text-yellow-700 font-semibold"><i class="fas fa-check mr-2"></i> <span id="pitchDeckFileName"></span></span>
+                            </div>
                         </div>
                          <?php if($isEdit && !empty($proposal->file_pitch_deck)): ?>
-                            <p class="text-xs text-gray-600 mt-2">File saat ini: <a href="<?php echo e(Storage::url($proposal->file_pitch_deck)); ?>" target="_blank" class="text-blue-600 hover:underline"><?php echo e(basename($proposal->file_pitch_deck)); ?></a></p>
+                            <p id="currentPitchDeckFile" class="text-xs text-gray-600 mt-2">File saat ini: <a href="<?php echo e(Storage::url($proposal->file_pitch_deck)); ?>" target="_blank" class="text-blue-600 hover:underline"><?php echo e(basename($proposal->file_pitch_deck)); ?></a></p>
                         <?php endif; ?>
                     </div>
                     <!-- Tombol -->
@@ -171,6 +176,46 @@ $isEdit = isset($proposal) && !empty($proposal->id);
                 </a>
             </div>
         </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function humanFileSize(bytes) {
+            if (!bytes) return '';
+            var i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return (bytes / Math.pow(1024, i)).toFixed(i ? 1 : 0) + ['B','KB','MB','GB'][i];
+        }
+
+        function bindFileInput(inputId, feedbackId, fileNameId, currentSelector, maxBytes) {
+            var input = document.getElementById(inputId);
+            var feedback = document.getElementById(feedbackId);
+            var fileNameEl = document.getElementById(fileNameId);
+            var currentEl = currentSelector ? document.querySelector(currentSelector) : null;
+            if (!input || !feedback || !fileNameEl) return;
+
+            input.addEventListener('change', function (e) {
+                var file = e.target.files[0];
+                if (!file) {
+                    feedback.classList.add('hidden');
+                    if (currentEl) currentEl.style.display = '';
+                    return;
+                }
+                if (maxBytes && file.size > maxBytes) {
+                    alert('Ukuran file melebihi batas ' + (maxBytes/1024/1024) + 'MB');
+                    input.value = '';
+                    feedback.classList.add('hidden');
+                    if (currentEl) currentEl.style.display = '';
+                    return;
+                }
+                fileNameEl.textContent = file.name + ' (' + humanFileSize(file.size) + ')';
+                feedback.classList.remove('hidden');
+                if (currentEl) currentEl.style.display = 'none';
+            });
+        }
+
+        bindFileInput('fileProposal','proposalFeedback','proposalFileName','#currentProposalFile',10*1024*1024);
+        bindFileInput('filePitchDeck','pitchDeckFeedback','pitchDeckFileName','#currentPitchDeckFile',15*1024*1024);
+    });
+</script>
 
 <?php $__env->stopSection(); ?>
 

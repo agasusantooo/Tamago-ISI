@@ -57,8 +57,28 @@ class UjianTAController extends Controller
 
         // Find projek_akhir for this mahasiswa and use it to get ujian TA
         $projek = ProjekAkhir::where('nim', $mahasiswa->nim)->latest()->first();
-        // Use latest() to ensure we pick the most recent ujian record for this projek
-        $ujianTA = $projek ? UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first() : null;
+
+        // Prefer ujian linked to projek, but fallback to any ujian registered with mahasiswa_id
+        $ujianTA = null;
+        if ($projek) {
+            // Use latest() to ensure we pick the most recent ujian record for this projek
+            $ujianTA = UjianTA::where('id_proyek_akhir', $projek->id_proyek_akhir)->latest()->first();
+        }
+
+        if (! $ujianTA) {
+            // fallback: find ujian by mahasiswa user id (covers legacy / timing cases)
+            $ujianTA = UjianTA::where('mahasiswa_id', $user->id)->latest()->first();
+            if ($ujianTA && ! $projek) {
+                // try to set projek from ujian relation if available
+                try {
+                    $projek = $ujianTA->projekAkhir ?? null;
+                } catch (\Throwable $t) {
+                    // ignore - keep projek as null
+                }
+            }
+        }
+
+        Log::debug('UjianTAController index resolved', ['user_id' => $user->id, 'projek_id' => $projek?->id_proyek_akhir, 'ujian_id' => $ujianTA?->id_ujian, 'status' => $ujianTA?->status_pendaftaran]);
 
         // Pass flags to the view for UX guidance
         return view('mahasiswa.ujian-ta', compact('proposal', 'produksi', 'ujianTA', 'missingProposal', 'produksiNotApproved', 'projek'));

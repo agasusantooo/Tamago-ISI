@@ -25,6 +25,7 @@ class MahasiswaFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'status' => fake()->randomElement(['aktif', 'non-aktif', 'lulus']),
             'dosen_pembimbing_id' => fake()->randomElement($dosenIds) ?? null,
+            'rumpun_ilmu' => fake()->randomElement(['fotografi', 'film dan televisi', 'animasi', 'produksi film dan televisi']),
         ];
     }
 }

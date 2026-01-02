@@ -26,6 +26,7 @@ class Mahasiswa extends Model
         'dosen_pembimbing_id',
         'email',
         'status',
+        'rumpun_ilmu',
     ];
 
     public function user()

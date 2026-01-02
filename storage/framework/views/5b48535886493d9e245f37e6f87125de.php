@@ -250,4 +250,4 @@
         setInterval(fetchDashboardData, 10000);
     </script>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('kaprodi.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\C\Tamago-ISI\resources\views/dashboards/kaprodi.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('kaprodi.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\C\Tamago-ISI\resources\views\dashboards\kaprodi.blade.php ENDPATH**/ ?>

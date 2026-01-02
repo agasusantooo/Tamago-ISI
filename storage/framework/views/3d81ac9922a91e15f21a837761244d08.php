@@ -153,18 +153,75 @@
                     }
                 ?>
 
-                <?php
+                <?php if(!empty($ujianTA)): ?>
+                    
+                    <?php
+                        $timelineItems = [];
+                        $timelineItems[] = ['title' => 'Pengajuan Ujian', 'date' => ($ujianTA->tanggal_daftar ? $ujianTA->tanggal_daftar->format('d M Y') : '—'), 'color' => 'green'];
+                        $statusPendaftaran = strtolower(str_replace([' ', '-', '_'], '', $ujianTA->status_pendaftaran ?? ''));
+                        if (strpos($statusPendaftaran, 'jadwal') !== false || $ujianTA->tanggal_ujian) {
+                            $timelineItems[] = ['title' => 'Jadwal Ditetapkan', 'date' => ($ujianTA->tanggal_ujian ? $ujianTA->tanggal_ujian->format('d M Y') : '—'), 'color' => 'green'];
+                        }
+                        if (strpos($statusPendaftaran, 'ujianberlangsung') !== false || strpos(strtolower($ujianTA->status_ujian ?? ''), 'berlangsung') !== false || strpos(strtolower($ujianTA->status_ujian ?? ''), 'selesai') !== false) {
+                            $timelineItems[] = ['title' => 'Ujian Berlangsung', 'date' => ($ujianTA->tanggal_ujian ? $ujianTA->tanggal_ujian->format('d M Y') : '—'), 'color' => (strpos(strtolower($ujianTA->status_ujian ?? ''), 'selesai') !== false ? 'green' : 'blue')];
+                        }
+                        $timelineItems[] = ['title' => 'Revisi Selesai', 'date' => (strpos(strtolower($ujianTA->status_revisi ?? ''), 'selesai') !== false) ? ($ujianTA->tanggal_approve_revisi?->format('d M Y') ?? '—') : 'Pending', 'color' => (strpos(strtolower($ujianTA->status_revisi ?? ''), 'selesai') !== false ? 'green' : 'gray')];
+
+                        $pendaftaranMap = [
+                            'pengajuan_ujian' => ['label' => 'Pengajuan Ujian', 'bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
+                            'jadwal_ditetapkan' => ['label' => 'Jadwal Ditetapkan', 'bg' => 'bg-blue-100', 'text' => 'text-blue-800'],
+                            'ujian_berlangsung' => ['label' => 'Ujian Berlangsung', 'bg' => 'bg-purple-100', 'text' => 'text-purple-800'],
+                            'belum_ujian' => ['label' => 'Belum Ujian', 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'],
+                            'selesai_ujian' => ['label' => 'Selesai Ujian', 'bg' => 'bg-green-100', 'text' => 'text-green-800'],
+                        ];
+
+                        $key = $ujianTA->status_pendaftaran ?? null;
+                        $currentPendaftaran = $key && isset($pendaftaranMap[$key]) ? $pendaftaranMap[$key] : ['label' => ucfirst(str_replace('_',' ', $key ?? 'Tidak ada status')), 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'];
+                    ?>
+
+                    <div class="bg-white rounded-lg shadow p-4 mb-6">
+                        <h4 class="font-semibold mb-3">Timeline Ujian</h4>
+                        <?php if(count($timelineItems) > 0): ?>
+                            <ul class="space-y-3 text-sm text-gray-700">
+                                <?php $__currentLoopData = $timelineItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php $dotClass = ($item['color'] === 'green') ? 'bg-green-500' : (($item['color'] === 'blue') ? 'bg-blue-500' : 'bg-gray-300'); ?>
+                                    <li class="flex items-start">
+                                        <span class="w-3 h-3 <?php echo e($dotClass); ?> rounded-full mr-3 mt-1"></span>
+                                        <div>
+                                            <div class="font-semibold"><?php echo e($item['title']); ?></div>
+                                            <div class="text-xs text-gray-500"><?php echo e($item['date']); ?></div>
+                                        </div>
+                                    </li>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </ul>
+                        <?php else: ?>
+                            <p class="text-sm text-gray-500">Belum ada aktivitas.</p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h4 class="font-semibold mb-3">Status Pengajuan</h4>
+                        <div class="px-3 py-4 rounded <?php echo e($currentPendaftaran['bg']); ?>">
+                            <div class="font-semibold <?php echo e($currentPendaftaran['text']); ?>"><?php echo e($currentPendaftaran['label']); ?></div>
+                            <div class="text-sm text-gray-600 mt-2">Setelah mengajukan, pengajuan Anda akan diverifikasi oleh admin dalam 1-3 hari kerja.</div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <span class="inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded text-sm">Hasil akan tersedia setelah ujian selesai</span>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <?php
 $__split = function ($name, $params = []) {
     return [$name, $params];
 };
 [$__name, $__params] = $__split('mahasiswa.ujian-timeline', [
-                    'projekId' => optional($projek)->id_proyek_akhir ?? null,
-                    'ujianId' => optional($ujianTA)->id_ujian ?? optional($ujianTA)->getKey() ?? null,
-                    'status' => $initialStatus,
-                    'ujianStatusPendaftaran' => optional($ujianTA)->status_pendaftaran ?? null,
-                    'ujianStatus' => optional($ujianTA)->status_ujian ?? null,
-                    'ujianTanggalDaftar' => $initialTanggal,
-                ]);
+                        'projekId' => optional($projek)->id_proyek_akhir ?? null,
+                        'ujianId' => optional($ujianTA)->id_ujian ?? optional($ujianTA)->getKey() ?? null,
+                        'status' => $initialStatus,
+                        'ujianStatusPendaftaran' => optional($ujianTA)->status_pendaftaran ?? null,
+                        'ujianStatus' => optional($ujianTA)->status_ujian ?? null,
+                        'ujianTanggalDaftar' => $initialTanggal,
+                    ]);
 
 $__html = app('livewire')->mount($__name, $__params, 'lw-1474918660-0', $__slots ?? [], get_defined_vars());
 
@@ -176,6 +233,7 @@ unset($__params);
 unset($__split);
 if (isset($__slots)) unset($__slots);
 ?>
+                <?php endif; ?>
 
                 <?php if(session('ujian_registered')): ?>
                     <script>

@@ -57,22 +57,6 @@ class ProposalController extends Controller
         $mahasiswa = $user->mahasiswa;
         $mahasiswaNim = $mahasiswa ? $mahasiswa->nim : null;
 
-        // Validasi: mahasiswa harus melakukan bimbingan minimal 6x sebelum mengajukan proposal
-        $bimbinganCount = 0;
-        if ($mahasiswa) {
-            $bimbinganCount = Bimbingan::where(function ($q) use ($user, $mahasiswa) {
-                $q->where('mahasiswa_id', $user->id)
-                    ->orWhere('nim', $mahasiswa->nim);
-            })
-                ->where('status', 'disetujui')
-                ->count();
-        }
-
-        if ($bimbinganCount < 6) {
-            return redirect()->route('mahasiswa.bimbingan.index')
-                ->with('warning', 'Anda harus melakukan bimbingan minimal 6 kali sebelum mengajukan proposal. Saat ini Anda baru melakukan '.$bimbinganCount.' bimbingan yang disetujui.');
-        }
-
         $latestProposal = $mahasiswaNim ? Proposal::where('mahasiswa_nim', $mahasiswaNim)
             ->latest()
             ->first() : null;
@@ -84,7 +68,6 @@ class ProposalController extends Controller
         return view('mahasiswa.proposal.create', [
             'proposal' => null, // Set to null for create form
             'dosens' => $dosens,
-            'bimbinganCount' => $bimbinganCount,
         ]);
     }
 
@@ -120,8 +103,17 @@ class ProposalController extends Controller
 
         $proposal->statusBadge = $badges[$proposal->status] ?? $badges['draft'];
 
+        // Prepare dosen label: prefer the Dosen model name, fall back to the stored dosen_id (nidn) if present.
+        $dosenLabel = null;
+        if ($proposal->dosen) {
+            $dosenLabel = trim($proposal->dosen->nama . ' ' . ($proposal->dosen->gelar ?? ''));
+        } elseif ($proposal->dosen_id) {
+            $dosenLabel = 'Dosen yang diajukan: ' . $proposal->dosen_id;
+        }
+
         return view('mahasiswa.proposal.show', [
             'proposal' => $proposal,
+            'dosenLabel' => $dosenLabel,
         ]);
     }
 
@@ -130,25 +122,14 @@ class ProposalController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi bimbingan minimal 6x
         $user = Auth::user();
         $mahasiswa = $user->mahasiswa;
-        $bimbinganCount = Bimbingan::where(function ($q) use ($user, $mahasiswa) {
-            $q->where('mahasiswa_id', $user->id)
-                ->orWhere('nim', $mahasiswa->nim);
-        })
-            ->where('status', 'disetujui')
-            ->count();
-
-        if ($bimbinganCount < 6) {
-            return back()->with('error', 'Anda harus melakukan bimbingan minimal 6 kali sebelum mengajukan proposal. Saat ini Anda baru melakukan '.$bimbinganCount.' bimbingan yang disetujui.');
-        }
 
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string|min:100',
-            'rumpun_ilmu' => 'required|string|in:"Penciptaan Seni","Pengkajian Seni","Media Rekam"',
-            'dosen_id' => 'nullable|exists:dosens,id',
+            'rumpun_ilmu' => 'required|string|in:"Fotografi","Film dan Televisi","Animasi","Produksi Film dan Televisi"',
+            'dosen_id' => 'nullable|exists:dosen,nidn',
             'file_proposal' => 'required|file|mimes:pdf|max:10240', // 10MB
             'file_pitch_deck' => 'nullable|file|mimes:pdf,ppt,pptx|max:15360', // 15MB
         ], [
@@ -274,8 +255,8 @@ class ProposalController extends Controller
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string|min:100',
-            'rumpun_ilmu' => 'required|string|in:"Penciptaan Seni","Pengkajian Seni","Media Rekam"',
-            'dosen_id' => 'nullable|exists:dosens,id',
+            'rumpun_ilmu' => 'required|string|in:"Fotografi","Film dan Televisi","Animasi","Produksi Film dan Televisi"',
+            'dosen_id' => 'nullable|exists:dosen,nidn',
             'file_proposal' => 'nullable|file|mimes:pdf|max:10240', // Optional on update
             'file_pitch_deck' => 'nullable|file|mimes:pdf,ppt,pptx|max:15360', // Optional on update
         ]);

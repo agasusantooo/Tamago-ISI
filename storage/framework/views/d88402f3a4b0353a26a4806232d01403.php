@@ -247,4 +247,4 @@
         setInterval(refreshPenilaianData, 5000);
     </script>
 </body>
-</html><?php /**PATH D:\C\Tamago-ISI\resources\views/dosen_penguji/penilaian.blade.php ENDPATH**/ ?>
+</html><?php /**PATH D:\C\Tamago-ISI\resources\views\dosen_penguji\penilaian.blade.php ENDPATH**/ ?>
