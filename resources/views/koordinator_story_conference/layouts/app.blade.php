@@ -16,7 +16,7 @@
         <div class="flex-1 flex flex-col overflow-hidden">
             
             {{-- The header can be shared for now, or customized later --}}
-            @include('koordinator_ta.partials.header-koordinator')
+            @include('koordinator_story_conference.partials.header-koordinator')
 
             <main class="flex-1 overflow-y-auto p-6">
                 @yield('content')

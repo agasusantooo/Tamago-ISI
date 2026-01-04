@@ -110,13 +110,14 @@ class MahasiswaProduksiController extends Controller
                 'produksi_dosen_id' => $produksi->dosen_id,
             ]);
 
-            // Validasi bahwa dosen yang login adalah dosen pembimbing mahasiswa ini
-            if (! $dosenAuth || ! $authNidn || $authNidn !== $mahasiswaDosenPembimbingId) {
+            // Authorization: allow if user is matched to produksi/pembimbing similar to proposal logic
+            $isAuthorized = $this->isUserAuthorizedForProduksi($dosenAuth, $dosenModel, $produksi, $mahasiswa);
+            if (! $isAuthorized) {
                 \Log::warning('Unauthorized access attempt to approve produksi pra', [
-                    'auth_nidn' => $authNidn,
-                    'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
                     'produksi_id' => $produksi->id,
                     'user_id' => auth()->id(),
+                    'produksi_dosen_id' => $produksi->dosen_id,
+                    'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
                 ]);
 
                 return $this->handleResponse($request, 'error', 'Anda tidak berhak approve produksi mahasiswa ini.', 403);
@@ -136,6 +137,16 @@ class MahasiswaProduksiController extends Controller
             // Update status dan feedback
             \Log::info('About to update produksi pra', ['produksi_id' => $produksi->id, 'updateData' => $updateData]);
             $result = $produksi->update($updateData);
+
+            if ($result === false) {
+                \Log::critical('Silent fail on Pra Produksi update', [
+                    'produksi_id' => $produksi->id,
+                    'update_data' => $updateData,
+                ]);
+
+                return $this->handleResponse($request, 'error', 'Gagal memperbarui database (silent fail).', 500);
+            }
+
             \Log::info('Produksi pra update result', ['result' => $result, 'produksi_id' => $produksi->id]);
 
             \Log::info('Produksi pra updated', ['produksi_id' => $produksi->id, 'status' => $status, 'has_feedback' => ! empty($feedback)]);
@@ -191,13 +202,14 @@ class MahasiswaProduksiController extends Controller
                 'produksi_dosen_id' => $produksi->dosen_id,
             ]);
 
-            // Validasi bahwa dosen yang login adalah dosen pembimbing mahasiswa ini
-            if (! $dosenAuth || ! $authNidn || $authNidn !== $mahasiswaDosenPembimbingId) {
+            // Authorization: allow if user is matched to produksi/pembimbing similar to proposal logic
+            $isAuthorized = $this->isUserAuthorizedForProduksi($dosenAuth, $dosenModel, $produksi, $mahasiswa);
+            if (! $isAuthorized) {
                 \Log::warning('Unauthorized access attempt to reject produksi pra', [
-                    'auth_nidn' => $authNidn,
-                    'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
                     'produksi_id' => $produksi->id,
                     'user_id' => auth()->id(),
+                    'produksi_dosen_id' => $produksi->dosen_id,
+                    'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
                 ]);
 
                 return $this->handleResponse($request, 'error', 'Anda tidak berhak reject produksi mahasiswa ini.', 403);
@@ -280,16 +292,24 @@ class MahasiswaProduksiController extends Controller
                 'produksi_dosen_id' => $produksi->dosen_id,
             ]);
 
-            // Validasi bahwa dosen yang login adalah dosen pembimbing mahasiswa ini
-            if (! $dosenAuth || ! $authNidn || $authNidn !== $mahasiswaDosenPembimbingId) {
+            // Authorization: allow if user is matched to produksi/pembimbing similar to proposal logic
+            $isAuthorized = $this->isUserAuthorizedForProduksi($dosenAuth, $dosenModel, $produksi, $mahasiswa);
+            if (! $isAuthorized) {
                 \Log::warning('Unauthorized access attempt to approve produksi produksi', [
-                    'auth_nidn' => $authNidn,
-                    'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
                     'produksi_id' => $produksi->id,
                     'user_id' => auth()->id(),
+                    'produksi_dosen_id' => $produksi->dosen_id,
+                    'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
                 ]);
 
                 return $this->handleResponse($request, 'error', 'Anda tidak berhak approve produksi mahasiswa ini.', 403);
+            }
+
+            // Business rule: Pra produksi harus terlebih dahulu disetujui sebelum menilai Produksi
+            if ($produksi->status_pra_produksi !== 'disetujui') {
+                \Log::info('Prevented produksi approval because pra produksi not approved', ['produksi_id' => $produksi->id, 'status_pra_produksi' => $produksi->status_pra_produksi]);
+
+                return $this->handleResponse($request, 'error', 'Pra Produksi harus disetujui terlebih dahulu sebelum menilai Produksi.', 422);
             }
 
             // Prepare update data
@@ -303,7 +323,16 @@ class MahasiswaProduksiController extends Controller
                 $updateData['feedback_produksi'] = $feedback;
             }
 
-            $produksi->update($updateData);
+            $result = $produksi->update($updateData);
+
+            if ($result === false) {
+                \Log::critical('Silent fail on Produksi update', [
+                    'produksi_id' => $produksi->id,
+                    'update_data' => $updateData,
+                ]);
+
+                return $this->handleResponse($request, 'error', 'Gagal memperbarui database (silent fail).', 500);
+            }
 
             \Log::info('Produksi produksi updated', ['produksi_id' => $produksi->id, 'status' => $status, 'has_feedback' => ! empty($feedback)]);
             \Log::info('Produksi produksi after update', ['status' => $produksi->fresh()->status_produksi, 'feedback' => $produksi->fresh()->feedback_produksi]);
@@ -359,7 +388,10 @@ class MahasiswaProduksiController extends Controller
             ]);
 
             // Validasi bahwa dosen yang login adalah dosen pembimbing mahasiswa ini
-            if (! $dosenAuth || ! $authNidn || $authNidn !== $mahasiswaDosenPembimbingId) {
+            // Fallback: jika mahasiswa tidak memiliki dosen_pembimbing_id, izinkan jika produksi->dosen_id == dosenModel->nidn
+            $produksiDosenMatches = $dosenModel && $produksi->dosen_id && $dosenModel->nidn == $produksi->dosen_id;
+            $isAuthorized = $dosenAuth && ( ($authNidn && $authNidn === $mahasiswaDosenPembimbingId) || $produksiDosenMatches );
+            if (! $isAuthorized) {
                 \Log::warning('Unauthorized access attempt to reject produksi produksi', [
                     'auth_nidn' => $authNidn,
                     'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
@@ -447,16 +479,24 @@ class MahasiswaProduksiController extends Controller
                 'produksi_dosen_id' => $produksi->dosen_id,
             ]);
 
-            // Validasi bahwa dosen yang login adalah dosen pembimbing mahasiswa ini
-            if (! $dosenAuth || ! $authNidn || $authNidn !== $mahasiswaDosenPembimbingId) {
+            // Authorization: allow if user is matched to produksi/pembimbing similar to proposal logic
+            $isAuthorized = $this->isUserAuthorizedForProduksi($dosenAuth, $dosenModel, $produksi, $mahasiswa);
+            if (! $isAuthorized) {
                 \Log::warning('Unauthorized access attempt to approve pasca produksi', [
-                    'auth_nidn' => $authNidn,
-                    'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
                     'produksi_id' => $produksi->id,
                     'user_id' => auth()->id(),
+                    'produksi_dosen_id' => $produksi->dosen_id,
+                    'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
                 ]);
 
                 return $this->handleResponse($request, 'error', 'Anda tidak berhak approve produksi mahasiswa ini.', 403);
+            }
+
+            // Business rule: Produksi harus disetujui terlebih dahulu sebelum menilai Pasca Produksi
+            if ($produksi->status_produksi !== 'disetujui') {
+                \Log::info('Prevented pasca produksi approval because produksi not approved', ['produksi_id' => $produksi->id, 'status_produksi' => $produksi->status_produksi]);
+
+                return $this->handleResponse($request, 'error', 'Produksi harus disetujui terlebih dahulu sebelum menilai Pasca Produksi.', 422);
             }
 
             // Prepare update data - PASCA PRODUKSI
@@ -470,7 +510,16 @@ class MahasiswaProduksiController extends Controller
                 $updateData['feedback_pasca_produksi'] = $feedback;
             }
 
-            $produksi->update($updateData);
+            $result = $produksi->update($updateData);
+
+            if ($result === false) {
+                \Log::critical('Silent fail on Pasca Produksi update', [
+                    'produksi_id' => $produksi->id,
+                    'update_data' => $updateData,
+                ]);
+
+                return $this->handleResponse($request, 'error', 'Gagal memperbarui database (silent fail).', 500);
+            }
 
             \Log::info('Produksi pasca updated', ['produksi_id' => $produksi->id, 'status' => $status, 'has_feedback' => ! empty($feedback)]);
             \Log::info('Produksi pasca after update', ['status' => $produksi->fresh()->status_pasca_produksi, 'feedback' => $produksi->fresh()->feedback_pasca_produksi]);
@@ -526,7 +575,10 @@ class MahasiswaProduksiController extends Controller
             ]);
 
             // Validasi bahwa dosen yang login adalah dosen pembimbing mahasiswa ini
-            if (! $dosenAuth || ! $authNidn || $authNidn !== $mahasiswaDosenPembimbingId) {
+            // Fallback: jika mahasiswa tidak memiliki dosen_pembimbing_id, izinkan jika produksi->dosen_id == dosenModel->id
+            $produksiDosenMatches = $dosenModel && $produksi->dosen_id && $dosenModel->id == $produksi->dosen_id;
+            $isAuthorized = $dosenAuth && ( ($authNidn && $authNidn === $mahasiswaDosenPembimbingId) || $produksiDosenMatches );
+            if (! $isAuthorized) {
                 \Log::warning('Unauthorized access attempt to reject pasca produksi', [
                     'auth_nidn' => $authNidn,
                     'mahasiswa_dosen_pembimbing_id' => $mahasiswaDosenPembimbingId,
@@ -699,20 +751,45 @@ class MahasiswaProduksiController extends Controller
             if (\App\Models\Dosen::where('nidn', $generatedNidn)->exists()) {
                 $generatedNidn = '9'.str_pad($user->id . time() % 1000000, 7, '0', STR_PAD_LEFT);
             }
-
-            $dosen = \App\Models\Dosen::create([
-                'nidn' => $generatedNidn,
-                'user_id' => $user->id,
-                'nama' => $user->name,
-                'jabatan' => 'Dosen',
-                'rumpun_ilmu' => 'fotografi',
-                'status' => 'aktif',
-            ]);
-
-            \Log::info('Auto-created Dosen record for auth user', ['user_id' => $user->id, 'nidn' => $generatedNidn]);
         }
 
         return $dosen;
+    }
+
+    /**
+     * Determine whether an authenticated user should be allowed to approve/reject a Produksi.
+     * This mirrors the simpler behavior used for proposal approvals:
+     * - Allow if the produksi record references the authenticated user (e.g., produksi.dosen_id == Auth::id())
+     * - Allow if the authenticated user's Dosen record matches the produksi.dosen_id (by id or nidn)
+     * - Allow if the mahasiswa.dosen_pembimbing_id matches authenticated user's nidn or id
+     */
+    private function isUserAuthorizedForProduksi($user, $dosenModel, $produksi, $mahasiswa)
+    {
+        if (! $user) return false;
+
+        $authId = $user->id;
+        $authNidn = $dosenModel?->nidn ?? null;
+
+        // Case 1: produksi directly references the auth user id (proposal-like)
+        if (! empty($produksi->dosen_id) && (string)$produksi->dosen_id === (string)$authId) {
+            return true;
+        }
+
+        // Case 2: produksi references a nidn or dosen id that matches the authenticated user's Dosen model
+        if (! empty($produksi->dosen_id) && $dosenModel) {
+            if ((string)$produksi->dosen_id === (string)$dosenModel->id || (string)$produksi->dosen_id === (string)$authNidn) {
+                return true;
+            }
+        }
+
+        // Case 3: mahasiswa's pembimbing id matches either authenticated user's id or nidn
+        if ($mahasiswa && ! empty($mahasiswa->dosen_pembimbing_id)) {
+            if ((string)$mahasiswa->dosen_pembimbing_id === (string)$authId || (string)$mahasiswa->dosen_pembimbing_id === (string)$authNidn) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -99,6 +99,9 @@ class ProduksiController extends Controller
                 'tanggal_upload_pra' => $produksi->tanggal_upload_pra ? $produksi->tanggal_upload_pra->toIsoString() : null,
                 'tanggal_upload_produksi' => $produksi->tanggal_upload_produksi ? $produksi->tanggal_upload_produksi->toIsoString() : null,
                 'tanggal_upload_pasca' => $produksi->tanggal_upload_pasca ? $produksi->tanggal_upload_pasca->toIsoString() : null,
+                'feedback_pra_produksi' => $produksi->feedback_pra_produksi ?? null,
+                'feedback_produksi' => $produksi->feedback_produksi ?? null,
+                'feedback_pasca_produksi' => $produksi->feedback_pasca_produksi ?? null,
             ];
         });
 

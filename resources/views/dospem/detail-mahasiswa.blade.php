@@ -584,12 +584,14 @@
         currentProduksiType = null;
     }
 
-    // Handle produksi form submission
-    document.getElementById('produksiModalForm')?.addEventListener('submit', function(e) {
+    // Handle produksi form submission (use event delegation so listener works even when form is rendered later)
+    document.addEventListener('submit', function(e) {
+        if (!e.target || e.target.id !== 'produksiModalForm') return;
         e.preventDefault();
 
-        const status = document.querySelector('input[name="produksi_status"]:checked')?.value;
-        const feedback = document.querySelector('textarea[name="produksi_feedback"]').value;
+        const form = e.target;
+        const status = form.querySelector('input[name="produksi_status"]:checked')?.value;
+        const feedback = form.querySelector('textarea[name="produksi_feedback"]')?.value || '';
 
         if (!status) {
             alert('⚠️ Pilih status terlebih dahulu!');
@@ -621,12 +623,15 @@
         }
         
         const url = baseUrl.replace('PLACEHOLDER', currentProduksiId);
-        const submitBtn = this.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        }
 
         console.log('Submitting produksi review to', url, { produksi_status: status, produksi_feedback: feedback });
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const token = tokenMeta ? tokenMeta.getAttribute('content') : null;
         console.log('DEBUG produksi submit — CSRF token present:', !!token, 'cookieEnabled:', navigator.cookieEnabled, 'cookieLen:', document.cookie.length);
         fetch(url, {
             method: 'POST',
@@ -664,8 +669,10 @@
                 console.error('Server returned error', res.status, data);
                 const msg = (data && (data.message || data.error)) || 'Terjadi kesalahan.';
                 alert('❌ ' + (msg) + (res.status ? ' (HTTP ' + res.status + ')' : ''));
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-check"></i> Kirim Feedback';
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Kirim Feedback';
+                }
             }
         })
         .catch(err => {
@@ -679,8 +686,10 @@
                 return;
             }
             alert('❌ Gagal mengirim: ' + (err.message || err));
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-check"></i> Kirim Feedback';
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Kirim Feedback';
+            }
         });
     });
 

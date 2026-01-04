@@ -14,7 +14,7 @@
         <div class="flex-1 flex flex-col overflow-hidden">
             
             {{-- Note: header-koordinator mungkin perlu dibuat juga jika isinya berbeda --}}
-            @include('koordinator_ta.partials.header-koordinator')
+            @include('koordinator_tefa.partials.header-koordinator')
 
             <main class="flex-1 overflow-y-auto p-6">
                 <div class="max-w-7xl mx-auto">

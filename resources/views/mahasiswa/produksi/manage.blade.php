@@ -32,10 +32,44 @@
                                 statusBox.innerHTML = `<div class="text-center py-8"><i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i><p class="text-sm text-gray-500">Belum ada data pra produksi</p><p class="text-xs text-gray-400 mt-1">Upload file di atas untuk memulai</p></div>`;
                                 return;
                             }
-                            // Simple status representation
+                            // Compute overall status based on all stages (pra, produksi, pasca)
                             let statusText = 'Status belum tersedia';
-                            if (produksi.status_pra_produksi) statusText = produksi.status_pra_produksi;
-                            let feedback = produksi.feedback_pra_produksi || null;
+                            let feedback = null;
+
+                            // Normalize values
+                            const pra = produksi.status_pra_produksi || null;
+                            const prod = produksi.status_produksi || null;
+                            const pasca = produksi.status_pasca_produksi || null;
+
+                            if ((pra === 'disetujui' || pra === 'selesai') && (prod === 'disetujui' || prod === 'selesai') && (pasca === 'disetujui' || pasca === 'selesai')) {
+                                statusText = 'Selesai';
+                                feedback = produksi.feedback_pasca_produksi || produksi.feedback_produksi || produksi.feedback_pra_produksi || null;
+                            } else if (pasca === 'revisi') {
+                                statusText = 'Revisi Pasca-Produksi';
+                                feedback = produksi.feedback_pasca_produksi || null;
+                            } else if (pasca === 'menunggu_review' || pasca === 'review') {
+                                statusText = 'Review Pasca-Produksi';
+                                feedback = produksi.feedback_pasca_produksi || null;
+                            } else if (prod === 'revisi') {
+                                statusText = 'Revisi Produksi';
+                                feedback = produksi.feedback_produksi || null;
+                            } else if (prod === 'menunggu_review' || prod === 'review') {
+                                statusText = 'Menunggu Review Produksi';
+                                feedback = produksi.feedback_produksi || null;
+                            } else if (pra === 'revisi') {
+                                statusText = 'Revisi Pra-Produksi';
+                                feedback = produksi.feedback_pra_produksi || null;
+                            } else if (pra === 'menunggu_review' || pra === 'review') {
+                                statusText = 'Menunggu Review Pra-Produksi';
+                                feedback = produksi.feedback_pra_produksi || null;
+                            } else if (pra === 'disetujui') {
+                                statusText = 'Disetujui Pra-Produksi';
+                                feedback = produksi.feedback_pra_produksi || null;
+                            } else {
+                                statusText = produksi.overallStatusBadge?.text || 'Belum Dimulai';
+                                feedback = produksi.feedback_pra_produksi || produksi.feedback_produksi || produksi.feedback_pasca_produksi || null;
+                            }
+
                             statusBox.innerHTML = `<h3 class="font-bold text-gray-800 mb-4">Status Persetujuan</h3> <div class="mb-4"><div class="flex items-center space-x-2 mb-2"><span class="font-semibold text-gray-800">${statusText}</span></div></div> <div class="border-t pt-4"><h4 class="font-semibold text-gray-800 mb-3">Catatan/Feedback Dosen Pembimbing</h4> ${feedback ? `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4"><p class="text-sm text-gray-700 leading-relaxed">${feedback}</p></div>` : `<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4"><p class="text-sm text-gray-700">Belum ada Feedback</p></div>`} </div>`;
                         }catch(e){console.error('Failed to fetch produksi manage updates', e);}    
                     }

@@ -773,17 +773,58 @@ class DashboardController extends Controller
         $hasPengujiColumn = $schema->hasColumn('ujian_tugas_akhir', 'penguji_ahli_id');
 
         $loggedUserId = $user->id;
-        // Ambil ujian TA yang dosen ini menjadi penguji
+        // Ambil ujian TA yang dosen ini menjadi penguji atau pembimbing
+        $dosen = \App\Models\Dosen::where('user_id', $user->id)->first();
+        $dosenNidn = $dosen?->nidn ?? null;
+
         if (! $hasKetuaColumn || ! $hasPengujiColumn) {
             // Migrations not applied yet; return empty set and flag (handled by view)
             $ujianTA = collect();
         } else {
-            $ujianTA = UjianTA::where(function ($q) use ($loggedUserId) {
+            $ujianTA = UjianTA::where(function ($q) use ($loggedUserId, $dosenNidn) {
                 $q->where('ketua_penguji_id', $loggedUserId)
-                    ->orWhere('penguji_ahli_id', $loggedUserId);
+                    ->orWhere('penguji_ahli_id', $loggedUserId)
+                    ->orWhere('dosen_pembimbing_id', $dosenNidn)
+                    ->orWhere('dosen_pembimbing_id', $loggedUserId)
+                    // Also consider cases where the ujian row doesn't have dosen_pembimbing_id filled
+                    ->orWhereHas('mahasiswa', function ($qq) use ($dosenNidn, $loggedUserId) {
+                        $qq->where('dosen_pembimbing_id', $dosenNidn)
+                           ->orWhere('dosen_pembimbing_id', $loggedUserId);
+                    })
+                    ->orWhereHas('projekAkhir', function ($qq) use ($dosenNidn, $loggedUserId) {
+                        $qq->whereHas('mahasiswa', function ($qqq) use ($dosenNidn, $loggedUserId) {
+                            $qqq->where('dosen_pembimbing_id', $dosenNidn)
+                                ->orWhere('dosen_pembimbing_id', $loggedUserId);
+                        });
+                    });
             })
                 ->orderBy('tanggal_ujian', 'asc')
+                ->with(['mahasiswa.user','projekAkhir.mahasiswa.user'])
                 ->get();
+
+            // Also include ujian where mahasiswa/projek's mahasiswa is this dosen's pembimbing
+            $extra = UjianTA::where(function ($q) use ($dosenNidn, $loggedUserId) {
+                $q->whereHas('mahasiswa', function ($qq) use ($dosenNidn, $loggedUserId) {
+                    $qq->where('dosen_pembimbing_id', $dosenNidn)
+                       ->orWhere('dosen_pembimbing_id', $loggedUserId);
+                })
+                ->orWhereHas('projekAkhir', function ($qq) use ($dosenNidn, $loggedUserId) {
+                    $qq->whereHas('mahasiswa', function ($qqq) use ($dosenNidn, $loggedUserId) {
+                        $qqq->where('dosen_pembimbing_id', $dosenNidn)
+                            ->orWhere('dosen_pembimbing_id', $loggedUserId);
+                    });
+                });
+            })->with(['mahasiswa.user','projekAkhir.mahasiswa.user'])->get();
+
+            $ujianTA = $ujianTA->merge($extra)->unique('id_ujian')->sortBy('tanggal_ujian')->values();
+
+            // Include any pending "pengajuan_ujian" so dosen penguji can see new registrations in real time
+            $pending = UjianTA::where('status_pendaftaran', 'pengajuan_ujian')
+                ->orderBy('tanggal_ujian', 'asc')
+                ->with(['mahasiswa.user','projekAkhir.mahasiswa.user'])
+                ->get();
+
+            $ujianTA = $ujianTA->merge($pending)->unique('id_ujian')->sortBy('tanggal_ujian')->values();
         }
 
         // Hitung ujian berdasarkan status
@@ -815,9 +856,9 @@ class DashboardController extends Controller
 
                 return [
                     'id' => $u->id_ujian,
-                    'mahasiswa' => $u->mahasiswa?->name ?? 'Unknown',
-                    'nim' => $u->mahasiswa?->nim ?? '-',
-                    'judul' => $u->judul_ta ?? '-',
+                    'mahasiswa' => ($u->mahasiswa?->name ?: $u->mahasiswa?->user?->name ?: $u->projekAkhir?->mahasiswa?->user?->name) ?? 'Unknown',
+                    'nim' => $u->mahasiswa?->nim ?? ($u->projekAkhir?->nim ?? '-'),
+                    'judul' => $u->judul_ta ?: ($u->projekAkhir?->judul ?: '-'),
                     'status' => $u->status_ujian,
                     'status_key' => $statusKey,
                     'status_label' => $statusLabel,
@@ -856,27 +897,73 @@ class DashboardController extends Controller
         $schema = \Illuminate\Support\Facades\Schema::getConnection()->getSchemaBuilder();
         $hasKetuaColumn = $schema->hasColumn('ujian_tugas_akhir', 'ketua_penguji_id');
         $hasPengujiColumn = $schema->hasColumn('ujian_tugas_akhir', 'penguji_ahli_id');
+        $dosen = \App\Models\Dosen::where('user_id', $user->id)->first();
+        $dosenNidn = $dosen?->nidn ?? null;
+
         if (! $hasKetuaColumn || ! $hasPengujiColumn) {
             $ujianTA = collect();
         } else {
-            $ujianTA = UjianTA::where(function ($q) use ($user) {
+            $ujianTA = UjianTA::where(function ($q) use ($user, $dosenNidn) {
                 $q->where('ketua_penguji_id', $user->id)
-                    ->orWhere('penguji_ahli_id', $user->id);
+                    ->orWhere('penguji_ahli_id', $user->id)
+                    ->orWhere('dosen_pembimbing_id', $dosenNidn)
+                    ->orWhere('dosen_pembimbing_id', $user->id);
             })
                 ->orderBy('tanggal_ujian', 'asc')
+                ->with(['mahasiswa.user','projekAkhir.mahasiswa.user'])
                 ->get()
                 ->map(function ($u) {
                     return [
                         'id' => $u->id_ujian,
-                        'nim' => $u->mahasiswa?->nim ?? '-',
-                        'nama' => $u->mahasiswa?->name ?? 'Unknown',
-                        'judul' => $u->judul_ta ?? '-',
+                        'nim' => $u->mahasiswa?->nim ?? ($u->projekAkhir?->nim ?? '-'),
+                        'nama' => ($u->mahasiswa?->name ?: $u->mahasiswa?->user?->name ?: $u->projekAkhir?->mahasiswa?->user?->name) ?? 'Unknown',
+                        'judul' => $u->judul_ta ?: ($u->projekAkhir?->judul ?: '-'),
                         'tanggal' => $u->tanggal_ujian?->format('Y-m-d H:i') ?? '-',
                         'status' => $u->nilai_akhir ? 'Sudah Dinilai' : 'Belum Dinilai',
                         'nilai' => $u->nilai_akhir,
                     ];
                 });
         }
+
+        // Also include ujian that relate to mahasiswa/projek pembimbing (in case dosen_pembimbing_id on ujian row is empty)
+        $extra = UjianTA::where(function ($q) use ($dosenNidn, $user) {
+            $q->whereHas('mahasiswa', function ($qq) use ($dosenNidn, $user) {
+                $qq->where('dosen_pembimbing_id', $dosenNidn)
+                   ->orWhere('dosen_pembimbing_id', $user->id);
+            })->orWhereHas('projekAkhir', function ($qq) use ($dosenNidn, $user) {
+                $qq->whereHas('mahasiswa', function ($qqq) use ($dosenNidn, $user) {
+                    $qqq->where('dosen_pembimbing_id', $dosenNidn)
+                        ->orWhere('dosen_pembimbing_id', $user->id);
+                });
+            });
+        })->with(['mahasiswa.user','projekAkhir.mahasiswa.user'])->get()->map(function ($u) {
+            return [
+                'id' => $u->id_ujian,
+                'nim' => $u->mahasiswa?->nim ?? ($u->projekAkhir?->nim ?? '-'),
+                'nama' => ($u->mahasiswa?->name ?: $u->mahasiswa?->user?->name ?: $u->projekAkhir?->mahasiswa?->user?->name) ?? 'Unknown',
+                'judul' => $u->judul_ta ?: ($u->projekAkhir?->judul ?: '-'),
+                'tanggal' => $u->tanggal_ujian?->format('Y-m-d H:i') ?? '-',
+                'status' => $u->nilai_akhir ? 'Sudah Dinilai' : 'Belum Dinilai',
+                'nilai' => $u->nilai_akhir,
+            ];
+        });
+
+        $ujianTA = collect($ujianTA)->merge($extra)->unique('id')->values();
+
+        // Also include pending registrations for visibility
+        $pending = UjianTA::where('status_pendaftaran', 'pengajuan_ujian')->orderBy('tanggal_ujian', 'asc')->with(['mahasiswa.user','projekAkhir.mahasiswa.user'])->get()->map(function ($u) {
+            return [
+                'id' => $u->id_ujian,
+                'nim' => $u->mahasiswa?->nim ?? ($u->projekAkhir?->nim ?? '-'),
+                'nama' => ($u->mahasiswa?->name ?: $u->mahasiswa?->user?->name ?: $u->projekAkhir?->mahasiswa?->user?->name) ?? 'Unknown',
+                'judul' => $u->judul_ta ?: ($u->projekAkhir?->judul ?: '-'),
+                'tanggal' => $u->tanggal_ujian?->format('Y-m-d H:i') ?? '-',
+                'status' => $u->nilai_akhir ? 'Sudah Dinilai' : 'Belum Dinilai',
+                'nilai' => $u->nilai_akhir,
+            ];
+        });
+
+        $ujianTA = collect($ujianTA)->merge($pending)->unique('id')->values();
 
         return view('dosen_penguji.penilaian', ['ujianList' => $ujianTA]);
     }
@@ -890,27 +977,73 @@ class DashboardController extends Controller
         $schema = \Illuminate\Support\Facades\Schema::getConnection()->getSchemaBuilder();
         $hasKetuaColumn = $schema->hasColumn('ujian_tugas_akhir', 'ketua_penguji_id');
         $hasPengujiColumn = $schema->hasColumn('ujian_tugas_akhir', 'penguji_ahli_id');
+        $dosen = \App\Models\Dosen::where('user_id', $user->id)->first();
+        $dosenNidn = $dosen?->nidn ?? null;
+
         if (! $hasKetuaColumn || ! $hasPengujiColumn) {
             $ujianTA = collect();
         } else {
-            $ujianTA = UjianTA::where(function ($q) use ($user) {
+            $ujianTA = UjianTA::where(function ($q) use ($user, $dosenNidn) {
                 $q->where('ketua_penguji_id', $user->id)
-                    ->orWhere('penguji_ahli_id', $user->id);
+                    ->orWhere('penguji_ahli_id', $user->id)
+                    ->orWhere('dosen_pembimbing_id', $dosenNidn)
+                    ->orWhere('dosen_pembimbing_id', $user->id);
             })
                 ->orderBy('tanggal_ujian', 'asc')
+                ->with(['mahasiswa.user','projekAkhir.mahasiswa.user'])
                 ->get()
                 ->map(function ($u) {
                     return [
                         'id' => $u->id_ujian,
-                        'nim' => $u->mahasiswa?->nim ?? '-',
-                        'nama' => $u->mahasiswa?->name ?? 'Unknown',
-                        'judul' => $u->judul_ta ?? '-',
+                        'nim' => $u->mahasiswa?->nim ?? ($u->projekAkhir?->nim ?? '-'),
+                        'nama' => ($u->mahasiswa?->name ?: $u->mahasiswa?->user?->name ?: $u->projekAkhir?->mahasiswa?->user?->name) ?? 'Unknown',
+                        'judul' => $u->judul_ta ?: ($u->projekAkhir?->judul ?: '-'),
                         'tanggal' => $u->tanggal_ujian?->format('Y-m-d H:i') ?? '-',
                         'status' => $u->nilai_akhir ? 'Sudah Dinilai' : 'Belum Dinilai',
                         'nilai' => $u->nilai_akhir,
                     ];
                 });
         }
+
+        // Also include ujian that relate to mahasiswa/projek pembimbing (in case dosen_pembimbing_id on ujian row is empty)
+        $extra = UjianTA::where(function ($q) use ($dosenNidn, $user) {
+            $q->whereHas('mahasiswa', function ($qq) use ($dosenNidn, $user) {
+                $qq->where('dosen_pembimbing_id', $dosenNidn)
+                   ->orWhere('dosen_pembimbing_id', $user->id);
+            })->orWhereHas('projekAkhir', function ($qq) use ($dosenNidn, $user) {
+                $qq->whereHas('mahasiswa', function ($qqq) use ($dosenNidn, $user) {
+                    $qqq->where('dosen_pembimbing_id', $dosenNidn)
+                        ->orWhere('dosen_pembimbing_id', $user->id);
+                });
+            });
+        })->with(['mahasiswa.user','projekAkhir.mahasiswa.user'])->get()->map(function ($u) {
+            return [
+                'id' => $u->id_ujian,
+                'nim' => $u->mahasiswa?->nim ?? ($u->projekAkhir?->nim ?? '-'),
+                'nama' => ($u->mahasiswa?->name ?: $u->mahasiswa?->user?->name ?: $u->projekAkhir?->mahasiswa?->user?->name) ?? 'Unknown',
+                'judul' => $u->judul_ta ?: ($u->projekAkhir?->judul ?: '-'),
+                'tanggal' => $u->tanggal_ujian?->format('Y-m-d H:i') ?? '-',
+                'status' => $u->nilai_akhir ? 'Sudah Dinilai' : 'Belum Dinilai',
+                'nilai' => $u->nilai_akhir,
+            ];
+        });
+
+        $ujianTA = collect($ujianTA)->merge($extra)->unique('id')->values();
+
+        // Include pending registrations as well
+        $pending = UjianTA::where('status_pendaftaran', 'pengajuan_ujian')->orderBy('tanggal_ujian', 'asc')->with(['mahasiswa.user','projekAkhir.mahasiswa.user'])->get()->map(function ($u) {
+            return [
+                'id' => $u->id_ujian,
+                'nim' => $u->mahasiswa?->nim ?? ($u->projekAkhir?->nim ?? '-'),
+                'nama' => ($u->mahasiswa?->name ?: $u->mahasiswa?->user?->name ?: $u->projekAkhir?->mahasiswa?->user?->name) ?? 'Unknown',
+                'judul' => $u->judul_ta ?: ($u->projekAkhir?->judul ?: '-'),
+                'tanggal' => $u->tanggal_ujian?->format('Y-m-d H:i') ?? '-',
+                'status' => $u->nilai_akhir ? 'Sudah Dinilai' : 'Belum Dinilai',
+                'nilai' => $u->nilai_akhir,
+            ];
+        });
+
+        $ujianTA = collect($ujianTA)->merge($pending)->unique('id')->values();
 
         return response()->json([
             'status' => 'success',
@@ -928,16 +1061,46 @@ class DashboardController extends Controller
             'nilai' => 'required|numeric|min:0|max:100',
         ]);
 
-        $ujian = UjianTA::findOrFail($request->ujian_id);
+        // Load ujian with relations to check pembimbing-based authorization
+        $ujian = UjianTA::with(['mahasiswa','projekAkhir','mahasiswa.user','projekAkhir.mahasiswa'])->findOrFail($request->ujian_id);
 
-        // Authorization check: user must be ketua_penguji or penguji_ahli
+        // Authorization: allow ketua/penguji OR dosen pembimbing (either stored on ujian row or on related mahasiswa/projek)
         $user = Auth::user();
-        $isAuthorized = ($ujian->ketua_penguji_id == $user->id || $ujian->penguji_ahli_id == $user->id);
+        $dosen = \App\Models\Dosen::where('user_id', $user->id)->first();
+        $dosenNidn = $dosen?->nidn ?? null;
+
+        $isAuthorized = false;
+        // direct penguji check
+        if ($ujian->ketua_penguji_id == $user->id || $ujian->penguji_ahli_id == $user->id) {
+            $isAuthorized = true;
+        }
+
+        // dosen pembimbing stored on ujian row (could be user id or nidn)
+        if ($ujian->dosen_pembimbing_id == $user->id || ($dosenNidn && $ujian->dosen_pembimbing_id == $dosenNidn)) {
+            $isAuthorized = true;
+        }
+
+        // pembimbing set on related mahasiswa
+        if ($ujian->mahasiswa && ($ujian->mahasiswa->dosen_pembimbing_id == $user->id || ($dosenNidn && $ujian->mahasiswa->dosen_pembimbing_id == $dosenNidn))) {
+            $isAuthorized = true;
+        }
+
+        // pembimbing set via projekAkhir->mahasiswa
+        if ($ujian->projekAkhir && $ujian->projekAkhir->mahasiswa && (
+            $ujian->projekAkhir->mahasiswa->dosen_pembimbing_id == $user->id || ($dosenNidn && $ujian->projekAkhir->mahasiswa->dosen_pembimbing_id == $dosenNidn)
+        )) {
+            $isAuthorized = true;
+        }
+
         if (! $isAuthorized) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized: Anda bukan penguji ujian ini',
-            ], 403);
+            // Allow users with the 'dosen_penguji' role to grade entries visible in the penilaian dashboard
+            $role = method_exists($user, 'getRoleName') ? $user->getRoleName() : null;
+            if ($role !== 'dosen_penguji') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized: Anda bukan penguji atau pembimbing ujian ini',
+                ], 403);
+            }
         }
 
         // Update ujian with nilai

@@ -55,10 +55,13 @@
                                                 <input type="url" name="link_jurnal" value="{{ old('link_jurnal', optional($projek)->link_jurnal) }}" placeholder="https://journal.example.com/article/123" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-3 py-2 text-sm" />
                                             </div>
 
-                                            @if(optional($projek)->file_naskah_publikasi)
-                                                <div id="naskahPublishedBox" class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
+                                            @if(optional($projek)->file_naskah_publikasi && \Illuminate\Support\Facades\Storage::disk('public')->exists(optional($projek)->file_naskah_publikasi))
+                                                <div id="naskahPublishedBox" data-projek-id="{{ $projek->id_proyek_akhir ?? $projek->id }}" class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
                                                     <p class="text-sm text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> Naskah sudah diunggah</p>
-                                                    <a href="{{ route('mahasiswa.naskah-karya.download', [$projek->id_proyek_akhir ?? $projek->id, 'naskah']) }}" class="text-sm text-yellow-600 hover:underline"><i class="fas fa-download mr-1"></i> Download Naskah</a>
+                                                    <p class="text-xs text-gray-500 mb-1">File: <strong>{{ basename(optional($projek)->file_naskah_publikasi) }}</strong></p>
+                                                    @if(optional($projek)->tanggal_upload_naskah)
+                                                        <p class="text-xs text-gray-500 mb-1">Diunggah: {{ \Carbon\Carbon::parse($projek->tanggal_upload_naskah)->format('d M Y H:i') }}</p>
+                                                    @endif
                                                 </div>
                                             @endif
 
@@ -85,10 +88,13 @@
                                                     <p id="karyaFileName" class="text-sm text-blue-600 font-medium mt-2"></p>
                                                 </div>
 
-                                                @if(optional($produksi)->file_produksi)
-                                                    <div id="produksiFileBox" class="mt-3 bg-green-50 border border-green-200 rounded p-3">
+                                                @if(optional($produksi)->file_produksi && \Illuminate\Support\Facades\Storage::disk('public')->exists(optional($produksi)->file_produksi))
+                                                    <div id="produksiFileBox" data-produksi-id="{{ $produksi->id }}" class="mt-3 bg-green-50 border border-green-200 rounded p-3">
                                                         <p class="text-xs text-green-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p>
-                                                        <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'akhir']) }}" class="text-sm text-blue-600 hover:underline"><i class="fas fa-download mr-1"></i> Download File</a>
+                                                        <p class="text-xs text-gray-500 mb-1">File: <strong>{{ basename(optional($produksi)->file_produksi) }}</strong></p>
+                                                        @if(optional($produksi)->tanggal_upload_produksi)
+                                                            <p class="text-xs text-gray-500 mb-1">Diunggah: {{ \Carbon\Carbon::parse($produksi->tanggal_upload_produksi)->format('d M Y H:i') }}</p>
+                                                        @endif
                                                     <p class="text-xs text-gray-500 mt-2">Maksimum 500MB - MP4/MOV/AVI/MKV/PDF/ZIP</p>
                                                     <input type="file" id="fileKarya" name="file_produksi_akhir" accept=".mp4,.mov,.avi,.mkv,.pdf,.zip" class="hidden" onchange="updateFileName(this, 'karyaFileName')">
                                                     <button type="button" onclick="document.getElementById('fileKarya').click()" class="mt-3 px-6 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700">Pilih File</button>
@@ -96,10 +102,13 @@
                                                 </div>
                                                 @endif
 
-                                                    @if(optional($produksi)->file_produksi_akhir)
-                                                    <div id="produksiFileAkhirBox" class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
+                                                    @if(optional($produksi)->file_produksi_akhir && \Illuminate\Support\Facades\Storage::disk('public')->exists(optional($produksi)->file_produksi_akhir))
+                                                    <div id="produksiFileAkhirBox" data-produksi-id="{{ $produksi->id }}" data-type="akhir" class="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
                                                         <p class="text-xs text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p>
-                                                        <a href="{{ route('mahasiswa.produksi.download', [$produksi->id, 'akhir']) }}" class="text-sm text-yellow-600 hover:underline"><i class="fas fa-download mr-1"></i> Download File</a>
+                                                        <p class="text-xs text-gray-500 mb-1">File: <strong>{{ basename(optional($produksi)->file_produksi_akhir ?: optional($produksi)->file_produksi) }}</strong></p>
+                                                        @if(optional($produksi)->tanggal_upload_produksi)
+                                                            <p class="text-xs text-gray-500 mb-1">Diunggah: {{ \Carbon\Carbon::parse(optional($produksi)->tanggal_upload_produksi)->format('d M Y H:i') }}</p>
+                                                        @endif
                                                     </div>
                                                 @endif
 
@@ -306,6 +315,24 @@
 
 @section('scripts')
 <script>
+    function isHiddenNaskah(id) {
+        return localStorage.getItem(`hidden_naskah_${id}`) === '1';
+    }
+    function isHiddenProduksi(id, type) {
+        return localStorage.getItem(`hidden_produksi_${id}_${type}`) === '1';
+    }
+    function hideNaskah(id) {
+        localStorage.setItem(`hidden_naskah_${id}`, '1');
+        const el = document.querySelector(`#naskahPublishedBox[data-projek-id="${id}"]`);
+        if (el) el.remove();
+    }
+    function hideProduksi(id, type) {
+        localStorage.setItem(`hidden_produksi_${id}_${type}`, '1');
+        const selector = type === 'akhir' ? `#produksiFileAkhirBox[data-produksi-id="${id}"]` : `#produksiFileBox[data-produksi-id="${id}"]`;
+        const el = document.querySelector(selector);
+        if (el) el.remove();
+    }
+
     async function fetchNaskahUpdates(){
         try {
             const res = await fetch("{{ route('mahasiswa.naskah-karya.check-updates') }}", { headers: { 'Accept': 'application/json' } });
@@ -318,8 +345,10 @@
 
             const naskahBox = document.getElementById('naskahPublishedBox');
             if (naskahBox) {
-                if (projek && projek.file_naskah_publikasi) {
-                    naskahBox.innerHTML = `<p class="text-sm text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> Naskah sudah diunggah</p><a href="/mahasiswa/naskah-karya/${projek.id}/naskah" class="text-sm text-yellow-600 hover:underline"><i class='fas fa-download mr-1'></i> Download Naskah</a>`;
+                if (projek && projek.file_naskah_publikasi && !isHiddenNaskah(projek.id)) {
+                    const fileName = projek.file_naskah_publikasi.split('/').pop();
+                    naskahBox.dataset.projekId = projek.id;
+                    naskahBox.innerHTML = `<p class="text-sm text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> Naskah sudah diunggah</p><p class="text-xs text-gray-500 mb-1">File: <strong>${fileName}</strong></p>`;
                 } else {
                     naskahBox.innerHTML = '';
                 }
@@ -327,22 +356,42 @@
 
             const produksiBox = document.getElementById('produksiFileBox');
             const produksiAkhirBox = document.getElementById('produksiFileAkhirBox');
+
             if (produksiBox) {
-                if (produksi && produksi.file_produksi) {
-                    produksiBox.innerHTML = `<p class="text-xs text-green-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p><a href="/mahasiswa/produksi/${produksi.id}/akhir" class="text-sm text-blue-600 hover:underline"><i class='fas fa-download mr-1'></i> Download File</a>`;
+                if (produksi && produksi.file_produksi && !isHiddenProduksi(produksi.id, 'produksi')) {
+                    const fileName = produksi.file_produksi.split('/').pop();
+                    produksiBox.dataset.produksiId = produksi.id;
+                    produksiBox.innerHTML = `<p class="text-xs text-green-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File sudah diunggah</p><p class="text-xs text-gray-500 mb-1">File: <strong>${fileName}</strong></p>`;
                 } else {
                     produksiBox.innerHTML = '';
                 }
             }
             if (produksiAkhirBox) {
-                if (produksi && produksi.file_produksi_akhir) {
-                    produksiAkhirBox.innerHTML = `<p class="text-xs text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File akhir sudah diunggah</p><a href="/mahasiswa/produksi/${produksi.id}/akhir" class="text-sm text-yellow-600 hover:underline"><i class='fas fa-download mr-1'></i> Download File</a>`;
+                if (produksi && produksi.file_produksi_akhir && !isHiddenProduksi(produksi.id, 'akhir')) {
+                    const fileName = (produksi.file_produksi_akhir || produksi.file_produksi).split('/').pop();
+                    produksiAkhirBox.dataset.produksiId = produksi.id;
+                    produksiAkhirBox.dataset.type = 'akhir';
+                    produksiAkhirBox.innerHTML = `<p class="text-xs text-yellow-800 mb-1"><i class="fas fa-check-circle mr-1"></i> File akhir sudah diunggah</p><p class="text-xs text-gray-500 mb-1">File: <strong>${fileName}</strong></p>`;
                 } else {
                     produksiAkhirBox.innerHTML = '';
                 }
             }
         } catch (e) { console.error('Failed to fetch naskah updates', e); }
     }
-    document.addEventListener('DOMContentLoaded', function(){ fetchNaskahUpdates(); setInterval(fetchNaskahUpdates, 15000); });
+
+    function removeHiddenBoxesOnLoad() {
+        // remove server-rendered boxes if hidden flags are present
+        document.querySelectorAll('[data-projek-id]').forEach(el => {
+            const id = el.dataset.projekId;
+            if (id && isHiddenNaskah(id)) el.remove();
+        });
+        document.querySelectorAll('[data-produksi-id]').forEach(el => {
+            const id = el.dataset.produksiId;
+            const type = el.dataset.type || (el.id === 'produksiFileBox' ? 'produksi' : 'akhir');
+            if (id && isHiddenProduksi(id, type)) el.remove();
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){ fetchNaskahUpdates(); removeHiddenBoxesOnLoad(); setInterval(fetchNaskahUpdates, 15000); });
 </script>
 @endsection

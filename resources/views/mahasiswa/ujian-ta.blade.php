@@ -183,8 +183,8 @@
 
                     <div class="bg-white rounded-lg shadow p-4 mb-6">
                         <h4 class="font-semibold mb-3">Timeline Ujian</h4>
-                        @if(count($timelineItems) > 0)
-                            <ul class="space-y-3 text-sm text-gray-700">
+                        <ul id="timelineList" class="space-y-3 text-sm text-gray-700">
+                            @if(count($timelineItems) > 0)
                                 @foreach($timelineItems as $item)
                                     @php $dotClass = ($item['color'] === 'green') ? 'bg-green-500' : (($item['color'] === 'blue') ? 'bg-blue-500' : 'bg-gray-300'); @endphp
                                     <li class="flex items-start">
@@ -195,20 +195,25 @@
                                         </div>
                                     </li>
                                 @endforeach
-                            </ul>
-                        @else
-                            <p class="text-sm text-gray-500">Belum ada aktivitas.</p>
-                        @endif
+                            @else
+                                <li class="text-sm text-gray-500">Belum ada aktivitas.</li>
+                            @endif
+                        </ul>
                     </div>
 
                     <div class="bg-white rounded-lg shadow p-4">
                         <h4 class="font-semibold mb-3">Status Pengajuan</h4>
-                        <div class="px-3 py-4 rounded {{ $currentPendaftaran['bg'] }}">
-                            <div class="font-semibold {{ $currentPendaftaran['text'] }}">{{ $currentPendaftaran['label'] }}</div>
+                        <div id="statusPendaftaranCard" class="px-3 py-4 rounded {{ $currentPendaftaran['bg'] }}">
+                            <div id="statusPendaftaranLabel" class="font-semibold {{ $currentPendaftaran['text'] }}">{{ $currentPendaftaran['label'] }}</div>
                             <div class="text-sm text-gray-600 mt-2">Setelah mengajukan, pengajuan Anda akan diverifikasi oleh admin dalam 1-3 hari kerja.</div>
                         </div>
                         <div class="mt-4 text-center">
-                            <span class="inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded text-sm">Hasil akan tersedia setelah ujian selesai</span>
+                            @if(!empty($ujianTA) && (strpos(strtolower($ujianTA->status_ujian ?? ''), 'selesai') !== false))
+                                <a id="hasilLink" href="{{ route('mahasiswa.ujian-ta.hasil') }}" class="inline-block px-4 py-2 bg-indigo-600 text-white rounded shadow text-sm hover:bg-indigo-700">Lihat Hasil</a>
+                            @else
+                                <a id="hasilLink" href="{{ route('mahasiswa.ujian-ta.hasil') }}" class="inline-block px-4 py-2 bg-indigo-600 text-white rounded shadow text-sm hover:bg-indigo-700 hidden">Lihat Hasil</a>
+                            @endif
+                            <span id="hasilHint" class="inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded text-sm @if(!empty($ujianTA) && (strpos(strtolower($ujianTA->status_ujian ?? ''), 'selesai') !== false)) hidden @endif">Hasil akan tersedia setelah ujian selesai</span>
                         </div>
                     </div>
                 @else
@@ -231,6 +236,73 @@
                         });
                     </script>
                 @endif
+
+                <script>
+                    // Poll the ujian status endpoint every 5 seconds and update the timeline/status card
+                    (function () {
+                        const ujianId = {{ json_encode($ujianTA->id_ujian ?? null) }};
+                        if (!ujianId) return;
+
+                        async function fetchStatus() {
+                            try {
+                                const res = await fetch(`{{ url('/mahasiswa/ujian-ta') }}/${ujianId}/status`, { headers: { 'Accept': 'application/json' } });
+                                if (!res.ok) return;
+                                const payload = await res.json();
+                                if (payload.status !== 'success') return;
+                                const data = payload.data;
+
+                                // Update timeline
+                                const timelineEl = document.getElementById('timelineList');
+                                if (timelineEl && Array.isArray(data.timeline)) {
+                                    timelineEl.innerHTML = data.timeline.map(item => {
+                                        const dot = item.color === 'green' ? 'bg-green-500' : (item.color === 'blue' ? 'bg-blue-500' : 'bg-gray-300');
+                                        return `
+                                            <li class="flex items-start">
+                                                <span class="w-3 h-3 ${dot} rounded-full mr-3 mt-1"></span>
+                                                <div>
+                                                    <div class="font-semibold">${item.title}</div>
+                                                    <div class="text-xs text-gray-500">${item.date}</div>
+                                                </div>
+                                            </li>`;
+                                    }).join('');
+                                }
+
+                                // Update status card
+                                const card = document.getElementById('statusPendaftaranCard');
+                                const label = document.getElementById('statusPendaftaranLabel');
+                                if (card && label && data.currentPendaftaran) {
+                                    // replace classes
+                                    card.className = 'px-3 py-4 rounded ' + (data.currentPendaftaran.bg || 'bg-gray-100');
+                                    label.className = 'font-semibold ' + (data.currentPendaftaran.text || 'text-gray-800');
+                                    label.textContent = data.currentPendaftaran.label || label.textContent;
+                                }
+
+                                // Handle hasil availability: show link when finished
+                                const hasilHint = document.getElementById('hasilHint');
+                                const hasilLink = document.getElementById('hasilLink');
+                                const isFinished = (data.currentPendaftaran && data.currentPendaftaran.label && data.currentPendaftaran.label.toLowerCase().includes('selesai')) || (data.status_ujian && data.status_ujian.toLowerCase().includes('selesai'));
+                                if (hasilHint && hasilLink) {
+                                    if (isFinished) {
+                                        hasilHint.classList.add('hidden');
+                                        hasilLink.classList.remove('hidden');
+                                        // ensure link points to hasil route
+                                        hasilLink.setAttribute('href', '{{ route('mahasiswa.ujian-ta.hasil') }}');
+                                    } else {
+                                        hasilHint.classList.remove('hidden');
+                                        hasilLink.classList.add('hidden');
+                                        hasilHint.textContent = 'Hasil akan tersedia setelah ujian selesai';
+                                    }
+                                }
+
+                            } catch (e) {
+                                console.warn('Failed to fetch ujian status', e);
+                            }
+                        }
+
+                        // Initial fetch + polling
+                        document.addEventListener('DOMContentLoaded', function () { fetchStatus(); setInterval(fetchStatus, 5000); });
+                    })();
+                </script>
             </div>
 
             {{-- status and action moved into livewire component for realtime updates --}}

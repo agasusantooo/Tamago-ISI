@@ -45,5 +45,39 @@
             </div>
         </form>
     </div>
+
+    {{-- Jadwal history --}}
+    <div class="max-w-4xl mx-auto mt-6">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Riwayat Jadwal TEFA Fair</h3>
+
+            @if(!empty($history) && $history->count())
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">No</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nama Acara</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Periode</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Disimpan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($history as $h)
+                                <tr @if(isset($jadwal->id) && $jadwal->id === $h->id) class="bg-yellow-50" @endif>
+                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $loop->iteration }}</td>
+                                    <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $h->title }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-700">{{ \Carbon\Carbon::parse($h->start)->format('d M Y') }}{{ $h->end ? ' - ' . \Carbon\Carbon::parse($h->end)->format('d M Y') : '' }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $h->created_at ? $h->created_at->format('d M Y H:i') : '-' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="text-sm text-gray-500">Belum ada jadwal TEFA yang tersimpan.</p>
+            @endif
+        </div>
+    </div>
 </div>
 @endsection

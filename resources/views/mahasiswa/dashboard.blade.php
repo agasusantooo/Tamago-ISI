@@ -123,9 +123,6 @@
                                                     <div class="ml-3 text-right flex flex-col items-end">
                                                         <p class="text-xs text-gray-600">Bobot: {{ (int)$detail['weight'] }}%</p>
                                                         <p class="text-xs font-semibold text-gray-800">{{ (int)($detail['fraction'] * 100) }}%</p>
-                                                        @if($actionRoute)
-                                                            <a href="{{ $actionRoute }}" class="mt-2 inline-block px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">{{ $actionLabel }}</a>
-                                                        @endif
                                                     </div>
                                                 </div>
                                             @empty

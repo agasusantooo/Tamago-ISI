@@ -10,7 +10,6 @@
         <div class="lg:col-span-8">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
                 <h2 class="text-lg font-semibold mb-4">Hasil Ujian Tugas Akhir</h2>
-                <p class="text-sm text-gray-600 mb-4">Status dan feedback hasil ujian tugas akhir Anda</p>
 
                 {{-- Determine status and styling --}}
                 @php
@@ -42,8 +41,6 @@
                                     Selamat! Ujian Anda dinyatakan lulus. Nilai akhir dan berita acara dapat didownload di bawah.
                                 @elseif(strpos($statusUjian, 'revisi') !== false)
                                     Ujian Anda memerlukan beberapa perbaikan sebelum dapat dinyatakan lulus. Silakan lihat catatan feedback di bawah ini.
-                                @else
-                                    Ujian belum diproses. Silakan hubungi dosen jika ada pertanyaan.
                                 @endif
                             </div>
                         </div>
@@ -64,6 +61,28 @@
                             <i class="fas fa-download mr-1"></i>Download Berita Acara Ujian
                         </a>
                     @endif
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-4 mt-4">
+                    <h4 class="font-semibold mb-3">Ringkasan Hasil</h4>
+                    <div class="text-sm text-gray-700 grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-xs text-gray-500">Status Ujian</div>
+                            <div class="font-semibold">{{ ucwords(str_replace('_', ' ', $ujianTA->status_ujian ?? '-')) }}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Tanggal Ujian</div>
+                            <div class="font-semibold">{{ $ujianTA->tanggal_ujian?->format('d M Y') ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Nilai Akhir</div>
+                            <div class="font-semibold">{{ $ujianTA->hasil_akhir ?? $ujianTA->nilai_akhir ?? '-' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Catatan</div>
+                            <div class="font-semibold">{{ $ujianTA->catatan_penguj ? 'Ada catatan' : 'Tidak ada catatan' }}</div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Revisi section only show if status needs revision --}}
@@ -134,15 +153,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-4">
-                <h4 class="font-semibold mb-3">Ringkasan Hasil</h4>
-                <div class="text-sm text-gray-700 space-y-2">
-                    <p><strong>Status Ujian:</strong> {{ ucwords(str_replace('_', ' ', $ujianTA->status_ujian ?? '-')) }}</p>
-                    <p><strong>Tanggal Ujian:</strong> {{ $ujianTA->tanggal_ujian?->format('d M Y') ?? '-' }}</p>
-                    <p><strong>Nilai Akhir:</strong> {{ $ujianTA->hasil_akhir ?? $ujianTA->nilai_akhir ?? '-' }}</p>
-                    <p><strong>Catatan:</strong> {{ $ujianTA->catatan_penguj ? 'Ada catatan' : 'Tidak ada catatan' }}</p>
-                </div>
-            </div>
+
         </div>
     </div>
 </div>

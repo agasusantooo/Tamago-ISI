@@ -8,7 +8,7 @@
                  class="w-12 h-12 object-contain rounded-lg">
             <div>
                 <h1 class="font-bold text-lg text-gray-800">Tamago ISI</h1>
-                <p class="text-xs text-gray-500">Koordinator TEFA</p>
+                <p class="text-xs text-gray-500">Koordinator TEFA Fair</p>
             </div>
         </div>
     </div>

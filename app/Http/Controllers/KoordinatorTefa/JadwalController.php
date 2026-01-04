@@ -15,11 +15,17 @@ class JadwalController extends Controller
      */
     public function index()
     {
-        // There should only be one timeline entry for TEFA.
-        // We use firstOrNew to get the existing one or create a new instance.
-        $jadwal = JadwalAcara::firstOrNew(['type' => $this->eventType]);
+        // Use latest jadwal as the current active one, and fetch history for listing.
+        $jadwal = JadwalAcara::where('type', $this->eventType)->orderBy('created_at', 'desc')->first();
 
-        return view('koordinator_tefa.jadwal', compact('jadwal'));
+        if (! $jadwal) {
+            // If none exists yet, initialize an empty instance so the form still works.
+            $jadwal = new JadwalAcara(['type' => $this->eventType]);
+        }
+
+        $history = JadwalAcara::where('type', $this->eventType)->orderBy('created_at', 'desc')->get();
+
+        return view('koordinator_tefa.jadwal', compact('jadwal', 'history'));
     }
 
     /**
@@ -46,14 +52,15 @@ class JadwalController extends Controller
         ], $messages);
 
         try {
-            JadwalAcara::updateOrCreate(
-                ['type' => $this->eventType],
-                [
-                    'title' => $request->input('title'),
-                    'start' => $request->input('start'),
-                    'end' => $request->input('end'),
-                ]
-            );
+            // Create a new history entry each time a jadwal is saved so we keep a record of past setups.
+            JadwalAcara::create([
+                'type' => $this->eventType,
+                'title' => $request->input('title'),
+                'start' => $request->input('start'),
+                'end' => $request->input('end'),
+            ]);
+
+            // Optionally, we could keep only the latest N records or implement versioning later.
 
             \Log::info('TEFA jadwal updated', ['by' => auth()->id(), 'title' => $request->input('title')]);
 

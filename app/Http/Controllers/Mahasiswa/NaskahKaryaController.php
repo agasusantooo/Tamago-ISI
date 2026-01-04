@@ -138,10 +138,25 @@ class NaskahKaryaController extends Controller
         $proposal = Proposal::where('mahasiswa_nim', $mahasiswa->nim)->where('status', 'disetujui')->latest()->first();
         $produksi = $proposal ? Produksi::where('mahasiswa_id', $user->id)->where('proposal_id', $proposal->id)->first() : null;
 
+        // Ensure we only claim a file exists when it actually exists on disk
+        $projekResp = null;
+        if ($projek) {
+            $fileNaskah = $projek->file_naskah_publikasi && \Illuminate\Support\Facades\Storage::disk('public')->exists($projek->file_naskah_publikasi) ? $projek->file_naskah_publikasi : null;
+            $projekResp = ['id' => $projek->id_proyek_akhir, 'judul' => $projek->judul, 'file_naskah_publikasi' => $fileNaskah];
+        }
+
+        $produksiResp = null;
+        if ($produksi) {
+            $fileProduksi = $produksi->file_produksi && \Illuminate\Support\Facades\Storage::disk('public')->exists($produksi->file_produksi) ? $produksi->file_produksi : null;
+            $fileProduksiAkhir = $produksi->file_produksi_akhir && \Illuminate\Support\Facades\Storage::disk('public')->exists($produksi->file_produksi_akhir) ? $produksi->file_produksi_akhir : null;
+
+            $produksiResp = ['id' => $produksi->id, 'status_produksi' => $produksi->status_produksi, 'file_produksi' => $fileProduksi, 'file_produksi_akhir' => $fileProduksiAkhir];
+        }
+
         return response()->json([
             'success' => true,
-            'projek' => $projek ? ['id' => $projek->id_proyek_akhir, 'judul' => $projek->judul, 'file_naskah_publikasi' => $projek->file_naskah_publikasi] : null,
-            'produksi' => $produksi ? ['id' => $produksi->id, 'status_produksi' => $produksi->status_produksi, 'file_produksi' => $produksi->file_produksi] : null,
+            'projek' => $projekResp,
+            'produksi' => $produksiResp,
         ]);
     }
 }
