@@ -828,9 +828,22 @@ class DashboardController extends Controller
         }
 
         // Hitung ujian berdasarkan status
-        $ujianSelesai = $ujianTA->where('status_ujian', 'selesai_ujian')->count();
-        $ujianMenungguNilai = $ujianTA->where('status_ujian', 'belum_ujian')->count();
-        $ujianMendatang = $ujianTA->where('tanggal_ujian', '>', now())->count();
+        // Define "Mendatang" as any ujian that is either explicitly scheduled in the future
+        // or still in "belum_ujian" state (i.e. not yet happened). This makes the chart
+        // reflect the "Belum Ujian" items shown in the list.
+        $ujianMendatang = $ujianTA->filter(function ($u) {
+            return ($u->tanggal_ujian && $u->tanggal_ujian > now()) || ($u->status_ujian === 'belum_ujian');
+        })->count();
+
+        // "Menunggu Nilai" means the exam finished but no grade has been recorded yet.
+        $ujianMenungguNilai = $ujianTA->filter(function ($u) {
+            return $u->status_ujian === 'selesai_ujian' && (is_null($u->nilai_akhir) || $u->nilai_akhir === '');
+        })->count();
+
+        // "Selesai" means finished and graded (nilai set)
+        $ujianSelesai = $ujianTA->filter(function ($u) {
+            return $u->status_ujian === 'selesai_ujian' && ! (is_null($u->nilai_akhir) || $u->nilai_akhir === '');
+        })->count();
 
         // Hitung rata-rata nilai
         $rataRataNilai = $ujianTA->avg('nilai_akhir') ?? 0;

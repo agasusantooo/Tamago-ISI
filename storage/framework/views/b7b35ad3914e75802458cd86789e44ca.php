@@ -1,0 +1,30 @@
+<header class="bg-white border-b shadow-md">
+    <div class="flex items-center px-6 py-4">
+        <div class="flex-1 mr-8">
+            <h1 class="text-lg font-semibold text-gray-700">Dosen Penguji</h1>
+            <div class="h-3"></div>
+        </div>
+    
+        <?php if (isset($component)) { $__componentOriginald26e54664725015b4d5304353f34e090 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginald26e54664725015b4d5304353f34e090 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.user-dropdown','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('user-dropdown'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginald26e54664725015b4d5304353f34e090)): ?>
+<?php $attributes = $__attributesOriginald26e54664725015b4d5304353f34e090; ?>
+<?php unset($__attributesOriginald26e54664725015b4d5304353f34e090); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginald26e54664725015b4d5304353f34e090)): ?>
+<?php $component = $__componentOriginald26e54664725015b4d5304353f34e090; ?>
+<?php unset($__componentOriginald26e54664725015b4d5304353f34e090); ?>
+<?php endif; ?>
+    </div>
+</header>
+<?php /**PATH D:\C\Tamago-ISI\resources\views/dosen_penguji/partials/header-dosen_penguji.blade.php ENDPATH**/ ?>

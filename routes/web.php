@@ -152,8 +152,6 @@ Route::middleware(['auth', 'role:mahasiswa'])
                 Route::get('/hasil', 'hasil')->name('hasil');
                 Route::get('/check/updates', 'checkUpdates')->name('check-updates');
                 Route::post('/submit-revisi', 'submitRevisi')->name('submit-revisi');
-                // Status endpoint used by client-side polling to get realtime updates after grading
-                Route::get('/{id}/status', 'status')->name('status');
                 Route::get('/{id}/{type}', 'download')->name('download');
             });
 

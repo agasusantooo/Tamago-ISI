@@ -23,28 +23,48 @@ class BimbinganController extends Controller
 
         // Ambil riwayat bimbingan mahasiswa dari database (hanya milik user yang login)
         // Pertahankan kompatibilitas: beberapa record lama mungkin hanya menyimpan `nim`.
-        $bimbinganList = Bimbingan::where(function ($q) use ($mahasiswa) {
-            $q->where('mahasiswa_id', $mahasiswa->user_id)
-                ->orWhere('nim', $mahasiswa->nim);
-        })
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($item) {
-                // Tambahkan warna dan teks status untuk tampilan
-                $statusMap = [
-                    'pending' => ['text' => 'Menunggu', 'color' => 'bg-yellow-100 text-yellow-800'],
-                    'disetujui' => ['text' => 'Disetujui', 'color' => 'bg-green-100 text-green-800'],
-                    'ditolak' => ['text' => 'Ditolak', 'color' => 'bg-red-100 text-red-800'],
-                ];
+        // Bangun query dengan aman agar tidak mengembalikan semua baris ketika identifier kosong.
+        $query = Bimbingan::query();
+        $query->where(function ($q) use ($mahasiswa) {
+            if ($mahasiswa->user_id) {
+                $q->where('mahasiswa_id', $mahasiswa->user_id);
+            }
+            if ($mahasiswa->nim) {
+                if ($mahasiswa->user_id) {
+                    $q->orWhere('nim', $mahasiswa->nim);
+                } else {
+                    $q->where('nim', $mahasiswa->nim);
+                }
+            }
+        });
 
-                $status = $statusMap[$item->status] ?? ['text' => 'Tidak Diketahui', 'color' => 'bg-gray-100 text-gray-800'];
+        // Jika tidak ada identifier sama sekali, kembalikan koleksi kosong untuk mencegah query luas
+        if (! $mahasiswa->user_id && ! $mahasiswa->nim) {
+            Log::warning('Bimbingan.index: mahasiswa has no identifiers, returning empty collection', ['user_id' => $mahasiswa->user_id ?? null, 'nim' => $mahasiswa->nim ?? null]);
+            $bimbinganList = collect();
+        } else {
+            $bimbinganList = $query
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($item) {
+                    // Tambahkan warna dan teks status untuk tampilan
+                    $statusMap = [
+                        'pending' => ['text' => 'Menunggu', 'color' => 'bg-yellow-100 text-yellow-800'],
+                        'disetujui' => ['text' => 'Disetujui', 'color' => 'bg-green-100 text-green-800'],
+                        'ditolak' => ['text' => 'Ditolak', 'color' => 'bg-red-100 text-red-800'],
+                    ];
 
-                $item->statusBadge = ['text' => $status['text']];
-                $item->statusColor = $status['color'];
-                $item->tanggal = $item->tanggal ?? now();
+                    $status = $statusMap[$item->status] ?? ['text' => 'Tidak Diketahui', 'color' => 'bg-gray-100 text-gray-800'];
 
-                return $item;
-            });
+                    $item->statusBadge = ['text' => $status['text']];
+                    $item->statusColor = $status['color'];
+                    $item->tanggal = $item->tanggal ?? now();
+
+                    return $item;
+                });
+
+            Log::debug('Bimbingan.index: fetched items', ['user_id' => $mahasiswa->user_id, 'nim' => $mahasiswa->nim, 'count' => $bimbinganList->count()]);
+        }
 
         // Jadwal bimbingan yang sudah dijadwalkan
         $jadwalTerjadwal = $bimbinganList->where('status', 'disetujui');
